@@ -1,0 +1,7 @@
+.env
+*.env
+agent-snap.toml
+target/
+models/
+logs/
+.agent-snap/
