@@ -5,3 +5,5 @@ target/
 models/
 logs/
 .agent-snap/
+.local/
+__pycache__/

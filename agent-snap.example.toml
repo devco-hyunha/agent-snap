@@ -1,0 +1,59 @@
+# agent-snap 설정 예시입니다. 이 파일을 사용자 설정 폴더에 agent-snap.toml로 복사해 값을 채웁니다.
+# 설정 폴더: Windows는 %APPDATA%\agent-snap, 그 밖은 $XDG_CONFIG_HOME/agent-snap(없으면 ~/.config/agent-snap)입니다.
+# 환경 변수 AGENT_SNAP_CONFIG_DIR로 폴더를 직접 지정할 수 있습니다.
+# 키 파일 .env도 같은 폴더에 둡니다. 실제 주소와 키를 이 예시 파일에 적지 않습니다.
+
+# 대상 언어 코드입니다(기본 ko).
+target_language = "ko"
+
+# 엔드포인트 목록입니다. 이름은 서로 달라야 합니다.
+# base_url은 OpenAI 호환 엔드포인트의 기본 주소입니다(보통 /v1까지). chat/completions와 models는 자동으로 붙습니다.
+# api_key_env는 키를 담은 변수의 "이름"입니다. 키 값 자체를 적으면 안 됩니다.
+# 키가 필요 없는 엔드포인트는 이 줄을 지웁니다. 지우면 인증 헤더를 보내지 않습니다.
+[[endpoints]]
+name = "<엔드포인트 이름 1>"
+base_url = "https://<엔드포인트 호스트 1>/v1"
+api_key_env = "<환경 변수 이름>"
+
+[[endpoints]]
+name = "<엔드포인트 이름 2>"
+base_url = "http://<엔드포인트 호스트 2>/v1"
+
+# 모델 목록입니다. 이름은 서로 달라야 하고 사용자가 부르는 이름입니다.
+# id는 서버에 보낼 모델 id, endpoint는 위 엔드포인트 이름 중 하나입니다.
+# [models.sampling]은 생략할 수 있고, 적은 것만 요청에 실립니다.
+[[models]]
+name = "<모델 이름 1>"
+id = "<서버에 보낼 모델 id 1>"
+endpoint = "<엔드포인트 이름 1>"
+[models.sampling]
+# temperature = 0.2
+# top_p = 0.95
+# max_tokens = 4096
+
+[[models]]
+name = "<모델 이름 2>"
+id = "<서버에 보낼 모델 id 2>"
+endpoint = "<엔드포인트 이름 2>"
+
+# 시간 단위는 초(소수 가능)입니다. 아래는 기본값입니다.
+[http]
+# connect_timeout_secs = 10      # 연결 단계 제한
+# header_timeout_secs = 300      # 요청 후 응답 헤더를 기다리는 제한(로컬 모델은 첫 응답이 늦을 수 있음)
+# idle_timeout_secs = 120        # 스트림에서 다음 청크를 기다리는 제한
+# max_retries = 3                # 최초 요청 외 재시도 횟수(429, 500/502/503/504, 연결 오류)
+# backoff_initial_secs = 1       # 지수 백오프 시작값
+# backoff_max_secs = 30          # 지수 백오프 상한
+# retry_after_max_secs = 60      # Retry-After를 따르는 상한. 넘으면 기다리지 않고 포기
+
+# 키 보관: 키는 이 파일이 아니라 설정 폴더의 .env에 적거나 환경 변수로 둡니다.
+# 조회 순서는 설정 폴더의 .env가 먼저이고, 거기에 없으면 환경 변수입니다. .env 예시입니다.
+#
+#   # 주석과 빈 줄은 무시합니다.
+#   <환경 변수 이름>=<키 값>
+#   QUOTED_EXAMPLE='값에 # 이나 공백이 있으면 따옴표로 감쌉니다'
+#
+# 지원하는 형식: 한 줄에 이름=값 하나, 이름은 영문자·숫자·밑줄(숫자로 시작 불가),
+# 값은 따옴표 없는 한 줄 / 작은따옴표 한 줄 / 큰따옴표 한 줄.
+# 이름은 있는데 값이 비어 있으면 환경 변수로 넘어가지 않고 오류입니다.
+# 거부하는 것(줄 번호만 알립니다): 따옴표 없는 값의 # 와 $, `export ` 접두어, 여러 줄 값, 같은 이름의 중복.

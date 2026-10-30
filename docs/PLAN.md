@@ -1,6 +1,6 @@
 # agent-snap 기획 개요
 
-- 상태: planned (사용자 승인 대기)
+- 상태: approved (2026-10-28 사용자 승인)
 - 작성일: 2026-10-28 (2차: 에이전트 우선으로 재구성)
 
 ## 목표
@@ -30,28 +30,28 @@
 ## 사용자 답변으로 확정된 전제
 
 - 판정 모델은 CPU에서 돌린다.
-- 모델 엔드포인트는 OpenAI 호환 주소 하나로 다룬다. 로컬, LAN, 원격을 구분하지 않는다.
+- 모델 엔드포인트는 OpenAI 호환 방식으로 다루고, 엔드포인트 목록과 모델 목록으로 설정한다(2026-10-28 변경). 로컬, LAN, 원격을 구분하지 않는다.
 - 앱은 Tauri + SolidJS로 가볍게 만든다(이번 기획 범위 밖).
 - Hugging Face 모델은 용량과 라이선스 목록을 사용자가 승인한 뒤에 받는다.
 
 ## 결정 (작업 01에서 docs/DECISIONS.md로 옮김)
 
-- D1 백엔드는 Rust로 한다.
+- 백엔드는 Rust로 한다.
   - 근거: rustc 1.99.1과 MSVC Build Tools가 설치되어 있다. Tauri 백엔드가 Rust라서 앱이 코어 크레이트를 그대로 쓴다. 실행 파일 하나로 배포된다.
   - 다시 볼 점: 판정 모델 런타임의 Windows 빌드가 막히면 다시 검토한다.
-- D2 대상 언어는 기본 한국어이고 설정으로 바꾼다.
-- D3 설정 파일 `agent-snap.toml`(base_url, model, api_key_env)은 git에서 제외한다. 키는 api_key_env가 가리키는 환경 변수에서만 읽는다. 예시 파일에는 자리표시자만 둔다. 세션 로그에는 base_url과 키를 남기지 않는다.
-- D4 AGENTS.md의 마커 블록은 템플릿 원문 그대로 둔다. 이 PC의 하네스 경로 차이는 마커 밖에 적는다.
-- D5 기존 에이전트를 포크하지 않고 새로 짠다.
+- 대상 언어는 기본 한국어이고 설정으로 바꾼다.
+- 설정 파일 `agent-snap.toml`(엔드포인트 목록과 모델 목록)은 git에서 제외한다. 키는 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)의 키 파일 `.env`를 먼저, 없으면 환경 변수에서 읽고 설정 파일에는 변수 이름만 둔다. 예시 파일에는 자리표시자만 둔다. 세션 로그에는 base_url과 키를 남기지 않는다.
+- AGENTS.md의 마커 블록은 템플릿 원문 그대로 둔다. 이 PC의 하네스 경로 차이는 마커 밖에 적는다.
+- 기존 에이전트를 포크하지 않고 새로 짠다.
   - opencode(MIT), Codex CLI(Apache-2.0), Hermes Agent(MIT)의 설계는 참고한다. 코드를 가져오면 출처와 라이선스를 표기한다.
   - Claude Code와 Cursor는 동작만 참고한다.
-- D6 에이전트(M1)를 먼저 만들고 판정 모델(M2)은 나중에 얹는다. 판정 평가는 M1이 실제 과제를 수행한 뒤에 그 세션 출력으로만 한다.
+- 에이전트(M1)를 먼저 만들고 판정 모델(M2)은 나중에 얹는다. 판정 평가는 M1이 실제 과제를 수행한 뒤에 그 세션 출력으로만 한다.
 
 ## 사용자가 해 주셔야 할 설정
 
 1. 이 PC에서 닿는 OpenAI 호환 서버를 준비한다.
-2. `agent-snap.toml`에 base_url과 model을 적는다.
-3. 키가 필요한 서버라면 키를 환경 변수에 넣고, 그 변수 이름을 api_key_env에 적는다.
+2. `agent-snap.toml`에 엔드포인트(이름, base_url)와 모델(id, 쓸 엔드포인트)을 적는다.
+3. 설정 파일 `agent-snap.toml`과 키 파일 `.env`는 같은 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)에 둔다. 키가 필요한 서버라면 키를 그 `.env` 또는 환경 변수에 넣고, 그 변수 이름을 엔드포인트의 api_key_env에 적는다.
 4. 작업 07이 끝나면 판정 모델 후보 목록을 승인한다.
 
 도메인, 터널, 계정, 확장 프로그램은 필요 없다.
@@ -62,20 +62,26 @@
 
 | 번호 | 작업 문서 | 선행 |
 |---|---|---|
-| 01 | [기반과 개발 규칙](tasks/01-foundation.md) | 없음 |
-| 02 | [설정과 스트리밍 클라이언트](tasks/02-client.md) | 01 |
-| 03 | [에이전트 루프와 도구](tasks/03-agent-loop-tools.md) | 02 |
-| 04 | [대화형 CLI, 세션, 맥락 관리](tasks/04-cli-session-context.md) | 03 |
-| 05 | [감시 지점, 규칙 감시, 교정 루프](tasks/05-monitor-correct.md) | 04 |
-| 06 | [실사용 과제 점검](tasks/06-field-test.md) | 05, 사용자 설정 |
+| 01 | [기반과 개발 규칙](plans/01-foundation.md) | 없음 |
+| 02 | [설정과 스트리밍 클라이언트, 엔드포인트·모델 목록과 키 보관](plans/02-client.md) | 01 |
+| 03 | [에이전트 루프와 도구](plans/03-agent-loop-tools.md) | 02 |
+| 04 | [대화형 CLI, 세션, 맥락 관리, 세션 호출](plans/04-cli-session-context.md) | 03 |
+| 05 | [감시 지점, 규칙 감시, 교정 루프](plans/05-monitor-correct.md) | 04 |
+| 06 | [실사용 과제 점검](plans/06-field-test.md) | 05, 사용자 설정 |
 
 ### M2 판정 모델
 
 | 번호 | 작업 문서 | 선행 |
 |---|---|---|
-| 07 | [판정 모델 후보 목록](tasks/07-judge-candidates.md) | 05 |
-| 08 | [판정 모델 통합과 평가](tasks/08-judge-integration.md) | 06, 07, 사용자 목록 승인 |
-| 09 | [종단 검증](tasks/09-e2e-validation.md) | 08 |
+| 07 | [판정 모델 후보 목록](plans/07-judge-candidates.md) | 05 |
+| 08 | [판정 모델 통합과 평가](plans/08-judge-integration.md) | 06, 07, 사용자 목록 승인 |
+| 09 | [종단 검증](plans/09-e2e-validation.md) | 08 |
+
+## 동작 기준과 측정 환경
+
+- 동작 기준은 GPU 없는 저사양 PC이고, 로컬 LLM은 외부 PC에 둔다.
+- 측정 환경은 둘로 구분해 적는다: 노트북(VRAM 4GB, RAM 16GB), 원격 테스트 PC(RTX 3060 12GB, RAM 16GB).
+- 최소 사양 수치는 측정 전이라 정하지 않는다. M2에서 측정한 뒤 정한다.
 
 ## 잠정 목표 수치 (M2에서 사용)
 
@@ -94,7 +100,7 @@
 ## 공통 규칙
 
 - 작업마다 먼저 관련 논문과 자료를 조사한다. 링크를 열어 실제로 있는지 확인한 뒤 `docs/RESEARCH.md`에 기록한다. 적용 위치(파일, 함수) 또는 미적용 이유를 남긴다.
-- 작업마다 개발 규칙(AGENTS.md)을 지키고 `scripts/check.sh`를 통과해야 한다.
+- 작업마다 개발 규칙(AGENTS.md)을 지키고 검증 명령(`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`)을 통과해야 한다.
 - DoD: AC 충족, 검증 통과, 리뷰 PASS. 리뷰 PASS 후 자동으로 커밋하고, 푸시와 병합은 허락을 받는다.
 - 문서에는 테스트 개수 같은 변하는 수치나 절대 경로를 적지 않는다.
 

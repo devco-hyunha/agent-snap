@@ -6,4 +6,4 @@ Rust 워크스페이스(`snap-core` 라이브러리, `snap-cli` 실행 파일)�
 
 상태: 개발 중
 
-검사: `bash scripts/check.sh`
+검사: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`
