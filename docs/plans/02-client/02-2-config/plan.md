@@ -12,9 +12,10 @@
 - base_url은 비밀 값 래퍼([02-1](../02-1-secrets/plan.md))로 담는다.
 - 키 정하기: 자격 파일 `credentials.jsonc`의 `api_keys`에 엔드포인트 이름이 있으면 그 키, 없으면 키 없음(D10). 이름으로 찾는 일은 02-1을 쓴다.
 - 엔드포인트에 `api_key` 칸이 있으면 값을 출력하지 않고 "키는 credentials.jsonc에 둔다"는 설정 오류로 거부한다(D10).
-- 사용자 설정 폴더 위치 계산(Windows는 Roaming AppData, 그 밖은 XDG 관례)과, 폴더 경로를 받아 설정을 읽는 기능을 나눠 둔다.
-- 검증: 엔드포인트 이름 중복(정확히 같을 때만)과 이름 형식, 모델 이름 중복, 없는 엔드포인트를 가리키는 모델, `kind` 값, `reasoning` 값, `extra`의 예약 키, 샘플링 항목과 범위(D14).
-- `agent-snap.example.jsonc`를 자리표시자만으로 만들고, `.gitignore`의 설정 파일 이름을 `agent-snap.jsonc`로 바꾼다.
+- 사용자 설정 폴더 위치 계산(`AGENT_SNAP_CONFIG_DIR` 우선순위(D19), 없으면 Windows는 Roaming AppData 아래 `agent-snap`, 그 밖은 XDG 관례)과, 폴더 경로를 받아 설정을 읽는 기능을 나눠 둔다.
+- 검증: 엔드포인트 이름 중복(정확히 같을 때만), 빈 엔드포인트 이름, 이름 형식(비어 있지 않은 문자열이면 그 밖의 형식 제한 없음), 모델 이름 중복, 없는 엔드포인트를 가리키는 모델, `kind` 값, `reasoning` 값, `extra`의 예약 키, 샘플링 항목과 범위(D14), `base_url` 값(D19: scheme `http`/`https` 한정, 빈 문자열·공백·끝 슬래시 금지).
+- `agent-snap.example.jsonc`를 저장소 루트에 자리표시자만으로 만들고, `.gitignore`의 설정 파일 이름을 `agent-snap.jsonc`로 바꾼다.
+- 옛 형식 예시 파일 `agent-snap.example.toml`를 삭제한다(D10).
 
 ## 비범위(Out)
 - 자격 파일 해석과 이름으로 키 값 찾기: [02-1](../02-1-secrets/plan.md).
@@ -36,6 +37,7 @@
   - D10: 설정 파일 `agent-snap.jsonc`와 자격 파일 분리, JSONC 형식, 사용자 설정 폴더, 엔드포인트 항목과 이름 규칙, 설정의 `api_key` 칸 거부.
   - D14: 샘플링 항목과 범위.
   - D15: `reasoning`과 `extra`, 예약 키 거부.
+  - D19: `base_url` 검증(scheme `http`/`https` 한정)과 `AGENT_SNAP_CONFIG_DIR` 우선순위.
 - 02-client.md 설계 요약: base_url은 `/v1`까지 포함한 주소이고, 시간·재시도 기본값을 정의한다.
 
 ## 리스크

@@ -52,7 +52,7 @@
 ## D10 설정 파일과 자격 파일
 - 결정: 설정과 키는 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)의 JSONC(주석 허용 JSON) 파일 두 개에 나눠 둔다. 설정 파일 `agent-snap.jsonc`에는 엔드포인트(`name`, `base_url`, `kind`)와 모델(`name`, `id`, `endpoint`, `sampling`, `reasoning`, `extra`), `http`를 두고 키 칸은 두지 않는다. 엔드포인트에 `api_key`가 있으면 값을 출력하지 않고 설정 오류로 거부한다. 자격 파일 `credentials.jsonc`에는 `api_keys` 아래에 엔드포인트 이름별 키만 둔다. 이름은 적힌 그대로 대소문자와 `-`·`_`를 구분한다. 자격 파일에 그 이름의 키가 있고 비어 있지 않으면 Bearer 헤더로 보내고, 없으면 키 없이 요청한다. 자격 파일이 없으면 키가 없는 것으로 본다.
 - 근거: 중첩된 요청 옵션을 요청 본문과 같은 모양으로 적고 주석도 달 수 있다. 키를 설정과 다른 파일에 두면 설정을 보거나 고칠 때 키가 드러나지 않는다. Windows 환경 변수는 대소문자를 구분하지 않아 이름을 정확히 구분할 수 없다.
-- 다시 볼 점: 키를 운영체제 자격 증명 저장소로 옮길지는 앱 작업에서 본다.
+- 다시 볼 점: 키를 운영체제 자격 증명 저장소로 옮길지는 앱 작업에서 본다. 옛 형식 예시 파일(`agent-snap.example.toml`)은 02-2에서 삭제해 `.jsonc` 예시 하나로 통일할 예정이다.
 
 ## D11 세부 작업 크기 기준
 - 결정: 세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝나는 기능 하나이며, 자기 AC를 3~5개 가진다. 네트워크 없이 확인하는 해석·판단과 전송은 다른 세부 작업으로 나눈다.
@@ -93,3 +93,8 @@
 - 결정: JSONC 해석기로 `jsonc-parser` 0.34 를 쓴다. crates.io 라이선스 표기는 MIT 이고, 포장 LICENSE 와 Cargo.toml 의 license 표기도 MIT 이며 순수 Rust이고 네트워크 코드가 없다.
 - 근거: 주석·마지막 쉼표 JSONC 해석을 직접 구현하지 않는다. 02-2·02-8 이 같은 해석기를 쓴다.
 - 다시 볼 점: 02-8 에서 주석 보존 CST 가 필요하면 버전 상한 검토.
+
+## D19 base_url 검증과 설정 폴더 우선순위
+- 결정: `base_url` 검증을 strict로 한다. scheme을 `http`/`https`로 한정하고, 빈 문자열·앞뒤 공백·끝 슬래시를 금지한다. 설정 폴더는 환경 변수 `AGENT_SNAP_CONFIG_DIR`에 값이 있으면 그 폴더를 쓰고, 값이 없으면 운영체제 관례 폴더(Windows는 Roaming AppData 아래 `agent-snap`, 그 밖은 XDG 관례)를 쓴다. D10과 D14의 검증·오류 규칙을 보강한다.
+- 근거: llama.cpp server README([https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md))는 서버가 HTTP로 serve하고 기본 base URL이 `http://localhost:8080/v1`임을 밝힌다. Ollama OpenAI compatibility([https://docs.ollama.com/api/openai-compatibility](https://docs.ollama.com/api/openai-compatibility))와 Ollama Authentication([https://docs.ollama.com/api/authentication](https://docs.ollama.com/api/authentication))은 로컬 서버가 `http://localhost:11434/v1`이고 인증 헤더를 요구하지 않으며 키를 보내도 무시하고, 클라우드(ollama.com)는 `https`와 API 키가 필요함을 밝힌다. 이 예시들이 scheme을 `http`/`https`로 한정하는 근거가 된다.
+- 다시 볼 점: 02-5가 URL을 조립할 때 scheme을 붙이지 않고 base_url을 그대로 붙이는 방식과 충돌하면 다시 본다.
