@@ -74,7 +74,7 @@ description: 서브에이전트에게 작업을 위임하는 요청을 작성할
 3. AC 원문과 금지 사항, 위임용 작업 문서가 있으면 그 절대 경로를 담는다.
 4. 판정 기준 발췌: critical/major 유무로만 판정하고, minor만 있으면 PASS한다.
 5. 산출물 형식: 문제 목록(파일:라인, 심각도, 내용), 판정 PASS/미달.
-6. dev-principles 경로를 담는다.
+6. dev-principles 경로를 담는다(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`). 2~10절 항목을 함께 담는다.
 7. 하네스 문서 경로를 두 줄로 담는다: 원문 유지 원칙은 하네스 문서 1절을, 승인·안전 규칙은 하네스 문서 5절을 따른다. (하네스 문서: harness/HARNESS.md)
 8. 재리뷰인 경우 직전 리뷰의 통과 항목 목록, 미달 항목·지적 목록, 바뀐 파일 목록을 담는다.
 9. 구현 맥락이 없는 새 세션임을 명시한다.
