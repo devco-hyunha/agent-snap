@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+  push:
+    branches:
+      - main
+      - develop
+      - "feature/**"
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: check (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Rust 설치
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cargo 캐시
+        uses: Swatinem/rust-cache@v2
+
+      - name: fmt 확인
+        run: cargo fmt --all -- --check
+
+      - name: clippy 확인
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: 테스트 실행
+        run: cargo test --all
