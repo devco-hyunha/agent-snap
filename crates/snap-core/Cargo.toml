@@ -4,3 +4,5 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+jsonc-parser = "0.34.0"
+thiserror = "2.0.21"

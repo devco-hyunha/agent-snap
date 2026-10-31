@@ -3,7 +3,9 @@
 pub mod agent;
 pub mod config;
 pub mod context;
+pub mod credentials;
 pub mod llm;
 pub mod monitor;
+pub mod secrets;
 pub mod session;
 pub mod tools;
