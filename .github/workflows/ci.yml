@@ -5,11 +5,13 @@ on:
     branches:
       - main
       - develop
+      - "ci/**"
       - "feature/**"
   push:
     branches:
       - main
       - develop
+      - "ci/**"
       - "feature/**"
 
 permissions:
