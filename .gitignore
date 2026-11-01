@@ -6,4 +6,6 @@ models/
 logs/
 .agent-snap/
 .local/
+docs/reviews/
+docs/tasks/
 __pycache__/
