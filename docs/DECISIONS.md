@@ -103,3 +103,16 @@
 - 결정: `endpoints`는 `name` 필드를 가진 배열이고, 모델은 각 엔드포인트 아래 `models` 배열(`endpoints[].models`)에 둔다. 최상위 `models`와 모델의 `endpoint` 참조는 폐기한다. 객체 맵이 아니라 배열을 쓴다. `endpoints`/`models` 빈 배열·생략은 허용하고 생략은 `[]`로 정규화한다(“고를 모델 없음”은 02-7·CLI). 엔드포인트·모델 `name`과 모델 `id`는 trim 후 비면 거부하고, trim한 이름을 저장·자격 매칭에 쓴다. 엔드포인트·모델 `name`에는 `/`를 넣지 않는다(추천 가정). trim 후 `/`가 있으면 이름만 밝힌 설정 오류로 거부한다. 모델 `name` 유일성은 같은 엔드포인트 안에서만 적용하고, 다른 엔드포인트끼리는 같은 별칭을 허용한다. 필수: 엔드포인트 `name`·`base_url`·`kind`(6종만: `openai`, `openrouter`, `ollama`, `vllm`, `llamacpp`, `lmstudio` — strata 전용 kind 없음), 모델 `name`·`id`. 선택: 모델 `sampling`·`reasoning`·`extra`. 루트 `target_language` 기본 `ko`, `sampling`·`http` 생략 시 기존 기본. `http` 키는 `retries`, `backoff_min`, `backoff_max`, `retry_after_max`, `connect_seconds`, `header_wait_seconds`, `stream_idle_seconds`(기본 3 / 1 / 30 / 60 / 10 / 300 / 120). 옛 toml 이름 호환 없음. 거부: 엔드포인트 `api_key`·`api_key_env`(값은 읽지도 출력하지도 않음, D10·02-2와 동일), 최상위 옛 `models`(“모델은 endpoints[].models에”), 모델의 `endpoint` 칸. 그 밖 알 수 없는 칸은 무시(02-1과 동일 취지). `base_url`의 `/v1` 경로는 검증하지 않는다(D19). 내부 설정 진실은 중첩으로 보관하고, 모델 조회는 헬퍼(펼친 뷰)로 한다(AC에 타입 이름 불필요). 02-7 선택 키는 `엔드포인트이름/모델이름`(예: `pc1/fast`)이며 모델 이름만으로 클라이언트를 만들지 않는다. `GET /models`는 참고용이며 설정 `models`와 자동 동기화하지 않고, 조회 실패해도 손쓴 id로 요청 가능하다(02-7 비범위·동작).
 - 근거: 엔드포인트 아래에 모델을 두면 설정이 직관적이다. 여러 로컬 PC에 같은 별칭(예: `fast`)을 써도 엔드포인트가 다르면 구분된다. OpenCode의 `provider/model` 선택 키와 비슷한 형태다. 선택 키를 첫 `/`로만 나누면 이름에 `/`가 있을 때 모호하고, 여러 PC 별칭보다 구분자가 깨지는 쪽이 더 위험하다.
 - 다시 볼 점: 실제 서버 확인(작업 06)과 02-5의 `kind`별 요청 변환이 이 스키마와 맞는지 본다. 이름 `/` 금지를 완화할 필요가 생기면 선택 키 구분 규칙을 함께 다시 본다.
+
+## D21 02-2 설정 검증 세부와 JSONC 공용 모듈
+- 결정: 명세에 없던 검증 세부를 다음과 같이 정한다.
+  - http 시간 값(`backoff_min`, `backoff_max`, `retry_after_max`, `connect_seconds`, `header_wait_seconds`, `stream_idle_seconds`)은 소수 초를 허용하고 0 초과 유한한 값만 받는다(0·음수·무한대 거부. 나노초 미만이라 0이 되는 값도 0으로 본다). `retries`는 0 이상 정수이며 0은 재시도 안 함이다.
+  - `backoff_min > backoff_max`이면 두 항목 이름만 밝혀 거부한다(값은 출력하지 않음).
+  - 모델 `id`는 trim해서 저장한다(D20의 trim 후 빈 값 거부와 같은 처리). 빈 모델 name은 엔드포인트 이름만, 빈 id는 엔드포인트 이름과 모델 이름을 오류에 담는다(오류 변형을 둘로 나눔).
+  - `base_url` scheme은 대소문자를 구분하지 않는다(RFC 3986 3.1절). 기존 테스트로 고정된 동작을 유지한다.
+  - `http`의 모르는 키는 거부한다(D20: 7개 키만 인정, 옛 toml 이름 호환 없음). 다른 위치의 알 수 없는 칸은 계속 무시한다.
+  - 빈 파일과 최상위가 객체가 아닌 설정은 거부한다.
+  - JSONC 해석·줄 번호 오류 변환·최상위 객체 확인·JSON 값 도우미는 크레이트 내부 공용 모듈 `jsonc`(`crates/snap-core/src/jsonc.rs`)에 한 곳으로 둔다. 자격 파일과 설정 파일은 이 모듈의 오류를 자기 오류 타입으로 바꾸기만 한다(AGENTS.md DRY 규칙, D18 보강).
+  - 테스트 위치: 네트워크 없는 단위 테스트는 `src` 안 `#[cfg(test)]` 모듈(`config/tests/`)에 두고, `crates/snap-core/tests/`는 모의 서버 통합 테스트(02-5 이후)에 쓴다.
+- 근거: 0초 대기·0초 제한은 요청을 즉시 실패시키는 무의미한 값이다. Full Jitter 백오프(D13)의 범위가 뒤집히면 02-3이 의미 없는 값을 받는다. 옛 이름을 조용히 무시하면 사용자가 바꾼 값이 적용되지 않은 것을 모른다. scheme은 RFC 3986 3.1절에서 대소문자를 구분하지 않는다. 같은 지식이 두 파일에 있으면 한쪽만 고쳐 어긋나므로 AGENTS.md DRY 규칙에 따라 한 곳에 둔다.
+- 다시 볼 점: `ExtraValue`의 Debug는 값을 그대로 출력한다. 02-5 이후 `extra`를 로그에 찍는 경로가 생기면 가림 여부를 다시 본다. 시간 하한이 실제 서버 확인(작업 06)에서 맞지 않으면 다시 본다.

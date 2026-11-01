@@ -1,6 +1,6 @@
 .env
 *.env
-agent-snap.toml
+agent-snap.jsonc
 target/
 models/
 logs/

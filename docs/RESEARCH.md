@@ -141,7 +141,7 @@
 - 링크: [llama.cpp tools/server README](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
 - 확인 날짜: 2026-11-01
 - 핵심: 서버는 HTTP로 serve하고 기본 base URL은 `http://localhost:8080/v1`이다.
-- 적용 위치: 02-2 base_url 검증(scheme을 `http`/`https`로 한정하는 근거).
+- 적용 위치: 02-2 base_url 검증(scheme을 `http`/`https`로 한정하는 근거). 구현은 `crates/snap-core/src/config/validate.rs`의 `is_valid_base_url`이고, 호출은 `config/parse.rs`의 `read_endpoint`입니다.
 - 관련 작업: 02
 
 ### Ollama OpenAI compatibility, 인증
@@ -149,7 +149,7 @@
 - 링크: [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility), [Ollama Authentication](https://docs.ollama.com/api/authentication)
 - 확인 날짜: 2026-11-01
 - 핵심: 로컬 서버는 `http://localhost:11434/v1`이고 인증 헤더를 요구하지 않으며 키를 보내도 무시한다. 클라우드(ollama.com)는 `https`와 API 키가 필요하다.
-- 적용 위치: 02-2 base_url 검증과 키 정하기(키 없는 엔드포인트 허용 근거).
+- 적용 위치: 02-2 base_url 검증과 키 정하기(키 없는 엔드포인트 허용 근거). base_url 검증은 `crates/snap-core/src/config/validate.rs`의 `is_valid_base_url`, 키 정하기는 `config/keys.rs`의 `EndpointConfig::api_key`(이름이 없거나 빈 값이면 `None`)입니다.
 - 관련 작업: 02
 
 ### vLLM OpenAI 호환 서버
