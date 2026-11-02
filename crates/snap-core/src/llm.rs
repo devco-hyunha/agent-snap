@@ -7,11 +7,19 @@ mod chunk;
 mod decode;
 mod delta;
 mod error;
+mod http_date;
+mod retry;
 mod sse;
 
 pub use decode::StreamDecoder;
 pub use delta::{AssembledResponse, DeltaAssembler, StreamEvent, ToolCall, Usage};
 pub use error::{FormatErrorKind, StreamParseError};
+pub use retry::{
+    BackoffDecision, GiveUpPriority, NotCandidateDetail, PreHeaderConnectKind, RetryAfterDecision,
+    RetryClass, RetryDecision, RetryFailureInput, RetryGiveUpReason, RetrySettings,
+    capped_exponential_ceiling, classify_retry, decide_backoff, decide_retry, full_jitter_wait,
+    interpret_retry_after, is_attempts_exceeded, resolve_give_up_priority,
+};
 pub use sse::{SseItem, SseParser};
 
 #[cfg(test)]
@@ -19,7 +27,7 @@ mod tests {
     mod delta;
     mod errors;
     mod redact;
-    mod sse_chunks;
-    mod sse_lines;
+    mod retry;
+    mod sse;
     mod support;
 }

@@ -1,6 +1,6 @@
 //! 조각 경계 불변 단위 테스트(AC 1).
 
-use super::support::{decode_all, decode_byte_by_byte, decode_chunks, mixed_stream_bytes};
+use super::super::support::{decode_all, decode_byte_by_byte, decode_chunks, mixed_stream_bytes};
 use crate::llm::StreamEvent;
 
 #[test]
