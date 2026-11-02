@@ -5,7 +5,7 @@
 
 ## 작업 02
 
-확인 날짜는 모두 2026-10-28입니다. OpenAI API 문서(platform.openai.com)는 403으로 열리지 않아 적지 않았습니다.
+확인 날짜는 모두 2026-10-28입니다. 아래 항목 중 일부는 개별 확인 날짜를 따릅니다. OpenAI API 문서(platform.openai.com)는 403으로 열리지 않아 적지 않았습니다.
 
 ### RFC 9110 HTTP Semantics, 10.2.3 Retry-After
 
@@ -24,6 +24,7 @@
 ### WHATWG HTML Standard, Server-sent events
 
 - 링크: [Server-sent events](https://html.spec.whatwg.org/multipage/server-sent-events.html)
+- 확인 날짜: 2026-11-02
 - 핵심: 줄 끝은 CRLF, LF, CR 모두 허용합니다. `:`로 시작하는 줄은 주석이라 무시합니다. 여러 `data` 줄은 개행으로 잇고, 빈 줄에서 이벤트를 내보냅니다. 항상 UTF-8이며 맨 앞 BOM 하나를 버립니다. 명세는 파일 끝의 미완 이벤트를 버립니다.
 - 적용: 02-3(줄 끝 세 종류, 주석, data 결합, BOM, 멀티바이트 보호). 파일 끝의 미완 이벤트는 명세와 달리 내보냅니다(D12).
 - 관련 작업: 02
@@ -31,6 +32,7 @@
 ### llama.cpp server README
 
 - 링크: [llama.cpp tools/server README](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md)
+- 확인 날짜: 2026-11-02
 - 핵심: 스트리밍은 SSE입니다. `--reasoning-format`이 `deepseek`면 생각을 `reasoning_content`에 넣고, `none`이면 `content`에 그대로 둡니다(기본 `auto`). 모델 로딩 중에는 503과 `{"error":{...}}`를 돌려줍니다.
 - 적용: 02-3(`reasoning_content` 처리), 02-4(503). `<think>` 태그를 content에서 떼어 내는 일은 하지 않습니다(서버 설정으로 해결, 감시는 작업 05).
 - 관련 작업: 02
@@ -45,6 +47,7 @@
 ### vLLM Reasoning Outputs
 
 - 링크: [vLLM Reasoning Outputs](https://docs.vllm.ai/en/latest/features/reasoning_outputs.html)
+- 확인 날짜: 2026-11-02
 - 핵심: 생각 출력 필드는 `reasoning`(스트리밍은 `delta.reasoning`)이며, 예전 이름이 `reasoning_content`였습니다. 한쪽만 읽으면 빈 값을 읽을 수 있다고 경고합니다.
 - 적용: 02-3. 두 이름을 모두 생각(reasoning) 이벤트로 바꿉니다.
 - 관련 작업: 02
@@ -52,6 +55,7 @@
 ### LM Studio OpenAI Compatibility Endpoints
 
 - 링크: [LM Studio OpenAI compat](https://lmstudio.ai/docs/developer/openai-compat), [Chat Completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions)
+- 확인 날짜: 2026-11-02
 - 핵심: `/v1/chat/completions`를 지원하고 `stream` 매개변수를 받습니다. 문서에 reasoning 필드 설명은 없습니다.
 - 적용: 02-3(별도 처리 없음). reasoning 필드가 오면 두 이름 처리 또는 모르는 필드 보존으로 받습니다.
 - 관련 작업: 02
@@ -59,6 +63,7 @@
 ### OpenRouter Streaming
 
 - 링크: [OpenRouter Streaming](https://openrouter.ai/docs/api/reference/streaming)
+- 확인 날짜: 2026-11-02
 - 핵심: 연결 유지를 위해 `: OPENROUTER PROCESSING` 같은 주석 줄을 보냅니다. 헤더 이후 오류는 HTTP 200 안에서 최상위 `error` 객체와 `finish_reason: "error"`를 가진 data 청크로 오고, 그 뒤 스트림이 끝납니다. 연결을 끊으면 지원하는 공급자에서는 생성과 과금이 멈춥니다.
 - 적용: 02-3(주석 줄 무시, 스트림 중간 `error` 청크는 스트림 오류로 종료), 02-5(취소 시 연결 정리).
 - 관련 작업: 02
@@ -66,6 +71,7 @@
 ### OpenRouter Reasoning Tokens
 
 - 링크: [OpenRouter Reasoning Tokens](https://openrouter.ai/docs/use-cases/reasoning-tokens)
+- 확인 날짜: 2026-11-02
 - 핵심: 스트리밍에서 생각은 `choices[].delta.reasoning_details` 배열로 오고, 메시지의 `reasoning` 필드에도 나타납니다.
 - 적용: 02-3. `reasoning`은 생각 이벤트로, `reasoning_details`는 모르는 필드로 원문 보존합니다. 구조화된 details 해석은 필요해질 때 합니다(YAGNI).
 - 관련 작업: 02

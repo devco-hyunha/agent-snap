@@ -53,6 +53,9 @@
 
 - 크레이트: `snap-core`(라이브러리, 모든 로직)와 `snap-cli`(입출력만 맡는 얇은 실행 파일).
 - 모듈은 하나의 책임만 맡는다: config, llm, agent, tools, monitor, session, context. 도구는 `Tool` 트레이트 구현 하나당 파일 하나.
+- 제품 소스 파일 하나 = 제품 책임(변경 이유) 하나. 서로 다른 이유로 바뀌는 코드를 한 파일에 섞지 않는다(dev-principles 2절 SRP, harness/HARNESS.md 10절). 구현·리뷰에서 신규 혼재는 major.
+- 같은 관심사 파일이 둘 이상일 때만 하위 폴더를 만든다. 파일 하나짜리를 폴더로 감싸지 않는다.
+- 위임용 작업 문서(brief)는 `docs/tasks/`에 둔다(`docs/plans/` 기획 폴더에 두지 않는다). `docs/tasks/`는 gitignore.
 - 파일·함수·테스트에 줄 수 기준은 두지 않는다. 같은 기준으로 볼 항목은 중복이다: 한 지식·동작이 두 곳에 있으면 함수로 분리해 한 곳에서 부르게 한다. 같은 일을 하는 함수를 다시 정의하지 않는다. 코드리뷰에서 dev-principles 3절(DRY)·6절(이름과 함수) 기준으로 측정한다.
 - 오류: 라이브러리는 `thiserror`, 실행 파일만 `anyhow`. 테스트 밖 `unwrap`/`expect` 금지.
 - 비밀 값은 Debug 출력에서 가리는 래퍼 타입으로 다룬다.
