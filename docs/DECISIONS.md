@@ -124,3 +124,13 @@
 - 결정: snap-cli는 버전 출력만 할 때까지 snap-core 의존을 두지 않는다(YAGNI). CLI가 core를 쓸 때 다시 추가한다.
 - 근거: dev-principles minors 보정 리뷰에서 미사용 의존으로 지적되었고, 현재 바이너리가 core API를 부르지 않는다.
 - 다시 볼 점: CLI가 `load_config` 등 snap-core와 연동할 때 `Cargo.toml`에 의존을 복원한다.
+
+## D24 02-3 SSE 청크 JSON에 serde_json
+- 결정: 02-3 델타 복원의 청크 JSON 해석에 `serde_json` 1.x를 쓴다. crates.io 라이선스 표기는 MIT OR Apache-2.0 이고, 저장소 LICENSE-MIT·LICENSE-APACHE와 Cargo.toml license 표기도 같다. 순수 해석 크레이트이며 네트워크 코드가 없다. JSONC 설정 파일은 기존 `jsonc-parser`(D18)를 그대로 쓴다.
+- 근거: OpenAI 호환 스트림 청크는 엄격 JSON이고, 모르는 델타 필드를 원문 JSON 문자열로 보존하려면 소유 `Value`와 `to_string`이 필요하다. `jsonc-parser`의 빌린 트리만으로는 필드 원문 보존이 번거롭다.
+- 다시 볼 점: 02-5 전송 계층에서 같은 크레이트로 요청 본문을 만들면 버전을 한곳에 고정한다.
+
+## D25 모듈 하위 폴더·위임 brief 위치 (2026-11-02)
+- 결정: (1) 같은 관심사 파일이 둘 이상일 때만 하위 폴더를 만들고, 파일 하나짜리는 평탄 파일로 둔다. (2) 위임용 작업 문서(brief)는 `docs/tasks/`에 두고 `docs/plans/`에 두지 않는다(`docs/tasks/`는 gitignore). (3) 파일 단위 SRP는 AGENTS 개발 규칙·하네스 10절·dev-principles 2절을 따르며, 세부 작업 plan에만 보정 일지를 남기지 않고 공통 규칙으로 둔다.
+- 근거: 02-3에서 plan에만 SRP·폴더링 메모를 적어 다음 세부 작업에 전달되지 않았다. 단파일 폴더 시위와 brief를 plans에 둔 실수를 막기 위함이다.
+- 다시 볼 점: 없음.
