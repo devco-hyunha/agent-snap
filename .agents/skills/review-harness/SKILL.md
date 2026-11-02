@@ -6,7 +6,7 @@ description: build-harness의 작업 리뷰나 작업 단위 전체 리뷰, 또�
 # review-harness (리뷰)
 
 ## 원칙
-- 리뷰는 구현 세션과 분리된 새 세션(구현 맥락이 없는 새 읽기 전용 서브)에서 수행한다. 메인은 이 체크리스트 6항목, 하네스 문서 7절 판정 기준, dev-principles 경로(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`)를 프롬프트에 담아 보낸다.
+- 리뷰는 구현 세션과 분리된 새 세션(구현 맥락이 없는 새 읽기 전용 서브)에서 수행한다. 메인은 이 체크리스트 7항목, 하네스 문서 7절 판정 기준, dev-principles 경로를 프롬프트에 담아 보낸다.
 - 수정은 하지 않는다. 문제만 기록한다.
 - 리뷰의 대상은 작업 단위다. 문서 한 자리 보정·주석·문서 변경에는 리뷰를 열지 않는다. 소규모 구현의 확인은 메인이 바뀐 줄을 읽는 것이다.
 
@@ -17,6 +17,9 @@ description: build-harness의 작업 리뷰나 작업 단위 전체 리뷰, 또�
 4. 에러 처리와 보안 기본과 함수 중복(DRY) 확인 (dev-principles 기준)
 5. 문서 동기화 여부
 6. 범위 밖 변경 여부
+7. 제품 소스에 테스트 본문 동거 없음 · 한 파일에 제품 책임이 둘 이상 섞이지 않음 (dev-principles)
+
+신규 동거·책임 혼재 확대는 major, 레거시만이면 minor+이전(또는 후속 분리) 메모.
 
 ## 산출물
 - 문제 목록: 파일:라인, 심각도(critical / major / minor), 내용.
