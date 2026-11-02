@@ -14,7 +14,7 @@ description: build-harness의 작업 리뷰나 작업 단위 전체 리뷰, 또�
 1. 작업 문서의 AC(인수 조건) 충족 여부
 2. 금지 규격 위반 여부 (작업 문서의 금지 사항 섹션 기준)
 3. 검증 명령 결과와 로그 근거
-4. 에러 처리와 보안 기본 (dev-principles 기준. 경로: `.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`)
+4. 에러 처리와 보안 기본과 함수 중복(DRY) 확인 (dev-principles 기준)
 5. 문서 동기화 여부
 6. 범위 밖 변경 여부
 

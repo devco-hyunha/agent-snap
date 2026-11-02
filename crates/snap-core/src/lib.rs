@@ -4,6 +4,7 @@ pub mod agent;
 pub mod config;
 pub mod context;
 pub mod credentials;
+mod jsonc;
 pub mod llm;
 pub mod monitor;
 pub mod secrets;

@@ -2,8 +2,9 @@
 
 use std::collections::BTreeMap;
 
-use jsonc_parser::{JsonValue, ParseOptions};
+use jsonc_parser::JsonValue;
 
+use crate::jsonc::{self, JsoncError, WrongType, pick_object, take_optional};
 use crate::secrets::SecretValue;
 
 /// 자격 파일 해석에 실패했을 때 나오는 오류입니다.
@@ -21,6 +22,15 @@ pub enum CredentialsError {
     /// `api_keys` 아래 항목의 값이 문자열이 아닙니다. 엔드포인트 이름만 담습니다.
     #[error("자격 파일 해석 실패: 엔드포인트 `{endpoint}`의 키 값이 문자열이 아닙니다")]
     KeyNotString { endpoint: String },
+}
+
+impl From<JsoncError> for CredentialsError {
+    fn from(error: JsoncError) -> Self {
+        match error {
+            JsoncError::Syntax { line } => Self::JsoncSyntax { line },
+            JsoncError::RootNotObject => Self::ApiKeysNotObject,
+        }
+    }
 }
 
 /// 자격 파일에서 읽은 엔드포인트 이름별 비밀 값입니다.
@@ -45,22 +55,14 @@ impl Credentials {
     /// - [`CredentialsError::KeyNotString`]: `api_keys` 아래 값이 문자열이 아닌 경우
     ///   (엔드포인트 이름만 담고 값은 담지 않는다).
     pub fn parse(text: &str) -> Result<Self, CredentialsError> {
-        let root = jsonc_parser::parse_to_value(text, &ParseOptions::default()).map_err(|e| {
-            CredentialsError::JsoncSyntax {
-                line: e.line_display(),
-            }
-        })?;
         // 최상위 자체가 객체가 아닌 경우(문자열·숫자·배열 등)는 `api_keys`를 찾을 수 없으므로
-        // [`CredentialsError::ApiKeysNotObject`]로 거부한다. 최상위 객체에서 `api_keys`를
-        // `take`로 꺼내 엔트리 자체를 복제하지 않고 소비한다(남는 최상위 항목은 버린다).
-        let Some(JsonValue::Object(mut root_object)) = root else {
-            return Err(CredentialsError::ApiKeysNotObject);
-        };
-        let Some(api_keys) = root_object.take("api_keys") else {
+        // `From<JsoncError>`가 [`CredentialsError::ApiKeysNotObject`]로 바꿔 거부한다.
+        // `api_keys`는 `take`로 꺼내 복제 없이 소비한다(남는 최상위 항목은 버린다).
+        let mut root = jsonc::parse_root_object(text)?;
+        let Some(api_keys_object) = take_optional(&mut root, "api_keys", pick_object)
+            .map_err(|WrongType| CredentialsError::ApiKeysNotObject)?
+        else {
             return Ok(Self::default());
-        };
-        let JsonValue::Object(api_keys_object) = api_keys else {
-            return Err(CredentialsError::ApiKeysNotObject);
         };
         let mut keys: BTreeMap<String, SecretValue> = BTreeMap::new();
         for (name, value) in api_keys_object.take_inner() {

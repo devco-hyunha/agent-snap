@@ -1,9 +1,11 @@
 .env
 *.env
-agent-snap.toml
+agent-snap.jsonc
 target/
 models/
 logs/
 .agent-snap/
 .local/
+docs/reviews/
+docs/tasks/
 __pycache__/
