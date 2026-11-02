@@ -27,8 +27,8 @@
 
 | 제목 | 상세 | 확인 | 핵심(한 줄) | 적용 위치 또는 미적용 | **상태** | 관련 |
 |---|---|---|---|---|---|---|
-| RFC 9110 Retry-After | [02-client.md#rfc-9110-http-semantics-1023-retry-after](research/02-client.md#rfc-9110-http-semantics-1023-retry-after) | 2026-10-28 | delay-seconds·HTTP-date, 503·3xx 예 | 02-4: 두 형식 해석, 5xx도 헤더 따름 | 기획 반영 | 02 |
-| RFC 6585 429 | [02-client.md#rfc-6585-4절-429-too-many-requests](research/02-client.md#rfc-6585-4절-429-too-many-requests) | 2026-10-28 | 429·`Retry-After` | 02-4, 02-6; 대기 상한 초과 시 즉시 오류 | 기획 반영 | 02 |
+| RFC 9110 Retry-After | [02-client.md#rfc-9110-http-semantics-1023-retry-after](research/02-client.md#rfc-9110-http-semantics-1023-retry-after) | 2026-11-02 | delay-seconds·HTTP-date, 503·3xx 예 | 02-4: `llm/retry/after.rs`·`decide.rs`(두 형식·5xx 헤더) | 적용(코드 경로) | 02 |
+| RFC 6585 429 | [02-client.md#rfc-6585-4절-429-too-many-requests](research/02-client.md#rfc-6585-4절-429-too-many-requests) | 2026-11-02 | 429·`Retry-After` | 02-4: `llm/retry`(classify·after·decide); 02-6 대기·재요청; 상한 초과 포기 | 적용(코드 경로) | 02 |
 | WHATWG SSE | [02-client.md#whatwg-html-standard-server-sent-events](research/02-client.md#whatwg-html-standard-server-sent-events) | 2026-11-02 | CRLF/LF/CR, 주석·data 결합·BOM | 02-3: `llm/sse.rs` `SseParser`(D12 finish) | 적용(코드 경로) | 02 |
 | llama.cpp server README | [02-client.md#llamacpp-server-readme](research/02-client.md#llamacpp-server-readme) | 2026-11-02 | SSE, `reasoning_content`, 503 | 02-3: `llm/chunk.rs` `reasoning_content` 스키마·`llm/delta.rs` 누적; 02-4(503); `<think>` 분리는 안 함(05) | 적용(코드 경로) | 02 |
 | Ollama OpenAI compatibility | [02-client.md#ollama-openai-compatibility](research/02-client.md#ollama-openai-compatibility) | 2026-10-28 | 스트림·tools; `reasoning_effort` | 02-5: `tool_choice`/`n`/`stream_options` 미전송; `reasoning`→`reasoning_effort`(D15) | 기획 반영 | 02 |
@@ -36,7 +36,7 @@
 | LM Studio OpenAI compat | [02-client.md#lm-studio-openai-compatibility-endpoints](research/02-client.md#lm-studio-openai-compatibility-endpoints) | 2026-11-02 | `/v1/chat/completions`, reasoning 문서 없음 | 02-3: `llm/chunk.rs` 두 이름·미지 필드·`llm/delta.rs` 보존 | 적용(코드 경로) | 02 |
 | OpenRouter Streaming | [02-client.md#openrouter-streaming](research/02-client.md#openrouter-streaming) | 2026-11-02 | 주석 줄, HTTP 200 중 `error` 청크 | 02-3: `SseParser` 주석 무시·`llm/chunk.rs` 최상위 `error`·`llm/error/redact.rs` 가림; 02-5(취소 시 연결 정리) | 적용(코드 경로) | 02 |
 | OpenRouter Reasoning Tokens | [02-client.md#openrouter-reasoning-tokens](research/02-client.md#openrouter-reasoning-tokens) | 2026-11-02 | `reasoning_details`·`reasoning` | 02-3: `llm/chunk.rs`/`llm/delta.rs` — `reasoning` 이벤트, `reasoning_details`는 `unknown_delta_fields`(YAGNI) | 적용(코드 경로) | 02 |
-| OpenRouter Rate Limits | [02-client.md#openrouter-api-rate-limits](research/02-client.md#openrouter-api-rate-limits) | 2026-10-28 | 429·`X-RateLimit-*` | 02-4, 02-6; `X-RateLimit-Reset` 미사용; 긴 대기는 포기 | 기획 반영 | 02 |
+| OpenRouter Rate Limits | [02-client.md#openrouter-api-rate-limits](research/02-client.md#openrouter-api-rate-limits) | 2026-11-02 | 429·`X-RateLimit-*` | 02-4: `llm/retry`·`decide_retry`; 02-6; `X-RateLimit-Reset` 미사용; 긴 대기는 포기; **402 미적용(D26)** | 적용(코드 경로) | 02 |
 | tokio-util CancellationToken | [02-client.md#tokio-util-cancellationtoken](research/02-client.md#tokio-util-cancellationtoken) | 2026-10-28 | cancel-safe `select!` | 02-5, 02-6 | 기획 반영 | 02 |
 | reqwest ClientBuilder | [02-client.md#reqwest-clientbuilder](research/02-client.md#reqwest-clientbuilder) | 2026-10-28 | connect vs read vs total timeout | 02-5: connect만 reqwest; header/idle은 별도 | 기획 반영 | 02 |
 | OpenAI List models | [02-client.md#openai-api-참조-모델-목록](research/02-client.md#openai-api-참조-모델-목록) | 2026-10-28 | `data[].id` 중심 | 02-7 | 기획 반영 | 02 |
@@ -55,8 +55,8 @@
 | DistServe | [02-client.md#distserve-arxiv-240109670](research/02-client.md#distserve-arxiv-240109670) | 2026-10-30 | TTFT·TPOT 정의 | 02-5 시각 반환; 서버 구조는 미적용 | 기획 반영 | 02 |
 | Etalon | [02-client.md#etalon-arxiv-240707000](research/02-client.md#etalon-arxiv-240707000) | 2026-10-30 | fluidity-index 등 | 02-5 원시 시각; fluidity-index·토큰별 시각은 **미적용**(06 후보) | 기획 반영 | 02 |
 | Same Model Not Same Service | [02-client.md#when-is-the-same-model-not-the-same-service-arxiv-260502821](research/02-client.md#when-is-the-same-model-not-the-same-service-arxiv-260502821) | 2026-10-30 | 제공자별 지연 차 | 02-5 원시 시각→06 분포 | 기획 반영 | 02 |
-| AWS Backoff And Jitter | [02-client.md#aws-architecture-blog-exponential-backoff-and-jitter](research/02-client.md#aws-architecture-blog-exponential-backoff-and-jitter) | 2026-10-30 | Full Jitter 권장 | 02-4, D13: `Retry-After` 없을 때 Full | 기획 반영 | 02 |
-| Google SRE Cascading Failures | [02-client.md#google-sre-book-addressing-cascading-failures](research/02-client.md#google-sre-book-addressing-cascading-failures) | 2026-10-30 | 한 층 재시도·횟수 제한 | 02-4, 02-6, D13; **프로세스 단위 재시도 예산 미적용**(단일 사용자) | 기획 반영 | 02 |
+| AWS Backoff And Jitter | [02-client.md#aws-architecture-blog-exponential-backoff-and-jitter](research/02-client.md#aws-architecture-blog-exponential-backoff-and-jitter) | 2026-11-02 | Full Jitter 권장 | 02-4: `llm/retry/backoff.rs`·`decide_retry`(헤더 없을 때 Full, D13) | 적용(코드 경로) | 02 |
+| Google SRE Cascading Failures | [02-client.md#google-sre-book-addressing-cascading-failures](research/02-client.md#google-sre-book-addressing-cascading-failures) | 2026-11-02 | 한 층 재시도·횟수 제한 | 02-4: `llm/retry`(대상·횟수·facade); 02-6 적용 층; D13; **프로세스 단위 재시도 예산 미적용** | 적용(코드 경로) | 02 |
 
 ## 작업 03
 
@@ -78,6 +78,7 @@
 | 제목 | 상세 | 확인 | 핵심(한 줄) | 적용 위치 또는 미적용 | **상태** | 관련 |
 |---|---|---|---|---|---|---|
 | 테스트 파일 분리 관례 | [Rust Book 11.3 Test Organization](https://doc.rust-lang.org/book/ch11-03-test-organization.html), `config/tests/` | 2026-11-02 | 프로덕션 파일에 테스트 본문을 두지 않고 `#[cfg(test)]` 서브모듈로 분리 | **적용(계획)**: `jsonc`·`secrets`·`credentials` → [tasks/01-srp-test-separation.md](tasks/01-srp-test-separation.md); **미적용 논문 없음** | 기획 반영 | tasks-01 |
+| Retry-After·HTTP-date 파일 SRP | 기존 [RFC 9110](research/02-client.md#rfc-9110-http-semantics-1023-retry-after)·[D14](DECISIONS.md#d14-작업-02-세부-동작-확정)·[D25](DECISIONS.md#d25-모듈-하위-폴더위임-brief-위치-2026-11-02)·[D26](DECISIONS.md#d26-02-4-재시도-비대상402-등과-입력-매핑)·[D27](DECISIONS.md#d27-retry-after-정책과-imf-fixdate-파싱-분리-2026-11-02) 재사용 | 2026-11-02 | 구조 분리만; **새 논문 조사 없음** | **적용**: `llm/http_date.rs`(HTTP-date·IMF-fixdate); 정책·delay-seconds·상한은 `retry/after.rs`가 `crate::llm::http_date` 호출; `retry/` 아래 배치 아님·D25 평탄 파일; lib 공개면은 기존 retry API 유지 → [tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md) | 적용(코드 경로) | tasks-03 |
 
 ## 문서 역할
 

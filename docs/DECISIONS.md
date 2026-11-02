@@ -131,6 +131,18 @@
 - 다시 볼 점: 02-5 전송 계층에서 같은 크레이트로 요청 본문을 만들면 버전을 한곳에 고정한다.
 
 ## D25 모듈 하위 폴더·위임 brief 위치 (2026-11-02)
-- 결정: (1) 같은 관심사 파일이 둘 이상일 때만 하위 폴더를 만들고, 파일 하나짜리는 평탄 파일로 둔다. (2) 위임용 작업 문서(brief)는 `docs/tasks/`에 두고 `docs/plans/`에 두지 않는다(`docs/tasks/`는 gitignore). (3) 파일 단위 SRP는 AGENTS 개발 규칙·하네스 10절·dev-principles 2절을 따르며, 세부 작업 plan에만 보정 일지를 남기지 않고 공통 규칙으로 둔다.
+- 결정: (1) 같은 관심사 파일이 둘 이상일 때만 하위 폴더를 만들고, 파일 하나짜리는 평탄 파일로 둔다. (2) 위임용 작업 문서(brief)는 `docs/tasks/`에 두고 `docs/plans/`에 두지 않는다(`docs/tasks/`는 gitignore). (3) 파일 단위 SRP는 AGENTS 개발 규칙·하네스 10절·dev-principles 2절을 따르며, 세부 작업 plan에만 보정 일지를 남기지 않고 공통 규칙으로 둔다. 테스트 트리에도 동일하게, 같은 관심사 파일이 둘 이상이면 `llm/tests/retry/`, `llm/tests/sse/`처럼 하위 폴더를 둔다.
 - 근거: 02-3에서 plan에만 SRP·폴더링 메모를 적어 다음 세부 작업에 전달되지 않았다. 단파일 폴더 시위와 brief를 plans에 둔 실수를 막기 위함이다.
 - 다시 볼 점: 없음.
+
+## D26 02-4 재시도 비대상(402 등)과 입력 매핑
+- 결정(요약): OpenRouter **402**는 재시도하지 않는다. `Retry-After` 0/과거→0초, 음수·해석불가→헤더 없음, 헤더 대기 초과·408·425·목록 밖 5xx·기타 4xx(429 제외)는 즉시 포기. 02-5→02-4 입력 매핑 표를 spec에 고정(TLS·프록시는 헤더 전 연결 오류에 포함). POST는 멱등 키 없이 일시 오류만 재시도. 횟수 초과를 `Retry-After` 상한 초과보다 먼저 판정.
+- 정본: [docs/decisions/D26-retry-exclusions-mapping.md](decisions/D26-retry-exclusions-mapping.md)
+- 근거: 정본 참조(잔액은 사용자 조치, in-flight YAGNI, 경계 AC·매핑 표 고정).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
+
+## D27 Retry-After 정책과 IMF-fixdate 파싱 분리 (2026-11-02)
+- 결정: HTTP-date 파싱은 `llm/http_date.rs`로 두고 retry 정책과 모듈 경계를 나눈다. IMF-fixdate·민간 달력·`wait_until`은 Retry-After 정책이 아니므로 `retry/` 아래에 두지 않는다. `after.rs`는 정책·delay-seconds·상한만 남기고 HTTP-date 경로는 `crate::llm::http_date` 파서를 호출한다. 필요 진입점은 같은 crate의 retry가 쓰도록 `pub(crate)`로 열고, `snap-core` lib 공개면은 기존 retry 공개 API를 유지한다. 하위 폴더로 감싸지 않는다(D25).
+- 근거: 파일·모듈 단위 SRP(SOLID), D25(관심사 파일이 하나일 때 하위 폴더 금지), AGENTS 개발 규칙. 제품 공개 표면은 기존 retry 공개 API를 유지한다.
+- 다시 볼 점: 다른 레이어가 같은 파서를 쓰게 되면 그때 위치를 재검토한다(추가 소비자가 생겼을 때의 이동이지, 지금 분리를 미루는 이유가 아님).
+- 관련 작업: [docs/tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md)

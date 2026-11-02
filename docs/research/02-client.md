@@ -10,15 +10,17 @@
 ### RFC 9110 HTTP Semantics, 10.2.3 Retry-After
 
 - 링크: [RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html)
+- 확인 날짜: 2026-11-02
 - 핵심: `Retry-After = HTTP-date / delay-seconds`, delay-seconds는 음이 아닌 10진 정수입니다. 503과 3xx에 쓰는 예가 정의되어 있습니다.
-- 적용: 02-4(초와 HTTP 날짜 두 형식 모두 해석, 5xx에도 헤더를 따름).
+- 적용: 02-4(`llm/retry/after.rs`·`decide.rs` — 초·HTTP 날짜 두 형식, 5xx에도 헤더를 따름).
 - 관련 작업: 02
 
 ### RFC 6585, 4절 429 Too Many Requests
 
 - 링크: [RFC 6585](https://www.rfc-editor.org/rfc/rfc6585.html)
+- 확인 날짜: 2026-11-02
 - 핵심: 429는 일정 시간 안에 요청이 너무 많다는 뜻이며, 기다릴 시간을 `Retry-After`로 줄 수 있습니다(예: 3600초).
-- 적용: 02-4, 02-6. 대기 시간이 상한을 넘으면 기다리지 않고 대기 초를 밝힌 오류로 알립니다.
+- 적용: 02-4(`llm/retry` classify·after·decide), 02-6(대기·재요청). 대기 시간이 상한을 넘으면 기다리지 않고 대기 초를 밝힌 포기로 알립니다.
 - 관련 작업: 02
 
 ### WHATWG HTML Standard, Server-sent events
@@ -79,8 +81,9 @@
 ### OpenRouter API Rate Limits
 
 - 링크: [OpenRouter Limits](https://openrouter.ai/docs/api/reference/limits)
+- 확인 날짜: 2026-11-02
 - 핵심: `:free` 모델은 분당 20회, 일일 50회(크레딧 10 미만) 또는 1000회 제한입니다. 초과하면 429와 `X-RateLimit-*` 헤더를 주며, 지수 백오프와 `Retry-After` 준수를 권합니다.
-- 적용: 02-4, 02-6(헤더 우선, 없으면 지수 백오프, 최대 횟수). `X-RateLimit-Reset`은 표준이 아니라 쓰지 않습니다. 일일 한도처럼 긴 대기는 상한 초과로 즉시 포기합니다.
+- 적용: 02-4(`llm/retry`·`decide_retry` — 헤더 우선, 없으면 Full Jitter, 최대 횟수), 02-6(대기·재요청). `X-RateLimit-Reset`은 표준이 아니라 쓰지 않습니다. 일일 한도처럼 긴 대기는 상한 초과로 즉시 포기합니다. 원문의 402+`Retry-After`는 **02-4에서 미적용(D26)**.
 - 관련 작업: 02
 
 ### tokio-util CancellationToken
@@ -226,13 +229,15 @@
 ### AWS Architecture Blog, Exponential Backoff And Jitter
 
 - 링크: [Exponential Backoff And Jitter](https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/)
+- 확인 날짜: 2026-11-02
 - 핵심: Full, Equal, Decorrelated 지터를 비교해 Equal이 가장 불리하다고 보고, 지터를 둔 백오프를 원격 클라이언트의 표준 방식으로 권합니다.
-- 적용: 02-4, D13. `Retry-After`가 없을 때 Full Jitter를 씁니다. Decorrelated는 Full보다 낫다는 결론이 없어 더 단순한 Full을 고릅니다.
+- 적용: 02-4(`llm/retry/backoff.rs`·`decide_retry`, D13). `Retry-After`가 없을 때 Full Jitter를 씁니다. Decorrelated는 Full보다 낫다는 결론이 없어 더 단순한 Full을 고릅니다.
 - 관련 작업: 02
 
 ### Google SRE Book, Addressing Cascading Failures
 
 - 링크: [Addressing Cascading Failures](https://sre.google/sre-book/addressing-cascading-failures/)
+- 확인 날짜: 2026-11-02
 - 핵심: 재시도에는 무작위 지수 백오프를 쓰고 요청당 횟수를 제한하며, 재시도 가능한 오류만 재시도하라고 권합니다. 층마다 재시도하면 시도가 곱으로 늘어나므로 한 층에서만 재시도하라고 합니다.
-- 적용: 02-4, 02-6, D13. 재시도 대상 상태 코드 한정, 최대 횟수, 클라이언트 한 층 재시도. 프로세스 단위 재시도 예산은 단일 사용자 에이전트라 지금 필요하지 않아 적용하지 않습니다.
+- 적용: 02-4(`llm/retry` 대상·횟수·facade), 02-6(적용 층), D13. 재시도 대상 상태 코드 한정, 최대 횟수, 클라이언트 한 층 재시도. 프로세스 단위 재시도 예산은 단일 사용자 에이전트라 지금 필요하지 않아 적용하지 않습니다.
 - 관련 작업: 02
