@@ -6,6 +6,3 @@ edition.workspace = true
 [[bin]]
 name = "agent-snap"
 path = "src/main.rs"
-
-[dependencies]
-snap-core = { path = "../snap-core" }
