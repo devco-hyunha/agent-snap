@@ -119,3 +119,8 @@
 - 정본: [docs/decisions/D22-execution-reliability-autonomy.md](decisions/D22-execution-reliability-autonomy.md)
 - 근거: 요약형 결정만 두면 이후 에이전트가 오독·임의 확장하기 쉽다. Prospero 신뢰성 요소와 자율성 옵션을 한 정본에 규범적으로 둔다.
 - 다시 볼 점: 정본 문서의 「다시 볼 점」을 따른다. 정본을 바꾸면 이 요약과 함께 갱신한다.
+
+## D23 snap-cli와 snap-core 의존
+- 결정: snap-cli는 버전 출력만 할 때까지 snap-core 의존을 두지 않는다(YAGNI). CLI가 core를 쓸 때 다시 추가한다.
+- 근거: dev-principles minors 보정 리뷰에서 미사용 의존으로 지적되었고, 현재 바이너리가 core API를 부르지 않는다.
+- 다시 볼 점: CLI가 `load_config` 등 snap-core와 연동할 때 `Cargo.toml`에 의존을 복원한다.

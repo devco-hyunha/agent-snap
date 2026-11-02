@@ -29,9 +29,6 @@ dependencies = [
 [[package]]
 name = "snap-cli"
 version = "0.1.0"
-dependencies = [
- "snap-core",
-]
 
 [[package]]
 name = "snap-core"

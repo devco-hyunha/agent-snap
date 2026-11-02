@@ -73,6 +73,12 @@
 | Prospero 벤치마크 | [03-agent-loop-tools.md#prospero-코딩-하네스-벤치마크](research/03-agent-loop-tools.md#prospero-코딩-하네스-벤치마크) | 2026-11-02 | deadline·Job Object·권한 timeout 등 | 03·D9 재검토 참고; 정책·단계는 **D22 정본**; GUI·원격·데스크톱 제어 등 **미적용·보류** | D22에 반영 | 03, D9, D22 |
 | 자동화·체크포인트·무인 검토 | [03-agent-loop-tools.md#자동화-단계체크포인트무인-옵션-검토](research/03-agent-loop-tools.md#자동화-단계체크포인트무인-옵션-검토) | 2026-11-02 | L1~L3+체크포인트 비교 | [D22](decisions/D22-execution-reliability-autonomy.md), [03 기획](plans/03-agent-loop-tools.md); L2·L3 UI/키는 06 이후; **미적용(지금)**: L2·L3 구현, 기본 무인 | D22에 반영 | 03, D22 |
 
+## 구조·관례 (snap-core)
+
+| 제목 | 상세 | 확인 | 핵심(한 줄) | 적용 위치 또는 미적용 | **상태** | 관련 |
+|---|---|---|---|---|---|---|
+| 테스트 파일 분리 관례 | [Rust Book 11.3 Test Organization](https://doc.rust-lang.org/book/ch11-03-test-organization.html), `config/tests/` | 2026-11-02 | 프로덕션 파일에 테스트 본문을 두지 않고 `#[cfg(test)]` 서브모듈로 분리 | **적용(계획)**: `jsonc`·`secrets`·`credentials` → [tasks/01-srp-test-separation.md](tasks/01-srp-test-separation.md); **미적용 논문 없음** | 기획 반영 | tasks-01 |
+
 ## 문서 역할
 
 - `RESEARCH.md` = 인덱스(적용·상태·링크)
