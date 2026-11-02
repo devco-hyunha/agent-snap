@@ -1,6 +1,6 @@
-# 결정 기록
+# 결정 기록 (인덱스)
 
-날짜: 2026-10-28
+짧은 결정은 이 파일에 결정·근거·다시 볼 점 전문을 둡니다. 길고 규범 밀도가 높은 결정은 [`docs/decisions/`](decisions/) 정본에 두고, 여기에는 **요약·정본 링크·다시 볼 점(또는 정본 위임)** 만 둡니다. 조사는 RESEARCH, 정책 MUST는 decisions/ 정본을 따릅니다.
 
 ## D1 백엔드는 Rust로 한다
 - 결정: 백엔드를 Rust로 만든다.
@@ -45,14 +45,16 @@
 - 다시 볼 점: 서버가 사용량을 주지 않으면 토큰 추정값을 쓰므로 오차가 있다. 검증 명령 통과가 실제 성공을 보장하지 않는 문제(지표 공략)는 따로 다룬다.
 
 ## D9 도구 격리와 승인 정책 보류
-- 결정: 작업 03은 현재 정책(작업 폴더 경계, 비밀 파일 차단, run_command 실행 전 확인)을 유지하고, 실행 격리 방식은 보류한다. 도구별 일방향/양방향 문 유형 분류는 격리 방식이 정해진 뒤 03에 반영한다.
-- 근거: snap은 가능한 한 경량을 목표로 한다. Docker, WSL, 별도 프로그램 설치, Windows Pro 이상 기능처럼 사용 제약과 불편을 늘리는 방식은 맞지 않는다. snap에 넣는 것은 라이선스를 확인해야 한다(2026-10-30 사용자 결정). 주요 코딩 에이전트도 파일 쓰기 승인 여부가 갈리고, 승인을 받지 않는 쪽은 되돌리기나 샌드박스로 보완한다(RESEARCH.md 작업 03 비교 항목).
-- 다시 볼 점: 후보는 Windows 기본 프로세스 격리 기능(낮은 무결성 수준, AppContainer, 제한 토큰, Job Object)과 snap 자체의 쓰기 전 스냅샷이다. Home 에디션 동작, 셸 자식 프로세스까지 격리되는지, Rust 바인딩 크레이트의 라이선스는 확인하지 않았다.
+- 결정(요약): 작업 03은 작업 폴더 경계·비밀 파일 차단·`run_command` 실행 전 확인 등 **현재 정책**을 유지하고, Docker·AppContainer 등 **실행 격리 방식은 보류**한다. 도구별 일방향/양방향 문 유형 분류는 격리가 정해진 뒤 03에 반영한다. **프로세스 트리 정리·셸 deadline·승인 응답 deadline**은 격리가 아니라 **D22 신뢰성**으로 다룬다.
+- 정본: [docs/decisions/D9-tool-isolation-approval.md](decisions/D9-tool-isolation-approval.md)
+- 근거: 정본 참조(경량 목표, 라이선스 확인, RESEARCH 작업 03 비교).
+- 다시 볼 점: 정본의 「다시 볼 점」 및 D9/D22 경계 표를 따른다.
 
 ## D10 설정 파일과 자격 파일
-- 결정: 설정과 키는 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)의 JSONC(주석 허용 JSON) 파일 두 개에 나눠 둔다. 설정 파일 `agent-snap.jsonc`에는 엔드포인트 배열(`endpoints`)과 그 아래 모델 배열(`endpoints[].models`: `name`, `id`, `sampling`, `reasoning`, `extra`), `http`를 두고 키 칸은 두지 않는다. 최상위 `models`와 모델의 `endpoint` 참조는 쓰지 않는다(스키마 세부는 D20). 엔드포인트에 `api_key` 또는 `api_key_env`가 있으면 값은 읽지도 출력하지도 않고 설정 오류로 거부한다(D20·02-2와 동일). 자격 파일 `credentials.jsonc`에는 `api_keys` 아래에 엔드포인트 이름별 키만 둔다. 이름은 trim한 뒤 대소문자와 `-`·`_`를 구분한다. 자격 파일에 그 이름의 키가 있고 비어 있지 않으면 Bearer 헤더로 보내고, 없으면 키 없이 요청한다. 자격 파일이 없으면 키가 없는 것으로 본다.
-- 근거: 중첩된 요청 옵션을 요청 본문과 같은 모양으로 적고 주석도 달 수 있다. 키를 설정과 다른 파일에 두면 설정을 보거나 고칠 때 키가 드러나지 않는다. Windows 환경 변수는 대소문자를 구분하지 않아 이름을 정확히 구분할 수 없다.
-- 다시 볼 점: 키를 운영체제 자격 증명 저장소로 옮길지는 앱 작업에서 본다. 옛 형식 예시 파일(`agent-snap.example.toml`)은 02-2에서 삭제해 `.jsonc` 예시 하나로 통일할 예정이다.
+- 결정(요약): 설정(`agent-snap.jsonc`)과 자격(`credentials.jsonc`)을 사용자 설정 폴더의 **JSONC 두 파일**로 나눈다. 설정에는 `endpoints`·중첩 `models`·`http`만 두고 키 칸은 금지하며, `api_key`/`api_key_env`는 오류로 거부한다. 자격 파일은 엔드포인트 **이름**(trim·대소문자·`-`/`_` 구분)별 키만 Bearer로 쓴다. 스키마·거부 규칙 세부는 **D20**, 검증 세부는 **D21** 정본.
+- 정본: [docs/decisions/D10-config-credentials.md](decisions/D10-config-credentials.md)
+- 근거: 정본 참조(키·설정 분리, Windows env 대소문자).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
 
 ## D11 세부 작업 크기 기준
 - 결정: 세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝나는 기능 하나이며, 자기 AC를 3~5개 가진다. 네트워크 없이 확인하는 해석·판단과 전송은 다른 세부 작업으로 나눈다.
@@ -100,19 +102,20 @@
 - 다시 볼 점: 02-5가 URL을 조립할 때 scheme을 붙이지 않고 base_url을 그대로 붙이는 방식과 충돌하면 다시 본다.
 
 ## D20 설정 스키마(중첩 모델·이름·http·선택 키)
-- 결정: `endpoints`는 `name` 필드를 가진 배열이고, 모델은 각 엔드포인트 아래 `models` 배열(`endpoints[].models`)에 둔다. 최상위 `models`와 모델의 `endpoint` 참조는 폐기한다. 객체 맵이 아니라 배열을 쓴다. `endpoints`/`models` 빈 배열·생략은 허용하고 생략은 `[]`로 정규화한다(“고를 모델 없음”은 02-7·CLI). 엔드포인트·모델 `name`과 모델 `id`는 trim 후 비면 거부하고, trim한 이름을 저장·자격 매칭에 쓴다. 엔드포인트·모델 `name`에는 `/`를 넣지 않는다(추천 가정). trim 후 `/`가 있으면 이름만 밝힌 설정 오류로 거부한다. 모델 `name` 유일성은 같은 엔드포인트 안에서만 적용하고, 다른 엔드포인트끼리는 같은 별칭을 허용한다. 필수: 엔드포인트 `name`·`base_url`·`kind`(6종만: `openai`, `openrouter`, `ollama`, `vllm`, `llamacpp`, `lmstudio` — strata 전용 kind 없음), 모델 `name`·`id`. 선택: 모델 `sampling`·`reasoning`·`extra`. 루트 `target_language` 기본 `ko`, `sampling`·`http` 생략 시 기존 기본. `http` 키는 `retries`, `backoff_min`, `backoff_max`, `retry_after_max`, `connect_seconds`, `header_wait_seconds`, `stream_idle_seconds`(기본 3 / 1 / 30 / 60 / 10 / 300 / 120). 옛 toml 이름 호환 없음. 거부: 엔드포인트 `api_key`·`api_key_env`(값은 읽지도 출력하지도 않음, D10·02-2와 동일), 최상위 옛 `models`(“모델은 endpoints[].models에”), 모델의 `endpoint` 칸. 그 밖 알 수 없는 칸은 무시(02-1과 동일 취지). `base_url`의 `/v1` 경로는 검증하지 않는다(D19). 내부 설정 진실은 중첩으로 보관하고, 모델 조회는 헬퍼(펼친 뷰)로 한다(AC에 타입 이름 불필요). 02-7 선택 키는 `엔드포인트이름/모델이름`(예: `pc1/fast`)이며 모델 이름만으로 클라이언트를 만들지 않는다. `GET /models`는 참고용이며 설정 `models`와 자동 동기화하지 않고, 조회 실패해도 손쓴 id로 요청 가능하다(02-7 비범위·동작).
-- 근거: 엔드포인트 아래에 모델을 두면 설정이 직관적이다. 여러 로컬 PC에 같은 별칭(예: `fast`)을 써도 엔드포인트가 다르면 구분된다. OpenCode의 `provider/model` 선택 키와 비슷한 형태다. 선택 키를 첫 `/`로만 나누면 이름에 `/`가 있을 때 모호하고, 여러 PC 별칭보다 구분자가 깨지는 쪽이 더 위험하다.
-- 다시 볼 점: 실제 서버 확인(작업 06)과 02-5의 `kind`별 요청 변환이 이 스키마와 맞는지 본다. 이름 `/` 금지를 완화할 필요가 생기면 선택 키 구분 규칙을 함께 다시 본다.
+- 결정(요약): `endpoints[]` 아래 중첩 `models[]`, 6종 `kind`, trim·이름 `/` 금지, 선택 키 `엔드포인트/모델`, `http` 7키 기본값(3/1/30/60/10/300/120), 옛 toml·최상위 `models`·모델 `endpoint`·엔드포인트 키 칸 **거부**, `GET /models`는 참고만. 전문 규범은 정본.
+- 정본: [docs/decisions/D20-config-schema.md](decisions/D20-config-schema.md)
+- 근거: 정본 참조(중첩 직관성, OpenCode식 선택 키, `/` 구분 위험).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
 
 ## D21 02-2 설정 검증 세부와 JSONC 공용 모듈
-- 결정: 명세에 없던 검증 세부를 다음과 같이 정한다.
-  - http 시간 값(`backoff_min`, `backoff_max`, `retry_after_max`, `connect_seconds`, `header_wait_seconds`, `stream_idle_seconds`)은 소수 초를 허용하고 0 초과 유한한 값만 받는다(0·음수·무한대 거부. 나노초 미만이라 0이 되는 값도 0으로 본다). `retries`는 0 이상 정수이며 0은 재시도 안 함이다.
-  - `backoff_min > backoff_max`이면 두 항목 이름만 밝혀 거부한다(값은 출력하지 않음).
-  - 모델 `id`는 trim해서 저장한다(D20의 trim 후 빈 값 거부와 같은 처리). 빈 모델 name은 엔드포인트 이름만, 빈 id는 엔드포인트 이름과 모델 이름을 오류에 담는다(오류 변형을 둘로 나눔).
-  - `base_url` scheme은 대소문자를 구분하지 않는다(RFC 3986 3.1절). 기존 테스트로 고정된 동작을 유지한다.
-  - `http`의 모르는 키는 거부한다(D20: 7개 키만 인정, 옛 toml 이름 호환 없음). 다른 위치의 알 수 없는 칸은 계속 무시한다.
-  - 빈 파일과 최상위가 객체가 아닌 설정은 거부한다.
-  - JSONC 해석·줄 번호 오류 변환·최상위 객체 확인·JSON 값 도우미는 크레이트 내부 공용 모듈 `jsonc`(`crates/snap-core/src/jsonc.rs`)에 한 곳으로 둔다. 자격 파일과 설정 파일은 이 모듈의 오류를 자기 오류 타입으로 바꾸기만 한다(AGENTS.md DRY 규칙, D18 보강).
-  - 테스트 위치: 네트워크 없는 단위 테스트는 `src` 안 `#[cfg(test)]` 모듈(`config/tests/`)에 두고, `crates/snap-core/tests/`는 모의 서버 통합 테스트(02-5 이후)에 쓴다.
-- 근거: 0초 대기·0초 제한은 요청을 즉시 실패시키는 무의미한 값이다. Full Jitter 백오프(D13)의 범위가 뒤집히면 02-3이 의미 없는 값을 받는다. 옛 이름을 조용히 무시하면 사용자가 바꾼 값이 적용되지 않은 것을 모른다. scheme은 RFC 3986 3.1절에서 대소문자를 구분하지 않는다. 같은 지식이 두 파일에 있으면 한쪽만 고쳐 어긋나므로 AGENTS.md DRY 규칙에 따라 한 곳에 둔다.
-- 다시 볼 점: `ExtraValue`의 Debug는 값을 그대로 출력한다. 02-5 이후 `extra`를 로그에 찍는 경로가 생기면 가림 여부를 다시 본다. 시간 하한이 실제 서버 확인(작업 06)에서 맞지 않으면 다시 본다.
+- 결정(요약): `http` 시간·`retries`·`backoff_min`/`max`·trim·scheme 대소문자·`http` 알 수 없는 키 거부·빈/비객체 JSONC 거부; JSONC 공용 모듈 `jsonc` 한 곳(DRY); 단위 테스트는 `config/tests/`, 통합은 `crates/snap-core/tests/`.
+- 정본: [docs/decisions/D21-config-validation-jsonc.md](decisions/D21-config-validation-jsonc.md)
+- 근거: 정본 참조(0초 무의미, Full Jitter, RFC 3986, DRY).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
+
+## D22 실행 신뢰성과 자율성 단계
+- 상태: 정본 **approved** (2026-11-02 사용자 승인).
+- 결정(요약): 실행 **신뢰성**(셸·승인·네트워크 deadline, 프로세스 트리 정리, timeout→백그라운드는 후보)은 M1에서 항상 켠다. `run_command` **실행 deadline** 기본 **600초**, 대화형 **승인 응답 deadline** 기본 **300초**(둘 다 설정으로 변경 가능). **자율성**은 L1(명령마다 확인)을 기본으로 하고, L2·L3(체크포인트·무인 옵션)는 06 이후 별도 기획으로 켜고 끌 수 있게 한다. 작업 03은 승인자 주입과 신뢰성만 넣는다. 실행 격리(D9)와 자식 정리(Job Object)는 분리한다.
+- 정본: [docs/decisions/D22-execution-reliability-autonomy.md](decisions/D22-execution-reliability-autonomy.md)
+- 근거: 요약형 결정만 두면 이후 에이전트가 오독·임의 확장하기 쉽다. Prospero 신뢰성 요소와 자율성 옵션을 한 정본에 규범적으로 둔다.
+- 다시 볼 점: 정본 문서의 「다시 볼 점」을 따른다. 정본을 바꾸면 이 요약과 함께 갱신한다.
