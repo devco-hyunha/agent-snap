@@ -20,7 +20,8 @@
 - `endpoints`: `name` 필드를 가진 배열(객체 맵 아님). 생략·빈 배열 허용, 생략은 `[]`로 정규화(D20).
 - 엔드포인트(D10, D20): 필수 `name`, `base_url`(`/v1`까지 포함한 주소로 문서·예시에서 안내, 비밀 값 래퍼로 담음), `kind`(`openai`, `openrouter`, `ollama`, `vllm`, `llamacpp`, `lmstudio` 중 하나 — strata 전용 kind 없음). 그 아래 `models` 배열. 키 칸(`api_key`, `api_key_env`)은 없다.
 - `base_url` 검증(D19): scheme을 `http`/`https`로만 한정하고, 빈 문자열·앞뒤 공백·끝 슬래시를 허용하지 않는다. `/v1` 경로 여부는 검증하지 않는다. scheme을 제외한 나머지(호스트·경로)는 검사하지 않는다.
-- 모델(`endpoints[].models`, D20): 필수 `name`, 서버에 보낼 `id`(둘 다 trim 후 비면 거부). 선택 `sampling`, `reasoning`(`off`, `low`, `medium`, `high`), `extra`(D15). 모델에 `endpoint` 칸은 없다.
+- 모델(`endpoints[].models`, D20): 필수 `name`, 서버에 보낼 `id`(둘 다 trim 후 비면 거부). 선택 `sampling`, `reasoning`(`off`, `low`, `medium`, `high`), `extra`(D15), `context_window`(D29). 모델에 `endpoint` 칸은 없다.
+- `context_window`: 클라이언트가 맞출 맥락 한도(토큰). 생략하면 65536. 있으면 1 이상 정수. `max_tokens`와 다르며 요청 본문에 이 키로 싣지 않는다. 한도 사용은 작업 04다(D29). 읽기·검증 구현은 02-2b.
 - `extra`: 공통 옵션에 없는 값을 하위 객체까지 담는 객체. 요청 본문에 합치는 일은 [02-5](../02-5-transport/spec.md)가 한다.
 - `sampling`: 샘플링 기본값. 모델별 값이 있으면 모델별 값이 앞선다(적용은 [02-7](../02-7-model-select/spec.md)). 루트에서 생략하면 기존 기본(항목별 서버 기본을 따름).
 - 지원하는 샘플링 항목은 `temperature`, `top_p`, `max_tokens` 세 가지다(D14).
@@ -30,6 +31,7 @@
 - `target_language`: `ko`.
 - `endpoints`/`models` 생략: `[]`.
 - `reasoning`, `extra`: 없으면 요청에 아무것도 더하지 않는다.
+- `context_window`: 없으면 65536(D29).
 - 샘플링: 모델별 값과 `sampling` 어디에도 없는 항목은 기본값을 두지 않는다. 요청 본문에서 빼서 서버 기본값을 따른다(D14).
 - `http`(설정으로 바꿀 수 있고, 빠지면 아래 값이 된다)
   - `retries` 3
@@ -73,6 +75,7 @@
 - 엔드포인트·모델 `name`에 trim 후 `/`가 있는 경우: 이름만 밝힌 설정 오류로 거부한다(D20).
 - `kind`가 지원하는 여섯 값이 아닌 경우: 엔드포인트 이름만 밝히고 값은 출력하지 않는다.
 - `reasoning`이 네 값이 아닌 경우: 모델 이름만 밝힌다.
+- `context_window`가 1 미만이거나 정수가 아닌 경우: 모델 이름만 밝힌다. 값은 출력하지 않는다(D29).
 - `extra`에 클라이언트가 채우는 키(`model`, `messages`, `stream`, `tools`)가 있는 경우: 모델 이름과 그 키 이름만 밝힌다(D15).
 - JSONC 문법 오류: 줄 번호만 알린다.
 - 샘플링 항목이 범위를 벗어난 경우: 항목 이름과 모델(`sampling`이면 "기본") 이름만 밝혀 거부한다. 값은 출력하지 않는다(D14).
@@ -95,6 +98,7 @@
 | `kind` 값 오류 | 엔드포인트 이름 | 입력 값, 주소, 키 |
 | `base_url` 값 오류(D19) | 엔드포인트 이름 | 입력 값, 주소, 키 |
 | `reasoning` 값 오류 | 모델 이름 | 입력 값, 주소, 키 |
+| `context_window` 값 오류 | 모델 이름 | 입력 값, 주소, 키 |
 | `extra` 예약 키 | 모델 이름, 예약 키 이름 | `extra`의 값, 주소, 키 |
 | 파일 접근 실패 | 폴더 경로와 파일 이름 | 파일 내용, base_url, 키 |
 | JSONC 문법 오류 | 줄 번호 | 줄 내용, 값 |

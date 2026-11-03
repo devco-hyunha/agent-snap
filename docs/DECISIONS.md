@@ -77,9 +77,9 @@
 - 다시 볼 점: 실제 서버 확인(작업 06)에서 다른 샘플링 항목이 필요하거나 헤더 대기 시간 초과 재시도가 필요해지면 다시 검토한다.
 
 ## D15 생각 옵션과 추가 요청 값
-- 결정: 모델에 공통 `reasoning`(`off`, `low`, `medium`, `high`)을 두고 엔드포인트 `kind`에 맞는 요청 필드로 바꿔 보낸다. 서버별 변환 규칙은 02-5 구현 첫 단계에서 서버 문서를 확인해 `docs/RESEARCH.md`에 기록한다. 공통 옵션에 없는 값은 모델의 `extra`(하위 객체 포함)에 적으면 요청 본문에 그대로 넣고, `model`, `messages`, `stream`, `tools`를 덮어쓰려 하면 설정 오류로 거부한다.
-- 근거: 같은 기능도 서버마다 필드 이름과 모양이 달라(Ollama는 `reasoning_effort`) 고정된 요청으로는 쓸 수 없다.
-- 다시 볼 점: 실제 서버 확인(작업 06)에서 변환 규칙을 다시 본다.
+- 결정: 모델에 공통 `reasoning`(`off`, `low`, `medium`, `high`)을 두고 엔드포인트 `kind`에 맞는 요청 필드로 바꿔 보낸다. 값 매핑은 `off`→`none`, 나머지는 그대로. 변환 표(2026-11-03 문서 확인): `openai`/`ollama`/`vllm`/`llamacpp` → `reasoning_effort`; `openrouter` → `reasoning: { effort }`; `lmstudio` → 공통 필드 없음(필요 시 `extra`만). 상세·링크는 [research/02-client.md](research/02-client.md#kind별-reasoning-요청-필드-변환-02-5)와 [02-5 plan](plans/02-client/02-5-transport/plan.md). 공통 옵션에 없는 값은 모델의 `extra`(하위 객체 포함)에 적으면 요청 본문에 그대로 넣고, `model`, `messages`, `stream`, `tools`를 덮어쓰려 하면 설정 오류로 거부한다.
+- 근거: 같은 기능도 서버마다 필드 이름과 모양이 다르다. 문서로 확인한 뒤 표를 고정해 02-5가 임의 변환하지 않게 한다.
+- 다시 볼 점: 작업 06 실제 서버에서 `lmstudio`·모델별 effort 거절을 다시 본다.
 
 ## D16 설정 저장
 - 결정: 라이브러리에 설정 저장 기능을 둔다(화면은 앱 작업). 엔드포인트와 모델 옵션은 설정 파일에, 키는 자격 파일에만 쓴다. 두 파일 모두 사용자가 단 주석과 손대지 않은 항목을 보존한다. 엔드포인트 이름을 바꾸면 자격 파일의 키 이름도 바꾸고, 삭제하면 그 키도 지운다. 임시 파일에 쓴 뒤 바꿔 기존 파일이 깨지지 않게 한다.
@@ -102,7 +102,7 @@
 - 다시 볼 점: 02-5가 URL을 조립할 때 scheme을 붙이지 않고 base_url을 그대로 붙이는 방식과 충돌하면 다시 본다.
 
 ## D20 설정 스키마(중첩 모델·이름·http·선택 키)
-- 결정(요약): `endpoints[]` 아래 중첩 `models[]`, 6종 `kind`, trim·이름 `/` 금지, 선택 키 `엔드포인트/모델`, `http` 7키 기본값(3/1/30/60/10/300/120), 옛 toml·최상위 `models`·모델 `endpoint`·엔드포인트 키 칸 **거부**, `GET /models`는 참고만. 전문 규범은 정본.
+- 결정(요약): `endpoints[]` 아래 중첩 `models[]`, 6종 `kind`, trim·이름 `/` 금지, 선택 키 `엔드포인트/모델`, `http` 7키 기본값(3/1/30/60/10/300/120), 모델 선택에 `context_window`(D29), 옛 toml·최상위 `models`·모델 `endpoint`·엔드포인트 키 칸 **거부**, `GET /models`는 참고만. 전문 규범은 정본.
 - 정본: [docs/decisions/D20-config-schema.md](decisions/D20-config-schema.md)
 - 근거: 정본 참조(중첩 직관성, OpenCode식 선택 키, `/` 구분 위험).
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
@@ -136,7 +136,7 @@
 - 다시 볼 점: 없음.
 
 ## D26 02-4 재시도 비대상(402 등)과 입력 매핑
-- 결정(요약): OpenRouter **402**는 재시도하지 않는다. `Retry-After` 0/과거→0초, 음수·해석불가→헤더 없음, 헤더 대기 초과·408·425·목록 밖 5xx·기타 4xx(429 제외)는 즉시 포기. 02-5→02-4 입력 매핑 표를 spec에 고정(TLS·프록시는 헤더 전 연결 오류에 포함). POST는 멱등 키 없이 일시 오류만 재시도. 횟수 초과를 `Retry-After` 상한 초과보다 먼저 판정.
+- 결정(요약): OpenRouter **402**는 재시도하지 않는다. `Retry-After` 0/과거→0초, 음수·해석불가→헤더 없음, 헤더 대기 초과·408·425·목록 밖 5xx·기타 4xx(429 제외)는 즉시 포기. 02-5→02-4 입력 매핑 표를 spec에 고정(`PreHeaderConnectKind` 전부·TLS·프록시 포함). POST는 멱등 키 없이 일시 오류만 재시도. 횟수 초과를 `Retry-After` 상한 초과보다 먼저 판정.
 - 정본: [docs/decisions/D26-retry-exclusions-mapping.md](decisions/D26-retry-exclusions-mapping.md)
 - 근거: 정본 참조(잔액은 사용자 조치, in-flight YAGNI, 경계 AC·매핑 표 고정).
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
@@ -148,7 +148,13 @@
 - 관련 작업: [docs/tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md)
 
 ## D28 02 클라이언트 브랜치 리뷰 1 보정 범위 (2026-11-03)
-- 결정: `docs/reviews/02-client-branch-review-1.md` 미달에 대해 major 2건은 전부 고친다. (1) 제품 코드 `unreachable!` 제거(패닉 없는 경로). (2) `serde_json`에 `preserve_order`를 켜고 한 델타 안 생각·모르는 필드 순서를 테스트로 고정한다(02-3 AC·주석 약속과 맞춤). minor 중 이번에 고칠 것: `facade`→한국어, `llm.rs` 모듈 문서, 재시도 중간 API를 `pub(crate)`로 좁혀 lib 공개는 `decide_retry`와 02-6에 필요한 입력·결과 타입만, `index`는 `u32::try_from`. 미룸: 디코더 실패 후 Ok, 가리기 어림 규칙, SSE 버퍼 비용, tasks 옛 경로 문서(02-5·문서 정리).
-- 근거: 리뷰 major는 AC 미달. `preserve_order`는 승인된 “보낸 순서” 약속을 코드로 맞춘다. 공개면 축소는 02-4-4·ISP. 나머지 minor는 02-5 또는 문서 정리로 충분하다.
+- 결정: `docs/reviews/02-client-branch-review-1.md` 미달에 대해 major 2건은 전부 고친다. (1) 제품 코드 `unreachable!` 제거(패닉 없는 경로). (2) `serde_json`에 `preserve_order`를 켜고 한 델타 안 생각·모르는 필드 순서를 테스트로 고정한다(02-3 AC·주석 약속과 맞춤). minor 중 이번에 고칠 것: `facade`→한국어, `llm.rs` 모듈 문서, 재시도 중간 API를 `pub(crate)`로 좁혀 lib 공개는 `decide_retry`와 02-6에 필요한 입력·결과 타입만, `index`는 `u32::try_from`. 미룸 중 **디코더 실패 후 Ok·알고 있는 키·호스트 가리기**는 02-5 plan/spec/tasks·AC에 반영함(2026-11-03). 남은 미룸: SSE 버퍼 비용, tasks 옛 경로·상위 상태 문구(문서 정리).
+- 근거: 리뷰 major는 AC 미달. `preserve_order`는 승인된 “보낸 순서” 약속을 코드로 맞춘다. 공개면 축소는 02-4-4·ISP. 전송 관련 minor는 02-5 AC에 넣었다.
 - 전이 의존 라이선스(`preserve_order`): `indexmap`·`equivalent`·`hashbrown`은 MIT 또는 Apache-2.0, `foldhash`는 Zlib(모두 허용형, 리뷰2 N2 확인).
 - 다시 볼 점: D27의 “retry 공개 API 유지”는 http_date 분리 당시 범위다. 이번 축소 후 02-6이 `decide_retry`만으로 충분한지 확인한다.
+
+## D29 모델별 맥락 창(`context_window`)
+- 결정(요약): 모델에 선택 `context_window`(토큰, 1 이상 정수). 생략 시 **65536**. `max_tokens`와 별도. 요청 본문에 이 키로 실지 않음(02-5). 사용은 작업 04 `context`. 구현은 02-8 전 02-2 보강.
+- 정본: [docs/decisions/D29-context-window.md](decisions/D29-context-window.md)
+- 근거: 정본 참조(로컬 LLM 과대 기본 창 방지, 키 이름·64K 기본).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.

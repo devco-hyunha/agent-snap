@@ -12,7 +12,8 @@
 - 설정 진실은 중첩으로 보관하고, 모델 조회는 헬퍼(펼친 뷰)로 한다.
 
 ## 범위(In)
-- 설정 항목: `target_language`(기본 `ko`), 엔드포인트 목록(`name`, `base_url`, `kind`, 그 아래 `models`), 모델(`name`, 서버에 보낼 `id`, 모델별 샘플링, 선택 `reasoning`, 선택 `extra`), `sampling` 기본값, `http` 시간·재시도 값.
+- 설정 항목: `target_language`(기본 `ko`), 엔드포인트 목록(`name`, `base_url`, `kind`, 그 아래 `models`), 모델(`name`, 서버에 보낼 `id`, 모델별 샘플링, 선택 `reasoning`, 선택 `extra`, 선택 `context_window`), `sampling` 기본값, `http` 시간·재시도 값.
+- 후속 보강(02-2b, D29): 모델 `context_window`(토큰, 1 이상 정수). 생략 시 65536으로 정규화. `max_tokens`와 구분. 요청 본문에 싣지 않음(02-5 Out). 예시 파일 주석·검증·단위 테스트를 02-7 뒤·02-8 전에 넣는다.
 - 모델 이름과 id를 따로 둔다(서버가 파일 경로를 id로 줄 수 있다).
 - base_url은 비밀 값 래퍼([02-1](../02-1-secrets/plan.md))로 담는다. `/v1` 경로 여부는 검증하지 않고 문서·예시로만 안내한다(D19, D20).
 - 키 정하기: 자격 파일 `credentials.jsonc`의 `api_keys`에 엔드포인트 이름(trim한 값)이 있으면 그 키, 없으면 키 없음(D10). 이름으로 찾는 일은 02-1을 쓴다.
