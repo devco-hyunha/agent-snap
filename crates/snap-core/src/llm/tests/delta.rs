@@ -77,3 +77,28 @@ fn usage_absent_is_none() {
     let (_, assembled) = decode_all(body.as_bytes()).unwrap();
     assert!(assembled.usage.is_none());
 }
+
+#[test]
+fn one_delta_keeps_reasoning_field_insertion_order() {
+    // 사전순이면 reasoning이 먼저지만, 보낸 순서(reasoning_content → reasoning)를 유지한다.
+    let body =
+        data_line(r#"{"choices":[{"delta":{"reasoning_content":"먼저","reasoning":"나중"}}]}"#);
+    let (events, assembled) = decode_all(body.as_bytes()).unwrap();
+    assert_eq!(reasoning_events(&events), "먼저나중");
+    assert_eq!(assembled.reasoning, "먼저나중");
+}
+
+#[test]
+fn one_delta_keeps_unknown_field_insertion_order() {
+    // 사전순이면 a_extra가 먼저지만, 보낸 순서(z_extra → a_extra)를 유지한다.
+    let body = data_line(r#"{"choices":[{"delta":{"z_extra":1,"a_extra":2,"content":"x"}}]}"#);
+    let (_, assembled) = decode_all(body.as_bytes()).unwrap();
+    assert_eq!(assembled.content, "x");
+    assert_eq!(
+        assembled.unknown_delta_fields,
+        vec![
+            ("z_extra".to_string(), "1".to_string()),
+            ("a_extra".to_string(), "2".to_string()),
+        ]
+    );
+}

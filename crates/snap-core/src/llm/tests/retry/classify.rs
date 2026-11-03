@@ -1,6 +1,7 @@
 //! 재시도 대상 판별 단위 테스트(AC 1~4, spec AC 5·6).
 
-use crate::llm::{PreHeaderConnectKind, RetryClass, RetryFailureInput, classify_retry};
+use crate::llm::retry::classify::{RetryClass, classify_retry};
+use crate::llm::retry::{PreHeaderConnectKind, RetryFailureInput};
 
 fn assert_candidate(input: RetryFailureInput) {
     assert_eq!(classify_retry(input), RetryClass::Candidate);

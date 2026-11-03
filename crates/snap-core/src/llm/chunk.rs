@@ -61,13 +61,18 @@ pub(super) fn parse_data_chunk(
         });
     }
     let usage = root.get("usage").and_then(parse_usage);
-    let delta = root
+    let delta = match root
         .get("choices")
         .and_then(Value::as_array)
         .and_then(|choices| choices.first())
         .and_then(|first| first.get("delta"))
         .and_then(Value::as_object)
-        .map(parse_delta);
+    {
+        Some(delta) => Some(
+            parse_delta(delta).map_err(|kind| StreamParseError::Format { event_index, kind })?,
+        ),
+        None => None,
+    };
     Ok(ParsedChunk::Ok { usage, delta })
 }
 
@@ -100,7 +105,7 @@ fn parse_usage(value: &Value) -> Option<Usage> {
     })
 }
 
-fn parse_delta(delta: &Map<String, Value>) -> ParsedDelta {
+fn parse_delta(delta: &Map<String, Value>) -> Result<ParsedDelta, FormatErrorKind> {
     const KNOWN: &[&str] = &[
         "content",
         "reasoning",
@@ -114,7 +119,7 @@ fn parse_delta(delta: &Map<String, Value>) -> ParsedDelta {
     {
         parsed.content = Some(content.to_string());
     }
-    // serde_json Map은 삽입 순서를 유지하므로 두 생각 필드가 같이 와도 순서가 남는다.
+    // preserve_order 기능으로 Map이 삽입 순서를 유지한다. 두 생각 필드가 같이 와도 보낸 순서가 남는다.
     for (key, value) in delta {
         if key.as_str() != "reasoning" && key.as_str() != "reasoning_content" {
             continue;
@@ -129,7 +134,7 @@ fn parse_delta(delta: &Map<String, Value>) -> ParsedDelta {
     }
     if let Some(tool_calls) = delta.get("tool_calls").and_then(Value::as_array) {
         for call in tool_calls {
-            if let Some(piece) = parse_tool_call(call) {
+            if let Some(piece) = parse_tool_call(call)? {
                 parsed.tool_calls.push(piece);
             }
         }
@@ -140,12 +145,17 @@ fn parse_delta(delta: &Map<String, Value>) -> ParsedDelta {
         }
         parsed.unknown_fields.push((key.clone(), value.to_string()));
     }
-    parsed
+    Ok(parsed)
 }
 
-fn parse_tool_call(call: &Value) -> Option<ParsedToolCallDelta> {
-    let obj = call.as_object()?;
-    let index = obj.get("index").and_then(Value::as_u64).unwrap_or(0) as u32;
+fn parse_tool_call(call: &Value) -> Result<Option<ParsedToolCallDelta>, FormatErrorKind> {
+    let Some(obj) = call.as_object() else {
+        return Ok(None);
+    };
+    let index = match obj.get("index").and_then(Value::as_u64) {
+        Some(raw) => u32::try_from(raw).map_err(|_| FormatErrorKind::InvalidJson)?,
+        None => 0,
+    };
     let id = obj
         .get("id")
         .and_then(Value::as_str)
@@ -162,12 +172,12 @@ fn parse_tool_call(call: &Value) -> Option<ParsedToolCallDelta> {
         .and_then(Value::as_str)
         .filter(|s| !s.is_empty())
         .map(str::to_string);
-    Some(ParsedToolCallDelta {
+    Ok(Some(ParsedToolCallDelta {
         index,
         id,
         name,
         arguments,
-    })
+    }))
 }
 
 fn error_summary_text(value: &Value) -> String {

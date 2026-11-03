@@ -52,7 +52,7 @@ pub struct AssembledResponse {
     pub reasoning: String,
     /// index별 도구 호출입니다.
     pub tool_calls: BTreeMap<u32, ToolCall>,
-    /// 모르는 델타 필드의 (이름, 원문 JSON) 목록입니다. 나온 순서를 유지합니다.
+    /// 모르는 델타 필드의 (이름, 원문 JSON) 목록입니다. JSON에 나온 삽입 순서를 유지합니다.
     pub unknown_delta_fields: Vec<(String, String)>,
     /// 사용량입니다. 없으면 [`None`](“없음”).
     pub usage: Option<Usage>,

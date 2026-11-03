@@ -12,7 +12,7 @@ use crate::llm::http_date::{parse_imf_fixdate, wait_until};
 ///
 /// 포기 이유에는 대기 시간만 담으며 키·호스트·응답 본문은 담지 않습니다.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum RetryAfterDecision {
+pub(crate) enum RetryAfterDecision {
     /// 상한 이하이므로 이만큼 기다리라고 권고합니다(0초 포함).
     Wait(Duration),
     /// 헤더가 없거나 음수·해석 불가입니다. 호출측이 백오프 경로로 갑니다.
@@ -36,7 +36,7 @@ pub enum RetryAfterDecision {
 /// - 0초 또는 과거 HTTP 날짜 → [`RetryAfterDecision::Wait`]`(0)`
 /// - 대기 ≤ 상한 → [`RetryAfterDecision::Wait`]
 /// - 대기 > 상한 → [`RetryAfterDecision::ExceedsCap`]
-pub fn interpret_retry_after(
+pub(crate) fn interpret_retry_after(
     header: Option<&str>,
     now: SystemTime,
     cap: Duration,

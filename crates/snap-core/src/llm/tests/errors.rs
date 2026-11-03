@@ -35,6 +35,21 @@ fn top_level_error_becomes_stream_error_without_secrets() {
 }
 
 #[test]
+fn tool_call_index_over_u32_is_format_error() {
+    let body = data_line(
+        r#"{"choices":[{"delta":{"tool_calls":[{"index":4294967296,"id":"x","function":{"name":"f"}}]}}]}"#,
+    );
+    let error = decode_all(body.as_bytes()).unwrap_err();
+    assert!(matches!(
+        error,
+        StreamParseError::Format {
+            event_index: 1,
+            kind: FormatErrorKind::InvalidJson
+        }
+    ));
+}
+
+#[test]
 fn invalid_json_is_format_error_without_chunk_body() {
     let chunk = "data: {not-json\n\n";
     let error = decode_all(chunk.as_bytes()).unwrap_err();

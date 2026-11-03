@@ -1,4 +1,4 @@
-//! 공개 재시도 판단 facade 단위 테스트(AC 1~4, spec AC 1~7 스모크).
+//! 공개 재시도 판단 진입점 단위 테스트(AC 1~4, spec AC 1~7 스모크).
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
