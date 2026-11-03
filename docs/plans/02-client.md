@@ -46,13 +46,14 @@
 | RFC 9110, RFC 6585 | `Retry-After` 두 형식과 429 의미. | 02-4 |
 | WHATWG Server-sent events | 줄 끝 세 종류, 주석 줄, data 결합, BOM. | 02-3 |
 | 서버별 문서(llama.cpp, Ollama, vLLM, LM Studio, OpenRouter) | reasoning 두 이름, 스트림 중간 `error` 청크, 보내지 않을 요청 매개변수, `/models` 응답 차이. | 02-3, 02-5, 02-7 |
-| 서버별 문서(생각 옵션 요청 필드) | 서버마다 같은 기능의 필드 이름이 달라 `kind`별 변환 규칙을 02-5 첫 단계에서 문서로 확인해 확정한다. 지금 확인된 것은 Ollama의 `reasoning_effort`뿐. | 02-5 |
+| 서버별 문서(생각 옵션 요청 필드) | `kind`별 변환 표 확정(D15): 다수는 `reasoning_effort`, OpenRouter는 `reasoning.effort`, lmstudio는 공통 필드 없음. 상세는 RESEARCH·02-5 plan. | 02-5 |
 
 ## 설계 요약
 - 네트워크 없이 확인할 수 있는 부분(비밀 값과 자격 파일, 설정, SSE와 델타, 재시도 판단)과 HTTP 전송을 나눈다. 앞의 것은 단위 테스트로, 전송은 모의 서버 통합 테스트로 확인한다.
 - 상위 로직(작업 03)은 LLM 클라이언트를 트레이트로만 받는다. HTTP 라이브러리는 전송 구현 안에서만 쓴다.
 - 설정 파일 `agent-snap.jsonc`와 자격 파일 `credentials.jsonc`는 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)에 있다(D10). `endpoints`는 배열이고 각 엔드포인트는 `name`, `base_url`, `kind`와 그 아래 `models` 배열을 가진다. 최상위 `models`와 모델의 `endpoint` 참조는 쓰지 않는다(D20). 키 칸은 없고, `api_key`·`api_key_env`가 있으면 설정 오류로 거부한다. 키는 자격 파일의 `api_keys`에서 엔드포인트 이름(trim)으로 찾고, 없으면 키 없이 요청한다.
 - 모델 항목의 공통 `reasoning`(`off`, `low`, `medium`, `high`)은 엔드포인트 `kind`에 맞는 요청 필드로 바꿔 보내고, `extra`는 요청 본문에 그대로 합친다. `extra`가 클라이언트가 채우는 키를 덮어쓰려 하면 설정 오류로 거부한다(D15).
+- 모델 항목의 `context_window`(토큰)는 클라이언트가 맞출 맥락 한도다. 생략하면 65536(64K)이다. `max_tokens`와 다르며 요청 본문에 이 키로 싣지 않는다. 읽기·검증은 02-2 보강, 저장은 02-8, 한도 사용은 작업 04다(D29).
 - 설정 저장은 엔드포인트·모델 옵션을 `endpoints[].models` 중첩 형태로 설정 파일에, 키를 자격 파일에만 쓰고, 두 파일 모두 사용자가 단 주석과 손대지 않은 항목을 보존한다(D16, D20).
 - base_url은 `/v1`까지 포함한 주소로 안내한다(`/v1` 경로 여부는 검증하지 않음, D19). 대화는 `{base_url}/chat/completions`, 모델 목록은 `{base_url}/models`로 요청한다. 클라이언트 선택은 `엔드포인트이름/모델이름` 키로 한다(D20).
 - 재시도는 이 클라이언트 한 층에서만 하고, 백오프에는 Full Jitter를 쓴다(DECISIONS D13).
@@ -73,7 +74,8 @@
 | 02-5 | 클라이언트 트레이트와 스트리밍 전송 | 02-4 | [plan](02-client/02-5-transport/plan.md) · [spec](02-client/02-5-transport/spec.md) · [tasks](02-client/02-5-transport/tasks.md) |
 | 02-6 | 재시도 적용 | 02-5 | [plan](02-client/02-6-retry-apply/plan.md) · [spec](02-client/02-6-retry-apply/spec.md) · [tasks](02-client/02-6-retry-apply/tasks.md) |
 | 02-7 | 모델 선택과 모델 목록 조회 | 02-6 | [plan](02-client/02-7-model-select/plan.md) · [spec](02-client/02-7-model-select/spec.md) · [tasks](02-client/02-7-model-select/tasks.md) |
-| 02-8 | 설정 저장 | 02-7 | [plan](02-client/02-8-config-save/plan.md) · [spec](02-client/02-8-config-save/spec.md) · [tasks](02-client/02-8-config-save/tasks.md) |
+| 02-2b | 모델 `context_window` 읽기·검증·예시 | 02-7 | [02-2 plan](02-client/02-2-config/plan.md) 후속 보강(D29). 별도 brief 폴더는 두지 않고 02-2 문서·코드에 이어서 구현한다. |
+| 02-8 | 설정 저장 | 02-2b | [plan](02-client/02-8-config-save/plan.md) · [spec](02-client/02-8-config-save/spec.md) · [tasks](02-client/02-8-config-save/tasks.md) |
 
 ### 세부 작업 공통 기준
 각 세부 작업의 tasks.md는 이 절을 따른다.
@@ -107,7 +109,7 @@
 - 서버마다 스트림 형식과 모델 목록 응답이 다르다. 모르는 필드를 보존하고 필수로 읽는 값을 최소로 둔다.
 - 시간에 의존하는 모의 서버 테스트가 흔들릴 수 있다. 테스트 계획의 시간 원칙을 따른다.
 - 스트림이 시작된 뒤 끊기면 부분 응답이 남는다. 처리 방식은 작업 03에서 정한다.
-- 서버별 `reasoning` 변환 규칙을 아직 문서로 확인하지 못했다. 02-5 첫 단계에서 확인하고, 변환할 수 없는 `kind`가 나오면 처리를 정한다(D15).
+- `lmstudio`는 thinking 요청 필드가 문서에 없어 `extra`에 의존한다. 작업 06에서 실서버를 다시 본다(D15).
 - 설정 파일을 다시 쓸 때 주석이 사라지거나 파일이 깨질 수 있다. 02-8에서 주석 보존과 임시 파일 교체로 막는다(D16).
 
 ## DoD

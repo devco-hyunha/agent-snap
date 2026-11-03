@@ -43,7 +43,7 @@
 
 - 링크: [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility)
 - 핵심: `/v1/chat/completions`에서 스트리밍, `stream_options.include_usage`, `tools`를 지원합니다. `tool_choice`, `logit_bias`, `n` 등은 지원하지 않습니다. reasoning은 `reasoning_effort`로 조절합니다.
-- 적용: 02-5. 요청에 `tool_choice`, `n`을 보내지 않습니다. `stream_options`는 서버마다 지원이 달라 보내지 않습니다(비범위). `reasoning_effort`는 02-5에서 모델의 `reasoning`을 `kind`가 `ollama`일 때 이 필드로 변환해 보냅니다(D15).
+- 적용: 02-5. 요청에 `tool_choice`, `n`을 보내지 않습니다. `stream_options`는 서버마다 지원이 달라 보내지 않습니다(비범위). `reasoning`→`reasoning_effort`(`off`→`none`)는 [변환 표](#kind별-reasoning-요청-필드-변환-02-5)(D15).
 - 관련 작업: 02
 
 ### vLLM Reasoning Outputs
@@ -58,8 +58,8 @@
 
 - 링크: [LM Studio OpenAI compat](https://lmstudio.ai/docs/developer/openai-compat), [Chat Completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions)
 - 확인 날짜: 2026-11-02
-- 핵심: `/v1/chat/completions`를 지원하고 `stream` 매개변수를 받습니다. 문서에 reasoning 필드 설명은 없습니다.
-- 적용: 02-3(별도 처리 없음). reasoning 필드가 오면 두 이름 처리 또는 모르는 필드 보존으로 받습니다.
+- 핵심: `/v1/chat/completions`를 지원하고 `stream` 매개변수를 받습니다. 문서에 reasoning(thinking) **요청** 필드 설명은 없습니다.
+- 적용: 02-3(응답 필드가 오면 두 이름·모르는 필드 보존). 02-5: 공통 `reasoning` 요청 필드는 보내지 않고 `extra`만 합친다([변환 표](#kind별-reasoning-요청-필드-변환-02-5)).
 - 관련 작업: 02
 
 ### OpenRouter Streaming
@@ -74,8 +74,27 @@
 
 - 링크: [OpenRouter Reasoning Tokens](https://openrouter.ai/docs/use-cases/reasoning-tokens)
 - 확인 날짜: 2026-11-02
-- 핵심: 스트리밍에서 생각은 `choices[].delta.reasoning_details` 배열로 오고, 메시지의 `reasoning` 필드에도 나타납니다.
-- 적용: 02-3. `reasoning`은 생각 이벤트로, `reasoning_details`는 모르는 필드로 원문 보존합니다. 구조화된 details 해석은 필요해질 때 합니다(YAGNI).
+- 핵심: 스트리밍에서 생각은 `choices[].delta.reasoning_details` 배열로 오고, 메시지의 `reasoning` 필드에도 나타납니다. 요청 쪽 effort는 `reasoning.effort` 형태입니다(아래 변환 표).
+- 적용: 02-3. `reasoning`은 생각 이벤트로, `reasoning_details`는 모르는 필드로 원문 보존합니다. 구조화된 details 해석은 필요해질 때 합니다(YAGNI). 02-5 요청 변환은 아래 절.
+- 관련 작업: 02
+
+### kind별 reasoning 요청 필드 변환 (02-5)
+
+- 확인 날짜: 2026-11-03
+- 목적: 설정의 공통 `reasoning`(`off`/`low`/`medium`/`high`)을 서버가 받는 요청 필드로 바꾼다(D15).
+- 값 매핑: `off` → `none`, `low`/`medium`/`high`는 그대로. enum 밖 값은 `extra` 전용.
+- 표:
+
+| kind | 요청 필드 | 링크(확인) | 상태 |
+|---|---|---|---|
+| openai | `reasoning_effort` | [Chat Completions](https://developers.openai.com/api/reference/resources/chat) | 확정 |
+| ollama | `reasoning_effort` | [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility) | 확정 |
+| vllm | `reasoning_effort` | [vLLM Reasoning Outputs](https://docs.vllm.ai/en/latest/features/reasoning_outputs/) | 확정 |
+| llamacpp | `reasoning_effort` | [llama.cpp server README](https://github.com/ggml-org/llama.cpp/blob/master/tools/server/README.md) | 확정 |
+| openrouter | `reasoning: { "effort": … }` | [OpenRouter Reasoning Tokens](https://openrouter.ai/docs/use-cases/reasoning-tokens) | 확정 |
+| lmstudio | 공통 필드 없음 → `extra`만 | [LM Studio chat-completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions) (문서에 thinking 요청 필드 없음) | 확정(미전송) |
+
+- 적용: 02-5 plan/spec·D15. 코드 경로는 02-5 구현 후 RESEARCH 상태를 갱신한다.
 - 관련 작업: 02
 
 ### OpenRouter API Rate Limits

@@ -5,7 +5,7 @@
 
 /// 헤더를 받기 전 연결 단계에서 난 오류 종류입니다.
 ///
-/// TLS·프록시는 02-5에 별도 행이 없어 같은 「헤더 전 연결 오류」에 둡니다(D26).
+/// TLS·프록시도 헤더 전 연결 후보입니다. 02-5 오류 표에 행이 있고 모두 이 enum으로 냅니다(D26).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum PreHeaderConnectKind {
     /// DNS 조회 실패입니다.
