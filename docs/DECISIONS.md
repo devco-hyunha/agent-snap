@@ -146,3 +146,9 @@
 - 근거: 파일·모듈 단위 SRP(SOLID), D25(관심사 파일이 하나일 때 하위 폴더 금지), AGENTS 개발 규칙. 제품 공개 표면은 기존 retry 공개 API를 유지한다.
 - 다시 볼 점: 다른 레이어가 같은 파서를 쓰게 되면 그때 위치를 재검토한다(추가 소비자가 생겼을 때의 이동이지, 지금 분리를 미루는 이유가 아님).
 - 관련 작업: [docs/tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md)
+
+## D28 02 클라이언트 브랜치 리뷰 1 보정 범위 (2026-11-03)
+- 결정: `docs/reviews/02-client-branch-review-1.md` 미달에 대해 major 2건은 전부 고친다. (1) 제품 코드 `unreachable!` 제거(패닉 없는 경로). (2) `serde_json`에 `preserve_order`를 켜고 한 델타 안 생각·모르는 필드 순서를 테스트로 고정한다(02-3 AC·주석 약속과 맞춤). minor 중 이번에 고칠 것: `facade`→한국어, `llm.rs` 모듈 문서, 재시도 중간 API를 `pub(crate)`로 좁혀 lib 공개는 `decide_retry`와 02-6에 필요한 입력·결과 타입만, `index`는 `u32::try_from`. 미룸: 디코더 실패 후 Ok, 가리기 어림 규칙, SSE 버퍼 비용, tasks 옛 경로 문서(02-5·문서 정리).
+- 근거: 리뷰 major는 AC 미달. `preserve_order`는 승인된 “보낸 순서” 약속을 코드로 맞춘다. 공개면 축소는 02-4-4·ISP. 나머지 minor는 02-5 또는 문서 정리로 충분하다.
+- 전이 의존 라이선스(`preserve_order`): `indexmap`·`equivalent`·`hashbrown`은 MIT 또는 Apache-2.0, `foldhash`는 Zlib(모두 허용형, 리뷰2 N2 확인).
+- 다시 볼 점: D27의 “retry 공개 API 유지”는 http_date 분리 당시 범위다. 이번 축소 후 02-6이 `decide_retry`만으로 충분한지 확인한다.

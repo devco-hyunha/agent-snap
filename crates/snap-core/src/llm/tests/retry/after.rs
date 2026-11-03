@@ -2,7 +2,7 @@
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use crate::llm::{RetryAfterDecision, interpret_retry_after};
+use crate::llm::retry::after::{RetryAfterDecision, interpret_retry_after};
 
 const CAP_60: Duration = Duration::from_secs(60);
 

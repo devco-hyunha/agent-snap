@@ -1,4 +1,4 @@
-//! 재시도 공개 판단 facade입니다.
+//! 재시도 공개 판단 진입점입니다.
 //!
 //! [`classify_retry`] → [`interpret_retry_after`] → [`decide_backoff`]/[`resolve_give_up_priority`]
 //! 순으로 조립합니다. 판별·헤더·백오프 지식을 복제하지 않습니다.
@@ -8,7 +8,7 @@ use std::time::{Duration, SystemTime};
 
 use super::after::{RetryAfterDecision, interpret_retry_after};
 use super::backoff::{BackoffDecision, GiveUpPriority, decide_backoff, resolve_give_up_priority};
-use super::classify::{RetryClass, RetryFailureInput, classify_retry};
+use super::classify::{RetryFailureInput, classify_retry};
 
 /// 재시도 판단에 쓰는 설정 값입니다.
 ///
@@ -72,9 +72,9 @@ pub enum NotCandidateDetail {
 ///
 /// # 조립 순서
 ///
-/// 1. [`classify_retry`] — 비후보면 즉시 포기
-/// 2. [`interpret_retry_after`] — HTTP 후보만(연결 오류는 헤더 없음)
-/// 3. [`resolve_give_up_priority`] / [`decide_backoff`] — 횟수 우선·백오프
+/// 1. `classify_retry` — 비후보면 즉시 포기
+/// 2. `interpret_retry_after` — HTTP 후보만(연결 오류는 헤더 없음)
+/// 3. `resolve_give_up_priority` / `decide_backoff` — 횟수 우선·백오프
 ///
 /// `retry_after_header`는 원문 헤더 값입니다. 402 등 비후보면 해석하지 않습니다(D26).
 /// `unit_sample`은 Full Jitter용 `[0.0, 1.0]` 난수 샘플입니다.
@@ -86,8 +86,11 @@ pub fn decide_retry(
     now: SystemTime,
     unit_sample: f64,
 ) -> RetryDecision {
-    if classify_retry(input) == RetryClass::NotCandidate {
-        return RetryDecision::GiveUp(RetryGiveUpReason::NotCandidate(not_candidate_detail(input)));
+    if !classify_retry(input).is_candidate() {
+        // PreHeaderConnect는 후보라 상세가 없다. 방어적으로 후보 경로로 이어간다(패닉 없음).
+        if let Some(detail) = not_candidate_detail(input) {
+            return RetryDecision::GiveUp(RetryGiveUpReason::NotCandidate(detail));
+        }
     }
 
     let after = match input {
@@ -142,14 +145,14 @@ fn give_up_from_priority(priority: GiveUpPriority, after: RetryAfterDecision) ->
     }
 }
 
-fn not_candidate_detail(input: RetryFailureInput) -> NotCandidateDetail {
+/// 비후보 입력만 상세로 바꿉니다. 후보(`PreHeaderConnect`)는 [`None`]입니다.
+fn not_candidate_detail(input: RetryFailureInput) -> Option<NotCandidateDetail> {
     match input {
-        RetryFailureInput::HttpStatus { status, .. } => NotCandidateDetail::HttpStatus { status },
-        RetryFailureInput::HeaderWaitTimeout => NotCandidateDetail::HeaderWaitTimeout,
-        // PreHeaderConnect는 Candidate라 classify 이후 NotCandidate 경로에 오지 않습니다.
-        // 가짜 HeaderWaitTimeout 매핑 금지(공개 API 위장 금지).
-        RetryFailureInput::PreHeaderConnect(_) => {
-            unreachable!("PreHeaderConnect는 재시도 후보라 NotCandidateDetail로 매핑하지 않습니다")
+        RetryFailureInput::HttpStatus { status, .. } => {
+            Some(NotCandidateDetail::HttpStatus { status })
         }
+        RetryFailureInput::HeaderWaitTimeout => Some(NotCandidateDetail::HeaderWaitTimeout),
+        // 가짜 HeaderWaitTimeout 매핑 금지(공개 API 위장 금지).
+        RetryFailureInput::PreHeaderConnect(_) => None,
     }
 }
