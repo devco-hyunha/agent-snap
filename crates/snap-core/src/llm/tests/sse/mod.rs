@@ -2,3 +2,4 @@
 
 mod chunks;
 mod lines;
+mod stream_decoder_contract;
