@@ -43,7 +43,7 @@
 
 - 링크: [Ollama OpenAI compatibility](https://docs.ollama.com/api/openai-compatibility)
 - 핵심: `/v1/chat/completions`에서 스트리밍, `stream_options.include_usage`, `tools`를 지원합니다. `tool_choice`, `logit_bias`, `n` 등은 지원하지 않습니다. reasoning은 `reasoning_effort`로 조절합니다.
-- 적용: 02-5. 요청에 `tool_choice`, `n`을 보내지 않습니다. `stream_options`는 서버마다 지원이 달라 보내지 않습니다(비범위). `reasoning`→`reasoning_effort`(`off`→`none`)는 [변환 표](#kind별-reasoning-요청-필드-변환-02-5)(D15).
+- 적용: 02-5 코드: `crates/snap-core/src/llm/request_body.rs` `build_chat_completions_body`가 `tool_choice`·`n`·`stream_options`를 넣지 않고, tools는 목록이 실재할 때만 `tools`로 보냅니다. `reasoning`→`reasoning_effort`(`off`→`none`)는 `insert_reasoning`·`reasoning_wire_value`(D15). 확인은 `crates/snap-core/src/llm/tests/request.rs`.
 - 관련 작업: 02
 
 ### vLLM Reasoning Outputs
@@ -59,7 +59,7 @@
 - 링크: [LM Studio OpenAI compat](https://lmstudio.ai/docs/developer/openai-compat), [Chat Completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions)
 - 확인 날짜: 2026-11-02
 - 핵심: `/v1/chat/completions`를 지원하고 `stream` 매개변수를 받습니다. 문서에 reasoning(thinking) **요청** 필드 설명은 없습니다.
-- 적용: 02-3(응답 필드가 오면 두 이름·모르는 필드 보존). 02-5: 공통 `reasoning` 요청 필드는 보내지 않고 `extra`만 합친다([변환 표](#kind별-reasoning-요청-필드-변환-02-5)).
+- 적용: 02-3(응답 필드가 오면 두 이름·모르는 필드 보존). 02-5 코드: `crates/snap-core/src/llm/request_body.rs` `insert_reasoning`의 `LmStudio` 자리가 비어 공통 `reasoning` 요청 필드를 보내지 않고, `merge_extra`가 `extra`만 합친다([변환 표](#kind별-reasoning-요청-필드-변환-02-5)). 확인은 `crates/snap-core/src/llm/tests/request.rs`의 `lmstudio_omits_common_reasoning_field`.
 - 관련 작업: 02
 
 ### OpenRouter Streaming
@@ -67,7 +67,7 @@
 - 링크: [OpenRouter Streaming](https://openrouter.ai/docs/api/reference/streaming)
 - 확인 날짜: 2026-11-02
 - 핵심: 연결 유지를 위해 `: OPENROUTER PROCESSING` 같은 주석 줄을 보냅니다. 헤더 이후 오류는 HTTP 200 안에서 최상위 `error` 객체와 `finish_reason: "error"`를 가진 data 청크로 오고, 그 뒤 스트림이 끝납니다. 연결을 끊으면 지원하는 공급자에서는 생성과 과금이 멈춥니다.
-- 적용: 02-3(주석 줄 무시, 스트림 중간 `error` 청크는 스트림 오류로 종료), 02-5(취소 시 연결 정리).
+- 적용: 02-3(주석 줄 무시, 스트림 중간 `error` 청크는 스트림 오류로 종료), 02-5 코드: `crates/snap-core/src/llm/transport/stream_state.rs` `read_one_chunk`의 `select!`이 취소를 맞으면 연결을 정리하고 취소 오류 장을 남긴다. 확인은 `crates/snap-core/src/llm/tests/transport/cancel.rs`의 `cancel_mid_stream_reports_cancelled_quickly`(서버 쪽 연결이 3초 안에 닫힘).
 - 관련 작업: 02
 
 ### OpenRouter Reasoning Tokens
@@ -94,7 +94,7 @@
 | openrouter | `reasoning: { "effort": … }` | [OpenRouter Reasoning Tokens](https://openrouter.ai/docs/use-cases/reasoning-tokens) | 확정 |
 | lmstudio | 공통 필드 없음 → `extra`만 | [LM Studio chat-completions](https://lmstudio.ai/docs/developer/openai-compat/chat-completions) (문서에 thinking 요청 필드 없음) | 확정(미전송) |
 
-- 적용: 02-5 plan/spec·D15. 코드 경로는 02-5 구현 후 RESEARCH 상태를 갱신한다.
+- 적용: 02-5 plan/spec·D15. 코드는 `crates/snap-core/src/llm/request_body.rs`의 `insert_reasoning`(kind별 필드)과 `reasoning_wire_value`(`off`→`none`)에 있고, 확인은 `crates/snap-core/src/llm/tests/request.rs`가 `kind`별 본문(OpenRouter 중첩·lmstudio 무필드)을 모의 서버로 본다. RESEARCH 표의 상태도 '적용(코드 경로)'로 갱신했다.
 - 관련 작업: 02
 
 ### OpenRouter API Rate Limits
@@ -109,14 +109,14 @@
 
 - 링크: [CancellationToken (docs.rs)](https://docs.rs/tokio-util/latest/tokio_util/sync/struct.CancellationToken.html)
 - 핵심: 복제본끼리 취소 상태를 공유하고, `cancelled()`는 cancel-safe라 `select!`에 쓸 수 있습니다. `child_token()`은 부모 취소를 따릅니다.
-- 적용: 02-5(스트림 도중 취소, 트레이트 인자), 02-6(재시도 대기 중 취소).
+- 적용: 02-5 코드: `crates/snap-core/src/llm/client/mod.rs`가 `CancellationToken`을 `tokio-util`의 타입으로 재-export하고, `crates/snap-core/src/llm/transport/client.rs`·`stream_state.rs`가 `wait_for_headers`·`read_one_chunk`의 `tokio::select!`에서 취소를 함께 봅니다. 확인은 `crates/snap-core/src/llm/tests/transport/cancel.rs`의 취소 테스트. 02-6(재시도 대기 중 취소)는 02-6에서 이행.
 - 관련 작업: 02
 
 ### reqwest ClientBuilder
 
 - 링크: [reqwest ClientBuilder (docs.rs)](https://docs.rs/reqwest/latest/reqwest/struct.ClientBuilder.html)
 - 핵심: `connect_timeout`은 연결 단계만, `timeout`은 요청 전체, `read_timeout`은 읽기마다 적용되고 성공한 읽기 후 다시 셉니다.
-- 적용: 02-5(연결 시간 초과만 라이브러리에 맡기고 헤더 대기와 유휴는 따로 잽니다). reqwest의 `timeout`과 `read_timeout`은 두 구간을 구분하지 못해 쓰지 않습니다.
+- 적용: 02-5 코드: `crates/snap-core/src/llm/transport/client.rs` `OpenAiCompatClient::new`가 reqwest의 `connect_timeout`으로 연결 시간만 라이브러리에 맡기고, `wait_for_headers`(헤더 대기)와 `llm/transport/stream_state.rs`의 `read_one_chunk`(유휴)로 헤더 대기와 유휴를 따로 잽니다. reqwest의 `timeout`과 `read_timeout`은 두 구간을 구분하지 못해 쓰지 않습니다. 확인은 `crates/snap-core/src/llm/tests/transport/timeouts.rs`의 헤더 대기 초과·본문 멈춤 테스트.
 - 관련 작업: 02
 
 확인 날짜는 모두 2026-10-28입니다. `platform.openai.com` 문서는 403으로 열리지 않아 적지 않았고, 같은 내용을 담은 `developers.openai.com`을 대신 적었습니다. 서버별 문서에 응답 필드가 적혀 있지 않은 곳은 "문서에 없음"으로 두었으며, 실제 서버 응답으로 확인하기 전에는 필수로 믿지 않습니다.
@@ -228,7 +228,7 @@
 
 - 링크: [DistServe](https://arxiv.org/abs/2401.09670)
 - 핵심: TTFT는 요청 시작부터 첫 토큰까지의 지연, TPOT는 출력 토큰 하나당 시간으로 정의합니다. 논문 자체는 서버의 프리필·디코딩 분리 구조를 다룹니다.
-- 적용: 02-5. 요청 시작·첫 토큰·마지막 토큰 시각을 돌려줘 이 정의로 지표를 계산할 수 있게 합니다. 서버 구조 내용은 클라이언트와 관계없어 적용하지 않습니다.
+- 적용: 02-5 코드: `crates/snap-core/src/llm/client/timing.rs` `StreamTiming`(요청 시작·첫 토큰·마지막 토큰)을 `crates/snap-core/src/llm/transport/stream_state.rs` `record_frames`가 채우고, `StreamOutcome`으로 그대로 돌려줘 이 정의로 지표를 계산할 수 있게 합니다. 서버 구조 내용은 클라이언트와 관계없어 적용하지 않습니다. 확인은 `crates/snap-core/src/llm/tests/transport/usage.rs`의 시각 순서 테스트.
 - 관련 작업: 02
 
 ### Etalon (arXiv 2407.07000)

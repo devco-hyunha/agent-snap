@@ -1,0 +1,13 @@
+//! OpenAI 호환 HTTP 스트리밍 전송입니다.
+//!
+//! `reqwest`는 `llm/transport/` 안의 파일에서만 씁니다. `snap-core` 공개면으로
+//! 새지 않게 둡니다.
+
+pub(crate) mod connect_classify;
+mod stream_state;
+
+mod client;
+
+pub use client::OpenAiCompatClient;
+#[cfg(test)]
+pub(crate) use connect_classify::connect_kinds_by_row;

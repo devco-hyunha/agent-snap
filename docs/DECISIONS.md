@@ -158,3 +158,8 @@
 - 정본: [docs/decisions/D29-context-window.md](decisions/D29-context-window.md)
 - 근거: 정본 참조(로컬 LLM 과대 기본 창 방지, 키 이름·64K 기본).
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
+
+## D30 02-5 전송·취소·모의 서버 크레이트
+- 결정: 02-5 HTTP 전송은 `reqwest` 0.13(features: `json`, `stream`; 기본 TLS는 `rustls`)을 쓴다. 취소 토큰은 `tokio-util` 0.7(`sync` 모듈의 `CancellationToken`, `rt` feature 불필요)을 쓴다. 비동기 런타임은 `tokio` 1에 제품 코드는 `macros`·`time`만 넣고, 테스트는 `rt-multi-thread`·`sync`·`net`까지 `dev-dependencies`로 분리한다. 테스트 모의 서버는 `axum` 0.8과 본문 스트림 구현(조각·지연 제어)에 쓰는 `http-body` 1을 `dev-dependencies`에 둔다. crates.io·포장 LICENSE 표기: `reqwest`는 MIT OR Apache-2.0(LICENSE-MIT·LICENSE-APACHE), `tokio`·`tokio-util`·`axum`·`http-body`는 MIT(LICENSE). 후보 `wiremock` 0.6도 MIT/Apache-2.0 허용형이나, 헤더 지연·본문 멈춤·연결 종료 관찰을 핸들러로 직접 다루려고 `axum`을 고른다. 버전·features는 `crates/snap-core/Cargo.toml`에 맞춘다.
+- 근거: RESEARCH·plan이 `reqwest`의 `connect_timeout`만 쓰고 헤더 대기·유휴는 따로 재며, 취소는 `CancellationToken`의 `cancelled()`로 안전하게 기다리라고 한다. 모의 서버는 헤더 지연·본문 멈춤·연결 종료를 핸들러로 직접 다루려고 `axum`을 쓰고, 본문 조각과 지연을 테스트가 제어할 때 쓰는 본문 제어 타입이 `http-body` 1이다. 허용형만 채택한다(D5·D18·D24와 같은 확인 방식).
+- 다시 볼 점: `rustls`가 대상 PC에서 막히면 `native-tls`를 검토한다. 모의 서버가 과하면 더 얇은 스텁으로 바꿀지 본다.

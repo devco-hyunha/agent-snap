@@ -1,6 +1,7 @@
 //! 설정 파일(`agent-snap.jsonc`)을 읽어 검증하고, 엔드포인트의 키를 자격 파일에서 정하는 모듈입니다.
 
 mod error;
+pub(crate) mod extra_json;
 mod http;
 mod keys;
 mod load;
@@ -20,6 +21,7 @@ pub use types::{
 
 #[cfg(test)]
 mod tests {
+    mod extra_json;
     mod keys;
     mod location;
     mod reading;

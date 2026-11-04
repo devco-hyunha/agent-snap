@@ -5,5 +5,14 @@ edition.workspace = true
 
 [dependencies]
 jsonc-parser = "0.34.0"
+reqwest = { version = "0.13", features = ["json", "stream"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = "2.0.21"
+tokio = { version = "1", features = ["macros", "time"] }
+tokio-util = { version = "0.7", default-features = false }
+
+[dev-dependencies]
+# 테스트는 멀티스레트 런타임(tokio::test)·sync·net까지 쓴다. 제품 코드는 macros·time만 쓴다.
+axum = "0.8"
+http-body = "1"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time", "net"] }

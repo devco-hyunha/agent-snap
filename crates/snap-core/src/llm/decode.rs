@@ -26,6 +26,9 @@ impl StreamDecoder {
     }
 
     /// 바이트 조각을 넣고 새로 나온 스트림 이벤트를 돌려줍니다.
+    ///
+    /// 한 번 `Err`를 낸 뒤에는 빈 `Ok`만 돌려줍니다. 성공을 만들어 주지 않는다는 계약이고(D28),
+    /// 전송 쪽은 첫 `Err` 이후로 이 디코더를 다시 쓰지 않습니다.
     pub fn push(&mut self, bytes: &[u8]) -> Result<Vec<StreamEvent>, StreamParseError> {
         if self.failed {
             return Ok(Vec::new());
