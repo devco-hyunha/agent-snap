@@ -11,8 +11,8 @@ use crate::llm::client::{
     CancellationToken, ChatDriver, ChatFrame, StreamOutcome, StreamTiming, TimeoutSegment,
     TransportError,
 };
-use crate::llm::decode::StreamDecoder;
-use crate::llm::delta::{StreamEvent, Usage};
+use crate::llm::codec::decode::StreamDecoder;
+use crate::llm::codec::delta::{StreamEvent, Usage};
 
 /// 서버가 준 바이트 조각을 02-3 디코더에 넣어 장을 만드는 전송 쪽 손잡이입니다.
 pub(crate) struct StreamState {

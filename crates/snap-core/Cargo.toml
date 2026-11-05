@@ -5,6 +5,7 @@ edition.workspace = true
 
 [dependencies]
 jsonc-parser = "0.34.0"
+fastrand = "2.3" # Full Jitter 대기 시간의 균등 난수 한 값만 만든다. 의존 0개, 라이선스 Apache-2.0 OR MIT.
 reqwest = { version = "0.13", features = ["json", "stream"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = "2.0.21"
@@ -12,6 +13,8 @@ tokio = { version = "1", features = ["macros", "time"] }
 tokio-util = { version = "0.7", default-features = false }
 
 [dev-dependencies]
+# 단위 시험(src/llm/tests)과 통합 시험이 `snap_core::` 경로로 지원 코드를 함께 쓰게 하는 자기 경로 개발 의존입니다.
+snap-core = { path = ".", version = "0.1.0" }
 # 테스트는 멀티스레트 런타임(tokio::test)·sync·net까지 쓴다. 제품 코드는 macros·time만 쓴다.
 axum = "0.8"
 http-body = "1"

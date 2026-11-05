@@ -142,7 +142,7 @@
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
 
 ## D27 Retry-After 정책과 IMF-fixdate 파싱 분리 (2026-11-02)
-- 결정: HTTP-date 파싱은 `llm/http_date.rs`로 두고 retry 정책과 모듈 경계를 나눈다. IMF-fixdate·민간 달력·`wait_until`은 Retry-After 정책이 아니므로 `retry/` 아래에 두지 않는다. `after.rs`는 정책·delay-seconds·상한만 남기고 HTTP-date 경로는 `crate::llm::http_date` 파서를 호출한다. 필요 진입점은 같은 crate의 retry가 쓰도록 `pub(crate)`로 열고, `snap-core` lib 공개면은 기존 retry 공개 API를 유지한다. 하위 폴더로 감싸지 않는다(D25).
+- 결정: HTTP-date 파싱은 `llm/codec/http_date.rs`로 두고 retry 정책과 모듈 경계를 나눈다. IMF-fixdate·민간 달력·`wait_until`은 Retry-After 정책이 아니므로 `retry/` 아래에 두지 않는다. `after.rs`는 정책·delay-seconds·상한만 남기고 HTTP-date 경로는 `crate::llm::codec::http_date` 파서를 호출한다. 필요 진입점은 같은 crate의 retry가 쓰도록 `pub(crate)`로 열고, `snap-core` lib 공개면은 기존 retry 공개 API를 유지한다. 하위 폴더로 감싸지 않는다(D25). (경로 표기는 2026-11-05 작업 08 이동 결과 실체로 정정, 결정 내용 그대로)
 - 근거: 파일·모듈 단위 SRP(SOLID), D25(관심사 파일이 하나일 때 하위 폴더 금지), AGENTS 개발 규칙. 제품 공개 표면은 기존 retry 공개 API를 유지한다.
 - 다시 볼 점: 다른 레이어가 같은 파서를 쓰게 되면 그때 위치를 재검토한다(추가 소비자가 생겼을 때의 이동이지, 지금 분리를 미루는 이유가 아님).
 - 관련 작업: [docs/tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md)
@@ -163,3 +163,18 @@
 - 결정: 02-5 HTTP 전송은 `reqwest` 0.13(features: `json`, `stream`; 기본 TLS는 `rustls`)을 쓴다. 취소 토큰은 `tokio-util` 0.7(`sync` 모듈의 `CancellationToken`, `rt` feature 불필요)을 쓴다. 비동기 런타임은 `tokio` 1에 제품 코드는 `macros`·`time`만 넣고, 테스트는 `rt-multi-thread`·`sync`·`net`까지 `dev-dependencies`로 분리한다. 테스트 모의 서버는 `axum` 0.8과 본문 스트림 구현(조각·지연 제어)에 쓰는 `http-body` 1을 `dev-dependencies`에 둔다. crates.io·포장 LICENSE 표기: `reqwest`는 MIT OR Apache-2.0(LICENSE-MIT·LICENSE-APACHE), `tokio`·`tokio-util`·`axum`·`http-body`는 MIT(LICENSE). 후보 `wiremock` 0.6도 MIT/Apache-2.0 허용형이나, 헤더 지연·본문 멈춤·연결 종료 관찰을 핸들러로 직접 다루려고 `axum`을 고른다. 버전·features는 `crates/snap-core/Cargo.toml`에 맞춘다.
 - 근거: RESEARCH·plan이 `reqwest`의 `connect_timeout`만 쓰고 헤더 대기·유휴는 따로 재며, 취소는 `CancellationToken`의 `cancelled()`로 안전하게 기다리라고 한다. 모의 서버는 헤더 지연·본문 멈춤·연결 종료를 핸들러로 직접 다루려고 `axum`을 쓰고, 본문 조각과 지연을 테스트가 제어할 때 쓰는 본문 제어 타입이 `http-body` 1이다. 허용형만 채택한다(D5·D18·D24와 같은 확인 방식).
 - 다시 볼 점: `rustls`가 대상 PC에서 막히면 `native-tls`를 검토한다. 모의 서버가 과하면 더 얇은 스텁으로 바꿀지 본다.
+
+## D31 02-6 백오프 난수 크레이트와 포기 이유 전달 (2026-11-04)
+- 결정: 백오프(Full Jitter)용 `[0.0,1.0)` 균등 실수 값은 `fastrand` 2.5.0으로 공급한다(2026-11-04 crates.io 확인, 라이선스 Apache-2.0 OR MIT, 의존 0개). 공급은 `llm/retry/retry_loop.rs`의 판단 반복(`judge_once`) 한 곳에만 두고, 값 주입을 받으면 그 값을, 안 받으면 `fastrand::f64()`를 쓴다. 제품은 항상 생산 공급(주입 `None`)이고, 시험은 `with_unit_sample`(cfg(test))로 값을 고정해 대기 간격을 일정하게 유지한다. 포기 이유 전달은 새 오류 종류를 만들지 않고 `TransportError::ServerStatus`의 칸 `give_up: Option<RetryGiveUpReason>`으로만 얹는다(02-6 spec 33행 "새 오류 종류 금지" 준수). `Retry-After` 헤더 원문은 판단에만 쓰고 공개 오류에 담지 않는다.
+- 근거: 02-4 `decide_retry`는 균등 난수(`unit_sample`)를 주입받도록 설계됐고(backoff.rs 독스트링), 02-6에서 그 공급처를 처음 둔다. 조사 후보는 `fastrand`(의존 0개, f64 한 값 생성), `getrandom`(난수 조각만, 조합 코드 필요), `rand`(전이 의존 과함)였고 가벼운 쪽을 골랐다. 허용형 라이선스만 채택하며(D5·D18·D24와 같은 확인 방식), 의존 0개라 전이 의존 라이선스 문제가 없다. 버전은 `Cargo.toml`의 "2.3" 요구에 `Cargo.lock`이 2.5.0으로 고정된다.
+- 다시 볼 점: `fastrand` 버전 상승으로 `f64` 생성 방식이 바뀌면 다시 본다. 03에서 에이전트 루프가 붙을 때 재시도가 같은 한 층(`stream_chat`)을 거치는지 확인한다(D13). 포기를 공개 API로 더 널리 공개할지는 03·04에서 본다.
+
+## D32 CLI 출력 언어 (2026-11-04)
+- 결정: 프로그램이 화면에 찍는 말(오류·승인 안내·상태 문구 등)의 언어는 D2 `target_language`(모델이 쓸 말, 작업 05 감시)와 **따로** 둔다. 설정 키 이름·지원 언어·`snap-core` 오류와 `snap-cli` 표시 경계는 **작업 04 상세 기획**에서 정한다. 지금은 02·03 기획·구현 범위에 넣지 않는다.
+- 근거: 사람용 문구는 대화형 CLI(작업 04)에 모인다. `target_language`에 섞으면 감시 설정과 UI 표시가 한 키로 묶여 바꾸기 어렵다. 02는 전송·설정 중이라 문구 표면이 아직 없다.
+- 다시 볼 점: 04 착수 시 (1) UI 언어 설정 키를 `target_language`와 나눌지, (2) 기본값을 `ko`로 둘지, (3) 코어는 구조화 오류만 두고 CLI에서 문장으로 조립할지 확정한다. 앱(Tauri)은 CLI에서 정한 방식을 재사용하는지 그때 본다.
+
+## D33 Serena 기능 참고·네이티브 심볼 도구 (2026-11-04)
+- 결정: [Serena](https://github.com/oraios/serena)(MCP로 IDE식 심볼 검색·편집을 주는 서버)의 **동작만** 참고하고, Serena 프로세스·MCP 서버·Serena 앱 코드를 **의존·포함하지 않는다**. 같은 능력은 `snap-core`의 `Tool`로 **네이티브** 구현한다(D5: 설계 참고, 코드 가져오면 출처·라이선스). 참고 후보(문서 [Tools and APIs](https://oraios.github.io/serena/01-about/035_tools.html)): 심볼 찾기·파일 심볼 개요·참조·선언, 심볼 단위 교체·이름 바꾸기, 파일 진단. **비범위(당분간)**: JetBrains/유료 백엔드, Serena REPL(파이썬 한 도구로 조합), 대시보드·온보딩·Serena 메모리 도구, 외부 프로젝트 질의 MCP. 작업 03 본문의 기본 도구(`read_file`·`write_file`·`edit_file`·`list_dir`·`glob`·`grep`·`run_command`)에는 **지금 넣지 않는다**. 후보·우선순위·언어 서버(LSP) 백엔드 선택은 **작업 03 세부 기획** 또는 그 뒤 별도 작업에서 정한다.
+- 근거: 심볼 단위 조회·편집은 큰 코드베이스에서 파일 전체 읽기보다 맥락이 짧아진다. Serena 앱은 GPL-3.0-or-later(SolidLSP만 MIT)라 앱 코드를 가져오면 라이선스가 무겁다. agent-snap은 독립 에이전트(D5)라 외부 MCP에 묶지 않고, 작업 폴더 경계·승인(D9·D17·D22)을 같은 `Tool` 경로로 지킨다. 03 1차는 최소 파일 도구로 루프를 먼저 굳힌다.
+- 다시 볼 점: 03 세부 기획 때 (1) 1차로 넣을 도구(찾기·개요·참조 vs 이름 바꾸기·진단), (2) Windows에서 rust-analyzer 등 LSP 기동·수명, (3) 심볼 편집·이름 바꾸기의 승인 필요 여부, (4) SolidLSP(MIT) 아이디어만 참고할지 Rust LSP 클라이언트를 쓸지. 코드를 참고·이식하면 D5대로 출처와 라이선스를 적는다.

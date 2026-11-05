@@ -4,7 +4,7 @@ use std::pin::Pin;
 
 use crate::llm::client::error::TransportError;
 use crate::llm::client::outcome::StreamOutcome;
-use crate::llm::delta::StreamEvent;
+use crate::llm::codec::delta::StreamEvent;
 
 /// 전송이 만들어 낸 스트림의 한 장입니다.
 ///

@@ -6,7 +6,7 @@
 
 use std::time::{Duration, SystemTime};
 
-use crate::llm::http_date::{parse_imf_fixdate, wait_until};
+use crate::llm::codec::http_date::{parse_imf_fixdate, wait_until};
 
 /// `Retry-After` 해석·상한 비교 결과입니다.
 ///

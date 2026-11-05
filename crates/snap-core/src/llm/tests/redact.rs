@@ -38,10 +38,11 @@ fn rough_summary_is_length_limited() {
 #[test]
 fn scrub_hides_known_key_and_host_after_rough_pass() {
     use crate::llm::error::scrub::SecretScrub;
+    use crate::secrets::SecretValue;
 
     // 키가 어림 규칙의 짧은 토큰 기준에 안 걸리고(16자 미만), host는 scheme이 없어
     // 어림 가리기가 그대로 남기는 자리입니다. 확인 가리기가 한 번 더 지워야 합니다.
-    let key = crate::secrets::SecretValue::new("sk-known-key");
+    let key = SecretValue::new("sk-known-key");
     let echo = "upstream key sk-known-key at 127.0.0.1:6099 /v1 failed";
     let rough = summarize_stream_error(echo);
     assert!(
@@ -53,10 +54,7 @@ fn scrub_hides_known_key_and_host_after_rough_pass() {
         "어림만으로는 호스트가 남아야 합니다"
     );
 
-    let scrub = SecretScrub::new(
-        Some(&key),
-        &crate::secrets::SecretValue::new("http://127.0.0.1:6099/v1"),
-    );
+    let scrub = SecretScrub::new(Some(&key), &SecretValue::new("http://127.0.0.1:6099/v1"));
     let cleaned = scrub.describe(echo);
     assert!(
         !cleaned.contains("sk-known-key"),

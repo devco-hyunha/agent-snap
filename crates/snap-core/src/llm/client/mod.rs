@@ -4,10 +4,13 @@
 //! HTTP 라이브러리 타입은 여기 두지 않습니다.
 
 mod error;
+mod error_debug;
 mod frames;
+mod give_up_note;
 mod outcome;
 mod request;
 mod segment;
+mod sse;
 mod stream;
 mod timing;
 mod traits;
@@ -20,6 +23,7 @@ pub(crate) use frames::{ChatDriver, ChatFrame};
 pub use outcome::StreamOutcome;
 pub use request::{ChatMessage, ChatRequest, ToolDefinition};
 pub use segment::TimeoutSegment;
+pub use sse::{SseItem, SseParser};
 pub use stream::ChatStream;
 pub use timing::StreamTiming;
 pub use traits::LlmClient;
