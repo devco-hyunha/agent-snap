@@ -8,12 +8,14 @@ mod load;
 mod location;
 mod parse;
 mod sampling;
+mod selection;
 mod types;
 mod validate;
 
 pub use error::ConfigError;
 pub use load::{CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, load_config, load_credentials};
 pub use location::{ConfigEnv, HostOs, resolve_config_dir};
+pub use selection::SelectionError;
 pub use types::{
     Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning,
     Sampling,
@@ -26,6 +28,7 @@ mod tests {
     mod location;
     mod reading;
     mod redaction;
+    mod selection;
     mod support;
     mod validation;
 }

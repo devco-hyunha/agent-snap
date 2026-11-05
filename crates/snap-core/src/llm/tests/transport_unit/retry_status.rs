@@ -9,7 +9,7 @@ use std::time::{Duration, Instant};
 
 use axum::http::{HeaderMap, StatusCode};
 
-use super::super::common::mock_server::script::RecordedRequest;
+use super::super::common::mock_server::RecordedRequest;
 use super::super::common::mock_server::{MockResponseScript, MockServer};
 use super::super::common::support::{
     body_parts_sse, content_events, sample_request, success_stream_body,

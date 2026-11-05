@@ -1,27 +1,21 @@
 #![allow(dead_code, unreachable_pub)]
 
-//! 스크립트대로 응답을 조립해 보내는 핸들러와 본문 스트림 구현입니다.
+//! 스크립트 본문 조각을 순서·지연대로 내보내고 끊김을 흉내 내는 본문 스트림 구현입니다.
 //!
-//! 스크립트 규격은 `super::script`, 연결 수 세기는 `super::server`가 맡습니다.
-//! 이 파일은 요청 기록과 응답 조립, 그리고 본문 스트림(조각을 순서·지연대로 내보내고 끊김을 흉내 내는 일)을 다룹니다.
+//! 스크립트 규격은 `super::script`, 끊김 표식은 `super::disconnect`, 연결 수 세기는 `super::server`가 맡습니다.
+//! 핸들러(`super::handler`)는 이 파일의 본문을 골라 응답으로 감쌉니다.
 
-use std::future::Future;
 use std::marker::Unpin;
 use std::pin::Pin;
-use std::sync::Arc;
 use std::task::{Context, Poll};
-use std::time::Instant;
 use std::vec::IntoIter;
 
-use axum::body::{Body, Bytes};
-use axum::extract::State;
-use axum::http::{HeaderMap, Method, Uri};
-use axum::response::Response;
+use axum::body::Bytes;
 use http_body::Frame;
 
 use super::disconnect::BodyDisconnected;
-use super::script::{MockBodyPart, RecordedRequest};
-use super::server::{self, ConnectionGuard, Shared};
+use super::guard::ConnectionGuard;
+use super::script::MockBodyPart;
 
 /// 본문 폴(poll, 본문에서 조각을 받아내는 일) 결과를 한 형태로만 부릅니다. 본문 종류마다 같은 폴 결과를 다시 적지 않습니다.
 type BodyPoll = Poll<Option<Result<Frame<Bytes>, BodyDisconnected>>>;
@@ -87,12 +81,12 @@ impl ScriptParts {
 ///
 /// 끊김 표식이 섞인 스크립트는 핸들러가 끊김 본문(`DisconnectBody`)으로 나눠 보내므로,
 /// 이 본문에는 끊김 표식 조각이 도착하지 않습니다.
-struct ScriptBody {
+pub(super) struct ScriptBody {
     stream: ScriptParts,
 }
 
 impl ScriptBody {
-    fn new(parts: Vec<MockBodyPart>) -> Self {
+    pub(super) fn new(parts: Vec<MockBodyPart>) -> Self {
         Self {
             stream: ScriptParts::new(parts),
         }
@@ -139,9 +133,9 @@ impl http_body::Body for ScriptBody {
 /// 본문이 끝나거나 끊기면 연결 가드를 버리는 본문입니다.
 ///
 /// 앞 조각을 다 보낸 뒤 끊는 끊김 본문과 연결 세기를 한 자리에서 같습니다(함수 재사용).
-struct GuardedBody<B> {
-    inner: B,
-    guard: Option<ConnectionGuard>,
+pub(super) struct GuardedBody<B> {
+    pub(super) inner: B,
+    pub(super) guard: Option<ConnectionGuard>,
 }
 
 impl<B> http_body::Body for GuardedBody<B>
@@ -175,7 +169,7 @@ impl<B> Drop for GuardedBody<B> {
 /// 못 본 클라이언트는 연결이 끊긴 것을 알게 됩니다(02-6 AC 5의 끊김 흉내에 필요합니다).
 /// 끊기 전에 보낸 조각을 클라이언트가 받을 수 있게, 오류를 내기 직전 폴에서 한 번 대기합니다.
 /// hyper는 본문이 대기를 받으면 지금까지 쓴 것을 소켓에 다 쓰고 다음 폴을 부릅니다.
-struct DisconnectBody {
+pub(super) struct DisconnectBody {
     stream: ScriptParts,
     /// 끊기 직전 대기 표식입니다. 여기서 대기는 `Poll::Pending`을 한 번 더 보내는 표식입니다.
     /// hyper가 쓴 것을 소켓에 다 쓰게 한 자리에서 한 번만 씁니다.
@@ -183,7 +177,7 @@ struct DisconnectBody {
 }
 
 impl DisconnectBody {
-    fn new(parts: Vec<MockBodyPart>) -> Self {
+    pub(super) fn new(parts: Vec<MockBodyPart>) -> Self {
         Self {
             stream: ScriptParts::new(parts),
             flush_wakeup: false,
@@ -222,67 +216,4 @@ impl http_body::Body for DisconnectBody {
             }
         }
     }
-}
-
-pub(super) async fn handle_chat_completions(
-    State(shared): State<Arc<Shared>>,
-    method: Method,
-    uri: Uri,
-    headers: HeaderMap,
-    body: Bytes,
-) -> Response {
-    let guard = server::ConnectionGuard::new(&shared);
-
-    // 요청을 받기 시작하는 순간을 요청 도착 시각으로 기록합니다. 반복 요청 간격 확인의 기준입니다.
-    let received_at = Instant::now();
-    let script = server::current_script(&shared).await;
-
-    {
-        server::record(
-            &shared,
-            RecordedRequest {
-                method: method.to_string(),
-                path: uri.path().to_string(),
-                headers: headers.clone(),
-                body: body.to_vec(),
-                received_at,
-            },
-        )
-        .await;
-    }
-
-    if script.hang_before_headers {
-        // 클라이언트가 끊을 때까지 헤더를 보내지 않습니다.
-        let _guard = guard;
-        return std::future::pending::<Response>().await;
-    }
-
-    if !script.header_delay.is_zero() {
-        tokio::time::sleep(script.header_delay).await;
-    }
-
-    let mut builder = Response::builder().status(script.status);
-    for (name, value) in script.response_headers.iter() {
-        builder = builder.header(name, value);
-    }
-
-    // 끊김 표식이 섞인 스크립트면 끊김 본문을 씁니다. 끊김은 hyper가 보내는 chunked 끝 마커 없이
-    // 연결이 닫히는 자리에서 나와야 합니다(02-6 AC 5).
-    if script.body_parts.iter().any(|part| part.disconnect) {
-        let guarded = GuardedBody {
-            inner: DisconnectBody::new(script.body_parts),
-            guard: Some(guard),
-        };
-        return builder
-            .body(Body::new(guarded))
-            .expect("모의 응답 본문 조립");
-    }
-
-    let guarded = GuardedBody {
-        inner: ScriptBody::new(script.body_parts),
-        guard: Some(guard),
-    };
-    builder
-        .body(Body::new(guarded))
-        .expect("모의 응답 본문 조립")
 }

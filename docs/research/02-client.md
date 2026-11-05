@@ -168,15 +168,18 @@
 ### LM Studio 모델 목록과 인증
 
 - 링크: [LM Studio OpenAI compat, models](https://lmstudio.ai/docs/developer/openai-compat/models), [LM Studio REST list](https://lmstudio.ai/docs/developer/rest/list), [LM Studio Authentication](https://lmstudio.ai/docs/developer/core/authentication)
+- 확인 날짜: 2026-11-05(재확인)
 - 핵심: OpenAI 호환 `GET /v1/models`는 서버가 볼 수 있는 모델을 돌려주며 JIT 로딩이 켜져 있으면 내려받은 모델 전체가 나올 수 있다고 합니다. 응답 필드는 그 문서에 없습니다. 별도의 고유 REST `GET /api/v1/models`는 `models` 배열(`key`, `display_name`, `loaded_instances` 등)로 형식이 완전히 다릅니다. 인증은 기본 꺼짐이며 켜면 Bearer 토큰이 필요합니다(0.4.0 이상).
-- 적용 위치: 02-7(OpenAI 호환 `GET {base_url}/models`만 쓰고 고유 REST는 쓰지 않음). 응답이 `data` 배열이 아니면 형식 오류로 알립니다.
+- 단서(2026-11-05 재확인): 토큰 안내 페이지(lmstudio.ai/docs/developer/terminal/ai-server)는 REST 기준으로만 `/v1/models` 인증을 다루고, OpenAI 호환 페이지에는 인증 안내가 따로 없습니다. 따라서 02-7은 02-5의 Bearer 통일 정책 하나로 대응합니다(추가 규칙 불필요).
+- 적용 위치: 02-7(OpenAI 호환 `GET {base_url}/models`만 쓰고 고유 REST는 쓰지 않음). 응답이 `data` 배열이 아니면 형식 오류로 알립니다. 구현은 `crates/snap-core/src/llm/transport/fetch_models.rs` + `src/llm/error/models_format.rs`, 확인은 `crates/snap-core/tests/selection/models_list/format_error.rs`.
 - 관련 작업: 02
 
 ### OpenRouter 모델 목록
 
 - 링크: [OpenRouter List models](https://openrouter.ai/docs/api/api-reference/models/get-models)
 - 핵심: `GET /api/v1/models`가 Bearer 키를 요구하는 것으로 문서화되어 있습니다. 응답은 `data` 배열과 `total_count`, `links`를 가지며 모델 항목은 `id`, `canonical_slug`, `name`, `created`, `pricing`, `context_length` 등 필드가 매우 많습니다. 기본 필터가 출력 형태 `text`라서 목록이 한정되며, `offset`과 `limit`(기본 500, 최대 1000)로 쪽을 나눌 수 있고 둘 다 생략하면 전체를 돌려준다고 합니다. 오류는 `error` 객체(`code`, `message`)입니다.
-- 적용 위치: 02-7(`data[].id`만 읽고 나머지는 버림). 쪽 나누기는 적용하지 않았습니다(미적용 이유: 매개변수 없이 호출하면 전체를 돌려준다고 문서화됨). HTTP 오류 본문은 요약하고 키와 주소를 가려 싣습니다.
+- 확인 날짜: 2026-11-05(재확인)
+- 적용 위치: 02-7(`data[].id`만 읽고 나머지는 버림). 쪽 나누기는 적용하지 않았습니다(미적용 이유: 매개변수 없이 호출하면 전체를 돌려준다고 문서화됨). HTTP 오류 본문은 요약하고 키와 주소를 가려 싣습니다. 기본 필터(`output_modalities=text`)도 적용하지 않았습니다(미적용 이유: 코딩 에이전트는 텍스트 생성 모델만 쓰므로, 서버가 그 필터로 내보낸 목록이 사용자에게 손해가 되는 경우가 문서에 없고 설정 `models` 수동 입력이 정본이라 목록은 참고용이다).
 - 관련 작업: 02
 
 ### 모델 목록 서버별 정리

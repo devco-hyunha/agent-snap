@@ -5,9 +5,13 @@
 
 mod client;
 mod client_debug;
+mod client_settings;
 pub(crate) mod connect_classify;
+mod fetch_models;
 mod open_stream;
+mod send_headers;
 mod send_once;
+mod status_error;
 mod stream_chat;
 mod stream_state;
 

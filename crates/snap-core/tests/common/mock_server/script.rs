@@ -1,12 +1,11 @@
 #![allow(dead_code, unreachable_pub)]
 
-//! 모의 서버가 쓰는 스크립트 규격과 요청 기록의 타입입니다.
+//! 모의 서버가 쓰는 응답 스크립트 규격만 다룹니다.
 //!
-//! 서버 수명(`super::server`)·본문 스트림 구현(`super::handler`)과 분리했습니다.
-//! 테스트가 응답 형식을 조립할 때 이 타입들을 먼저 만납니다.
+//! 요청 기록(`super::record`)·서버 수명(`super::server`)·본문 스트림 구현(`super::body_stream`)과
+//! 분리했습니다. 테스트가 응답 형식을 조립할 때 이 타입을 먼저 만납니다.
 
 use std::time::Duration;
-use std::time::Instant;
 
 use axum::http::HeaderMap;
 use axum::http::HeaderName;
@@ -111,19 +110,18 @@ impl MockResponseScript {
             ..Self::empty_ok()
         }
     }
-}
 
-/// 모의 서버가 받아 둔 요청 한 건입니다.
-#[derive(Clone, Debug)]
-pub struct RecordedRequest {
-    /// HTTP 메서드 문자열입니다.
-    pub method: String,
-    /// 요청 경로입니다.
-    pub path: String,
-    /// 요청 헤더입니다.
-    pub headers: HeaderMap,
-    /// 요청 본문 바이트입니다.
-    pub body: Vec<u8>,
-    /// 요청이 도착한 단조 시각입니다. 반복 요청 사이의 간격 확인에 씁니다.
-    pub received_at: Instant,
+    /// `GET /models`에서 돌려주는 모델 목록 응답 스크립트입니다.
+    ///
+    /// 02-7 목록 시험이 쓰는 기본 목록입니다. 상태는 200이고 본문은 목록 JSON 한 덩어리입니다.
+    pub fn models_list() -> Self {
+        let body = serde_json::json!({
+            "object": "list",
+            "data": [
+                {"id": "mock-model-a", "object": "model", "owned_by": "mock"},
+                {"id": "mock-model-b", "object": "model", "owned_by": "mock"},
+            ],
+        });
+        Self::with_body_parts(vec![MockBodyPart::immediate(body.to_string().into_bytes())])
+    }
 }

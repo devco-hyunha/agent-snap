@@ -1,32 +1,25 @@
-#![allow(dead_code, unreachable_pub)]
-
-//! 모의 서버의 수명(띄우기·접기)과 요청 기록·연결 수 조종입니다.
+//! 모의 서버의 수명(띄우기·접기)과 시험 조종 창구만 다룹니다.
 //!
-//! 응답 스크립트 규격은 `super::script`, 본문 스트림 구현은 `super::handler`에 있습니다.
+//! 응답 스크립트 규격은 `super::script`, 공유 상태는 `super::shared`, 연결 수 가드는
+//! `super::guard`, 본문 스트림 구현은 `super::body_stream`에 있습니다.
 
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use axum::Router;
+use axum::routing::get;
 use axum::routing::post;
 use tokio::net::TcpListener;
-use tokio::sync::{Mutex, Notify};
 use tokio::task::JoinHandle;
 
-use super::handler::handle_chat_completions;
-use super::script::{MockResponseScript, RecordedRequest};
+use super::chat_handler::handle_chat_completions;
+use super::models_handler::handle_models;
+use super::record::RecordedRequest;
+use super::script::MockResponseScript;
+use super::shared::Shared;
 
-/// 핸들러·가드가 공유하는 상태입니다. 필트는 이 파일의 조종 함수만 써서 다룹니다.
-pub struct Shared {
-    script: Mutex<MockResponseScript>,
-    recorded: Mutex<Vec<RecordedRequest>>,
-    open_connections: AtomicUsize,
-    connection_change: Notify,
-}
-
-/// 로컬에서 뜨는 모의 채팅 완료 서버입니다.
+/// 로컬에서 뜨는 모의 서버입니다. 채팅 완료(`/chat/completions`)와 모델 목록(`/models`) 경로를 함께 다룹니다.
 pub struct MockServer {
     base_url: String,
     shared: Arc<Shared>,
@@ -35,22 +28,30 @@ pub struct MockServer {
 }
 
 impl MockServer {
-    /// `127.0.0.1`의 빈 포트에 모의 서버를 띄웁니다.
+    /// `127.0.0.1`의 빈 포트에 모의 서버를 띄웁니다. 채팅 완료와 모델 목록 경로를 함께 등록합니다.
     pub async fn spawn(script: MockResponseScript) -> Self {
-        let shared = Arc::new(Shared {
-            script: Mutex::new(script),
-            recorded: Mutex::new(Vec::new()),
-            open_connections: AtomicUsize::new(0),
-            connection_change: Notify::new(),
-        });
+        Self::spawn_with(script, |shared| {
+            Router::new()
+                .route("/chat/completions", post(handle_chat_completions))
+                .route("/models", get(handle_models))
+                .with_state(shared)
+        })
+        .await
+    }
+
+    /// 라우트를 직접 정해서 띄우는 기본 만들기입니다. 라우트 등록 쪽만 바뀌면 서버 수명 코드를
+    /// 다시 적지 않습니다. `routes`는 서버가 쓸 공유 상태를 라우트에 붙인 값을 받습니다.
+    async fn spawn_with(
+        script: MockResponseScript,
+        routes: impl FnOnce(Arc<Shared>) -> Router,
+    ) -> Self {
+        let shared = Arc::new(Shared::new(script));
 
         let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0)))
             .await
             .expect("모의 서버 포트 바인딩");
         let addr = listener.local_addr().expect("모의 서버 로컬 주소");
-        let app = Router::new()
-            .route("/chat/completions", post(handle_chat_completions))
-            .with_state(shared.clone());
+        let app = routes(shared.clone());
 
         let (shutdown_tx, shutdown_rx) = tokio::sync::oneshot::channel();
         let join = tokio::spawn(async move {
@@ -78,6 +79,35 @@ impl MockServer {
         format!("{}/chat/completions", self.base_url())
     }
 
+    /// `{base_url}/models` 경로입니다. 모델 목록 조회 시험이 씁니다.
+    pub fn models_url(&self) -> String {
+        format!("{}/models", self.base_url())
+    }
+
+    /// 모델 목록 라우트만 띄우는 서버입니다. `/models`와 `/v1`이 base_url에 붙어 있는 주소도 함께
+    /// 등록해서, base_url에 `/v1`이 있어도 경로가 `/v1/v1`로 이중으로 결합되지 않음을 보는 시험이 씁니다.
+    pub async fn spawn_models_only(script: MockResponseScript) -> Self {
+        Self::spawn_with(script, |shared| {
+            Router::new()
+                .route("/models", get(handle_models))
+                .route("/v1/models", get(handle_models))
+                .with_state(shared)
+        })
+        .await
+    }
+
+    /// `/models` 라우트 하나만 띄우고 스크립트 시점(헤더 지연·행·본문 조각 지연)을 그대로 따르는 서버입니다.
+    ///
+    /// 취소·시간 초과 시험이 채팅과 같은 스크립트 규격을 목록 전용 경로에서 그대로 쓰려고 엽니다.
+    pub async fn spawn_models_script(script: MockResponseScript) -> Self {
+        Self::spawn_with(script, |shared| {
+            Router::new()
+                .route("/models", get(handle_models))
+                .with_state(shared)
+        })
+        .await
+    }
+
     /// 다음 요청부터 쓸 응답 스크립트를 바꿉니다.
     pub async fn set_script(&self, script: MockResponseScript) {
         *self.shared.script.lock().await = script;
@@ -90,7 +120,7 @@ impl MockServer {
 
     /// 지금 열려 있는 연결 수입니다.
     pub fn open_connections(&self) -> usize {
-        self.shared.open_connections.load(Ordering::SeqCst)
+        self.shared.open_connections()
     }
 
     /// 열린 연결이 0이 될 때까지 기다립니다. 시간 안에 되면 true입니다.
@@ -127,37 +157,5 @@ impl Drop for MockServer {
         if let Some(join) = self.join.take() {
             join.abort();
         }
-    }
-}
-
-/// 핸들러가 현재 응답 스크립트 사본을 꺼냅니다.
-pub async fn current_script(shared: &Arc<Shared>) -> MockResponseScript {
-    shared.script.lock().await.clone()
-}
-
-/// 핸들러가 받은 요청을 기록에 남깁니다.
-pub async fn record(shared: &Arc<Shared>, request: RecordedRequest) {
-    shared.recorded.lock().await.push(request);
-}
-
-/// 연결 수를 세는 가드입니다. 만들 때 +1, 버릴 때 -1 합니다.
-pub struct ConnectionGuard {
-    shared: Arc<Shared>,
-}
-
-impl ConnectionGuard {
-    pub fn new(shared: &Arc<Shared>) -> Self {
-        shared.open_connections.fetch_add(1, Ordering::SeqCst);
-        shared.connection_change.notify_waiters();
-        Self {
-            shared: shared.clone(),
-        }
-    }
-}
-
-impl Drop for ConnectionGuard {
-    fn drop(&mut self) {
-        self.shared.open_connections.fetch_sub(1, Ordering::SeqCst);
-        self.shared.connection_change.notify_waiters();
     }
 }
