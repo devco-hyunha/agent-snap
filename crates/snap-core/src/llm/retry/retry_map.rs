@@ -12,7 +12,8 @@ use crate::llm::retry::{RetryFailureInput, RetrySettings};
 ///
 /// 매핑 표대로 옮깁니다: 연결 실패는 헤더 전 연결 후보, 서버 상태 응답은 상태 코드와 `Retry-After`
 /// 헤더 유무, 헤더 대기 초과는 비후보 판단 입력으로 봅니다.
-/// 취소·본문 읽기 중 실패·스트림 유휴 초과·클라이언트 제작 실패는 판단 입력이 없어 `None`입니다.
+/// 취소·본문 읽기 중 실패·스트림 유휴 초과·클라이언트 제작 실패·목록 형식 오류는
+/// 판단 입력이 없어 `None`입니다.
 pub(crate) fn retry_input(
     error: &TransportError,
     has_retry_after: bool,
@@ -33,7 +34,9 @@ pub(crate) fn retry_input(
         TransportError::ClientBuild
         | TransportError::Cancelled
         | TransportError::Streaming(_)
-        | TransportError::BodyRead => None,
+        | TransportError::BodyRead
+        // 목록 조회는 재시도 고리를 쓰지 않으므로 형식 오류는 판단 입력이 없다.
+        | TransportError::ModelsListFormat(_) => None,
     }
 }
 

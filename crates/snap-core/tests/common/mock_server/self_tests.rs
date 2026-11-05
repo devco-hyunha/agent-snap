@@ -1,6 +1,8 @@
 #![allow(dead_code, unreachable_pub)]
 
-//! 모의 서버 자체 시험: 지연·멈춤·연결 종료·요청 기록을 확인합니다(작업 2 DoD).
+//! 모의 서버 자체 시험입니다. 모의 서버가 지연·멈춤·연결 종료·요청 기록·응답 상태·모델 목록을
+//! 지정한 스크립트대로 내보내는지 확인합니다. 02-7 작업 0이 요구한 항목(요청 기록의 응답 상태,
+//! `/models` 경로)까지 이 시험이 함께 다룹니다.
 
 use axum::http::StatusCode;
 
@@ -185,4 +187,81 @@ async fn body_disconnect_is_observed() {
         server.wait_until_idle(Duration::from_secs(3)).await,
         "끊긴 연결이 3초 안에 정리되어야 합니다"
     );
+}
+
+#[tokio::test]
+async fn records_response_status() {
+    // 서버가 429로 시작하고, 이후 503으로 바꿉니다. 기록 상태가 응답 상태와 요청별로 맞는지 봅니다.
+    let server = MockServer::spawn(MockResponseScript::status_with_retry_after(
+        StatusCode::TOO_MANY_REQUESTS,
+        "0",
+    ))
+    .await;
+    let client = reqwest::Client::new();
+    let response = client
+        .post(server.chat_completions_url())
+        .body("{}")
+        .send()
+        .await
+        .expect("429 요청");
+    assert_eq!(response.status(), StatusCode::TOO_MANY_REQUESTS);
+
+    server
+        .set_script(MockResponseScript::status_with_retry_after(
+            StatusCode::SERVICE_UNAVAILABLE,
+            "0",
+        ))
+        .await;
+    let response = client
+        .post(server.chat_completions_url())
+        .body("{}")
+        .send()
+        .await
+        .expect("503 요청");
+    assert_eq!(response.status(), StatusCode::SERVICE_UNAVAILABLE);
+
+    let recorded = server.recorded_requests().await;
+    assert_eq!(recorded.len(), 2);
+    assert_eq!(
+        recorded[0].status,
+        StatusCode::TOO_MANY_REQUESTS,
+        "첫 기록 상태가 첫 응답 상태와 같아야 합니다"
+    );
+    assert_eq!(
+        recorded[1].status,
+        StatusCode::SERVICE_UNAVAILABLE,
+        "둘째 기록 상태가 둘째 응답 상태와 같아야 합니다"
+    );
+}
+
+#[tokio::test]
+async fn models_list_is_served() {
+    let server = MockServer::spawn(MockResponseScript::models_list()).await;
+    let client = reqwest::Client::new();
+    let response = client
+        .get(server.models_url())
+        .send()
+        .await
+        .expect("모델 목록 요청");
+    assert_eq!(response.status(), StatusCode::OK);
+
+    let body: serde_json::Value = response.json().await.expect("목록 본문 JSON");
+    let ids: Vec<&str> = body["data"]
+        .as_array()
+        .expect("data 배열")
+        .iter()
+        .map(|item| item["id"].as_str().expect("id 문자열"))
+        .collect();
+    assert_eq!(ids, ["mock-model-a", "mock-model-b"]);
+
+    // 목록 요청 기록에도 메서드·경로·상태가 함께 찍힙니다. 기록 본문은 요청 본문입니다(GET이라 비어 있습니다).
+    let recorded = server.recorded_requests().await;
+    assert_eq!(recorded.len(), 1);
+    assert_eq!(recorded[0].method, "GET");
+    assert_eq!(recorded[0].path, "/models");
+    assert!(
+        recorded[0].body.is_empty(),
+        "GET 목록 요청의 요청 본문이 비어 있어야 합니다"
+    );
+    assert_eq!(recorded[0].status, StatusCode::OK);
 }

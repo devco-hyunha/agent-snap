@@ -30,7 +30,7 @@
 
 ### 모델 목록 조회
 정상
-- `GET {base_url}/models`로 요청한다. 인증은 [02-5](../02-5-transport/spec.md)와 같다(키가 있으면 `Authorization: Bearer`, 없으면 헤더 없음).
+- `GET {base_url}/models`로 요청한다. 채팅 요청(`{base_url}/chat/completions`)과 같은 base_url에 경로만 바꿔 붙인다(새 prefix를 잇지 않는다 — `.../v1/v1` 금지). 인증은 [02-5](../02-5-transport/spec.md)와 같다(키가 있으면 `Authorization: Bearer`, 없으면 헤더 없음).
 - 최상위 `data` 배열의 각 항목에서 문자열 `id`만 필수로 읽는다. 나머지 필드(`object`, `created`, `owned_by`, `meta` 등)는 없어도 받아들이고 버린다.
 - 조회 결과는 참고용이다. 설정의 `models`와 자동으로 맞추지 않는다.
 

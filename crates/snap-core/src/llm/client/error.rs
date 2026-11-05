@@ -58,4 +58,7 @@ pub enum TransportError {
     /// 응답 본문을 읽는 중에 연결이 끊겼습니다. 주소가 들어 있는 라이브러리 오류 텍스트는 담지 않습니다.
     #[error("본문 읽기 실패")]
     BodyRead,
+    /// 모델 목록 응답(`GET /models`)의 형식 오류입니다. 종류만 담고 본문 원문·키·주소는 담지 않습니다.
+    #[error(transparent)]
+    ModelsListFormat(#[from] crate::llm::error::models_format::ModelsListFormatError),
 }

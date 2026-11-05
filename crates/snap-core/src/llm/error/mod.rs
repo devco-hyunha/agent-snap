@@ -1,5 +1,6 @@
 //! SSE·델타 해석 오류: 스트림 오류와 형식 오류를 나누고, 키·주소·청크 원문은 담지 않습니다.
 
+pub(in crate::llm) mod models_format;
 pub(in crate::llm) mod redact;
 pub(in crate::llm) mod scrub;
 

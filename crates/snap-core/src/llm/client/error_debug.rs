@@ -40,6 +40,10 @@ impl fmt::Debug for TransportError {
                 .field("error", &format!("{error}"))
                 .finish(),
             Self::BodyRead => f.write_str("BodyRead"),
+            Self::ModelsListFormat(error) => f
+                .debug_struct("ModelsListFormat")
+                .field("kind", &format!("{}", error.kind))
+                .finish(),
         }
     }
 }

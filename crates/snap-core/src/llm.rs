@@ -8,6 +8,7 @@ pub(in crate::llm) mod codec;
 pub(in crate::llm) mod error;
 mod request_body;
 pub(crate) mod retry;
+pub mod selection;
 mod transport;
 
 pub use client::{
@@ -21,6 +22,7 @@ pub use retry::{
     NotCandidateDetail, PreHeaderConnectKind, RetryDecision, RetryFailureInput, RetryGiveUpReason,
     RetrySettings, decide_retry,
 };
+pub use selection::{SelectError, SelectedClient, SelectedModel};
 pub use transport::OpenAiCompatClient;
 
 #[cfg(test)]
