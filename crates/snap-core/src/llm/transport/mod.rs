@@ -3,10 +3,13 @@
 //! `reqwest`는 `llm/transport/` 안의 파일에서만 씁니다. `snap-core` 공개면으로
 //! 새지 않게 둡니다.
 
-pub(crate) mod connect_classify;
-mod stream_state;
-
 mod client;
+mod client_debug;
+pub(crate) mod connect_classify;
+mod open_stream;
+mod send_once;
+mod stream_chat;
+mod stream_state;
 
 pub use client::OpenAiCompatClient;
 #[cfg(test)]

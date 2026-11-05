@@ -1,35 +1,30 @@
-//! OpenAI 호환 `/chat/completions` 스트리밍 클라이언트입니다.
+//! OpenAI 호환 `/chat/completions` 스트리밍 클라이언트의 구조·설정 관리입니다.
 //!
-//! 엔드포인트 주소·종류·키·시간 설정을 갖고, 요청마다 본문만 받습니다.
-//! 헤더 전 연결 오류를 세부 6종으로 나누는 일은 `connect_classify`가 맡습니다.
+//! 주소·종류·키·시간 설정을 담고 클라이언트를 만드는 일만 합니다. 전송 한 번은 `send_once`가
+//! 재시도 고리는 `stream_chat`가 스트림 열기는 `open_stream`이 각각 맡습니다(작업 07 SRP 분리).
 
-use std::fmt;
 use std::sync::Arc;
-use std::time::Instant;
 
 use crate::config::{EndpointKind, HttpSettings};
-use crate::llm::client::{
-    CancellationToken, ChatRequest, ChatStream, LlmClient, StreamTiming, TimeoutSegment,
-    TransportError,
-};
-use crate::llm::decode::StreamDecoder;
-use crate::llm::error::redact::summarize_stream_error;
+use crate::llm::client::TransportError;
 use crate::llm::error::scrub::SecretScrub;
-use crate::llm::request_body::build_chat_completions_body;
-use crate::llm::transport::connect_classify::classify_connect_error;
-use crate::llm::transport::stream_state::StreamState;
+use crate::llm::retry::RetrySettings;
+use crate::llm::retry::retry_map::retry_settings;
 use crate::secrets::SecretValue;
 
 /// OpenAI 호환 `/chat/completions` 스트리밍 클라이언트입니다.
 ///
 /// 엔드포인트 주소·종류·키·시간 설정을 갖고, 요청마다 본문만 받습니다.
 pub struct OpenAiCompatClient {
-    base_url: SecretValue,
-    kind: EndpointKind,
-    api_key: Option<SecretValue>,
-    http: HttpSettings,
+    // 값 읽기는 transport 안의 책임 파일들이 함께 쓰므로 `pub(super)`로 둡니다(작업 07 SRP 분리).
+    pub(super) base_url: SecretValue,
+    pub(super) kind: EndpointKind,
+    pub(super) api_key: Option<SecretValue>,
+    pub(super) http: HttpSettings,
     /// HTTP 전송용 클라이언트입니다. 공개 타입으로 내보내지 않습니다.
-    http_client: Arc<reqwest::Client>,
+    pub(super) http_client: Arc<reqwest::Client>,
+    /// 백오프 난수 고정 주입값입니다. 제품은 항상 `None`입니다.
+    pub(super) unit_sample_override: Option<f64>,
 }
 
 impl OpenAiCompatClient {
@@ -52,140 +47,54 @@ impl OpenAiCompatClient {
             api_key,
             http,
             http_client: Arc::new(http_client),
+            unit_sample_override: None,
         })
     }
 
+    /// 백오프 난수를 고정하는 시험 전용 주입 경로입니다.
+    ///
+    /// 제품 코드는 이 경로를 쓰지 않고 기본 `None`(생산 공급)입니다.
+    /// 테스트가 대기 시간을 정해진 값으로 고정해 시험 간격을 일정하게 유지하려 값만 받아 올립니다
+    /// (02-6 시험 계획의 시간 주입).
+    #[cfg(test)]
+    #[allow(dead_code)]
+    pub(crate) fn with_unit_sample(mut self, unit_sample: f64) -> Self {
+        self.set_unit_sample(unit_sample);
+        self
+    }
+
+    /// 바깥 시험(개발 의존으로 붙은 같은 크레이트 빌드)이 이 값을 붙일 수 있게 여는 길입니다.
+    ///
+    /// 라이브러리 안 시험과 제품 코드는 위 cfg(test) 경로를 그대로 쓰고,
+    /// 이 경로는 개발 의존 빌드(cfg(test)가 켜지지 않는 자리)에서만 열립니다.
+    /// 공개면 좁히기(D28)는 제품 코드와 라이브러리 안 시험 쪽만 적용하고,
+    /// 개발 의존 빌드 경로는 시험 전용 자리이므로 공개로 열어 시험이 붙일 수 있게 합니다.
+    #[cfg(not(test))]
+    #[allow(dead_code, clippy::missing_errors_doc, clippy::must_use_candidate)]
+    pub fn with_unit_sample(mut self, unit_sample: f64) -> Self {
+        self.set_unit_sample(unit_sample);
+        self
+    }
+
+    /// 백오프 난수 고정 주입 값을 자리에 올립니다. 값 두기만 한 자리라 두 경로가 같은 일을 합니다.
+    fn set_unit_sample(&mut self, unit_sample: f64) {
+        self.unit_sample_override = Some(unit_sample);
+    }
+
     /// 이 요청에서 알고 있는 키·base_url로 가릴 가림 도구입니다(D28).
-    fn scrub(&self) -> SecretScrub {
+    pub(super) fn scrub(&self) -> SecretScrub {
         SecretScrub::new(self.api_key.as_ref(), &self.base_url)
     }
 
-    /// 응답 헤더를 정해진 시간 안에 받습니다. 보내기·헤더 대기·취소를 한 자리에서 경합합니다.
-    async fn wait_for_headers(
-        &self,
-        builder: reqwest::RequestBuilder,
-        cancel: &CancellationToken,
-    ) -> Result<reqwest::Response, TransportError> {
-        let send = builder.send();
-        // 보내기가 끝나기를 기다립니다. 이 자리에서 취소를 함께 봅니다(취소 시 연결 정리는 아래 스트림에서).
-        tokio::select! {
-            biased;
-            () = cancel.cancelled() => Err(TransportError::Cancelled),
-            () = tokio::time::sleep(self.http.header_wait_seconds) => Err(self.timeout_error(TimeoutSegment::HeaderWait)),
-            result = send => result.map_err(|e| self.connect_error(&e)),
-        }
+    /// 재시도 판단에 쓸 설정 값입니다. `http` 설정을 02-4 판단 값으로 옮깁니다(2단계 매핑 재사용).
+    pub(super) fn retry_settings(&self) -> RetrySettings {
+        retry_settings(&self.http)
     }
 
-    /// 서버가 정상이 아닌 상태로 준 응답을 오류로 바꿉니다.
+    /// 백오프·포기 판정에 쓰는 난수 값입니다. 제품은 `None`(기본)입니다.
     ///
-    /// 본문은 어림 가리기 뒤 알고 있는 키·호스트로 한 번 더 가립니다(D28). 읽기도 유휴·취소와
-    /// 경합해 취소되면 취소 오류를 내고, 헤더는 보냈지만 본문을 끝까지 안 보내는 서버에 멈춰 있지 않습니다.
-    async fn server_status_error(
-        &self,
-        response: reqwest::Response,
-        cancel: &CancellationToken,
-    ) -> TransportError {
-        let status = response.status().as_u16();
-        let body = tokio::select! {
-            result = response.bytes() => {
-                match result {
-                    Ok(bytes) => String::from_utf8_lossy(&bytes).into_owned(),
-                    Err(error) => summarize_stream_error(&error.to_string()),
-                }
-            }
-            // 취소는 상태 코드 요약을 내려주지 않고 취소 오류로 바로 끝냅니다.
-            () = cancel.cancelled() => return TransportError::Cancelled,
-            () = tokio::time::sleep(self.http.stream_idle_seconds) => "서버가 오류 본문을 보내지 않았습니다".to_owned(),
-        };
-        TransportError::ServerStatus {
-            status,
-            body_summary: self.scrub().describe(&body),
-        }
-    }
-
-    /// 헤더 전 연결 실패를 세부 6종으로 나눕니다(D26).
-    ///
-    /// 라이브러리가 주소를 오류 문자열에 넣을 수 있어 원문 텍스트는 버리고,
-    /// Display·Debug에는 종류와 연결 설정 초 값만 담습니다.
-    fn connect_error(&self, error: &reqwest::Error) -> TransportError {
-        TransportError::ConnectFailed {
-            kind: classify_connect_error(error),
-            connect_seconds: self.http.connect_seconds.as_secs(),
-        }
-    }
-
-    /// 구간 이름과 설정 초 값으로 시간 초과 오류를 만듭니다.
-    fn timeout_error(&self, segment: TimeoutSegment) -> TransportError {
-        let seconds = match segment {
-            TimeoutSegment::HeaderWait => self.http.header_wait_seconds,
-            TimeoutSegment::StreamIdle => self.http.stream_idle_seconds,
-        };
-        TransportError::Timeout {
-            segment,
-            seconds: seconds.as_secs(),
-        }
-    }
-}
-
-impl LlmClient for OpenAiCompatClient {
-    async fn stream_chat(
-        &self,
-        request: ChatRequest,
-        cancel: CancellationToken,
-    ) -> Result<ChatStream, TransportError> {
-        // 호출 전 취소를 바로 알립니다.
-        if cancel.is_cancelled() {
-            return Err(TransportError::Cancelled);
-        }
-
-        let url = format!("{}/chat/completions", self.base_url.reveal());
-        let body = build_chat_completions_body(self.kind, &request);
-        let request_started = Instant::now();
-
-        let mut builder = self.http_client.post(url).json(&body);
-
-        // 키가 있을 때만 Bearer 헤더를 붙입니다. 본문·URL·다른 헤더에는 넣지 않습니다.
-        // 헤더 값은 HTTP 라이브러리 디버그·추적 로그에서도 가립니다.
-        if let Some(api_key) = &self.api_key {
-            let mut value =
-                reqwest::header::HeaderValue::from_str(&format!("Bearer {}", api_key.reveal()))
-                    .map_err(|_| TransportError::ClientBuild)?;
-            // 라이브러리 내부 로그에서 키가 드러나지 않게 민감 헤더로 표시한다(보안 기본).
-            value.set_sensitive(true);
-            builder = builder.header(reqwest::header::AUTHORIZATION, value);
-        }
-
-        let response = self.wait_for_headers(builder, &cancel).await?;
-        if !response.status().is_success() {
-            return Err(self.server_status_error(response, &cancel).await);
-        }
-
-        Ok(ChatStream::new(Box::new(StreamState {
-            response,
-            decoder: Some(StreamDecoder::new()),
-            cancel,
-            idle: self.http.stream_idle_seconds,
-            timing: StreamTiming {
-                request_started,
-                first_token: None,
-                last_token: None,
-            },
-            pending: std::collections::VecDeque::new(),
-            upstream_done: false,
-            usage: None,
-            end_pending: false,
-            failed: false,
-        })))
-    }
-}
-
-impl fmt::Debug for OpenAiCompatClient {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("OpenAiCompatClient")
-            .field("base_url", &self.base_url)
-            .field("kind", &self.kind)
-            .field("api_key", &self.api_key)
-            .field("http", &self.http)
-            .finish_non_exhaustive()
+    /// `None`이면 판단(`retry_loop`)이 생산 공급(`fastrand`)으로 채웁니다.
+    pub(super) fn unit_sample(&self) -> Option<f64> {
+        self.unit_sample_override
     }
 }

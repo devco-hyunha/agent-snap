@@ -1,7 +1,7 @@
 //! 스트림 정상 종료 뒤 남기는 사용량·시각 타입입니다.
 
 use crate::llm::client::timing::StreamTiming;
-use crate::llm::delta::Usage;
+use crate::llm::codec::delta::Usage;
 
 /// 스트림이 정상으로 끝난 뒤 돌려주는 사용량·시각입니다.
 #[derive(Debug, Clone, PartialEq, Eq)]

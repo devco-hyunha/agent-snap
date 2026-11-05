@@ -5,7 +5,7 @@ use std::fmt;
 use crate::llm::client::error::TransportError;
 use crate::llm::client::frames::{ChatDriver, ChatFrame};
 use crate::llm::client::outcome::StreamOutcome;
-use crate::llm::delta::StreamEvent;
+use crate::llm::codec::delta::StreamEvent;
 
 /// 복원한 [`StreamEvent`]를 순서대로 꺼내는 스트림 손잡이입니다.
 ///

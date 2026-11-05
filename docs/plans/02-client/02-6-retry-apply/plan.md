@@ -1,6 +1,6 @@
 # 02-6 재시도 적용: 상세 기획
 
-- 상태: planned
+- 상태: 완료 (1~7단계, 전체 리뷰 PASS `docs/reviews/02-client/02-6-retry-apply-fullunit-review-1.md`)
 - 상위 문서: [02-client.md](../../02-client.md)
 
 ## 목적
