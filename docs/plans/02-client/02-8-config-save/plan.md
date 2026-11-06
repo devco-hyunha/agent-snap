@@ -1,6 +1,6 @@
 # 02-8 설정 저장: 상세 기획
 
-- 상태: planned
+- 상태: done (본 작업 1~6·저장 AC + 잔여 SRP 단위 리뷰 PASS `docs/reviews/02-client/02-8-config-save-srp-residual-review-1.md`. 작업 02 전체 게이트는 [02-9](../02-9-client-review/plan.md))
 - 상위 문서: [02-client.md](../../02-client.md)
 
 ## 목적

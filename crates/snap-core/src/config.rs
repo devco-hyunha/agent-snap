@@ -1,25 +1,25 @@
 //! 설정 파일(`agent-snap.jsonc`)을 읽어 검증하고, 엔드포인트의 키를 자격 파일에서 정하는 모듈입니다.
 
 mod error;
-pub(crate) mod extra_json;
-mod http;
-mod keys;
 mod load;
 mod location;
-mod parse;
-mod sampling;
-mod selection;
-mod types;
-mod validate;
+mod read;
+mod save;
 
-pub use error::ConfigError;
+pub use error::{ConfigError, ReadingError, SaveError, ValidationError};
 pub use load::{CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, load_config, load_credentials};
 pub use location::{ConfigEnv, HostOs, resolve_config_dir};
-pub use selection::SelectionError;
-pub use types::{
+pub use read::{
     Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning,
-    Sampling,
+    Sampling, SelectionError,
 };
+pub use save::{
+    EndpointSave, KeyRename, ModelSave, SaveIoKind, SaveIoTarget, remove_endpoint, remove_key,
+    rename_endpoint, rename_key, save_endpoint, save_io, save_io_target, save_key,
+};
+
+// 크레이트 안 호출부가 `crate::config::extra_json` 경로를 그대로 쓰게 부모에서 재수출합니다.
+pub(crate) use read::extra_json;
 
 #[cfg(test)]
 mod tests {
@@ -28,6 +28,7 @@ mod tests {
     mod location;
     mod reading;
     mod redaction;
+    mod save;
     mod selection;
     mod support;
     mod validation;

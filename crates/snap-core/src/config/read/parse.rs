@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, HashSet};
 
 use jsonc_parser::{JsonArray, JsonObject, JsonValue};
 
-use super::error::ConfigError;
+use super::super::error::{ConfigError, ValidationError};
 use super::http::read_http;
 use super::sampling::{read_root_sampling, read_sampling};
 use super::types::{
@@ -33,7 +33,7 @@ impl Config {
     pub fn parse(text: &str) -> Result<Self, ConfigError> {
         let mut root = jsonc::parse_root_object(text)?;
         if root.get("models").is_some() {
-            return Err(ConfigError::LegacyTopLevelModels);
+            return Err(ValidationError::LegacyTopLevelModels.into());
         }
         Ok(Self {
             target_language: read_target_language(&mut root)?,
@@ -87,7 +87,7 @@ fn read_endpoints(root: &mut JsonObject<'_>) -> Result<Vec<EndpointConfig>, Conf
         || ConfigError::invalid_field("endpoints"),
         read_endpoint,
         |endpoint: &EndpointConfig| endpoint.name.as_str(),
-        |endpoint| ConfigError::DuplicateEndpoint { endpoint },
+        |endpoint| ValidationError::DuplicateEndpoint { endpoint }.into(),
     )
 }
 
@@ -97,18 +97,18 @@ fn read_endpoint(index: usize, item: JsonValue<'_>) -> Result<EndpointConfig, Co
     };
     let name = read_endpoint_name(index, &mut object)?;
     if validate::first_present_key(&object, &validate::ENDPOINT_KEY_FIELDS).is_some() {
-        return Err(ConfigError::EndpointKeyField { endpoint: name });
+        return Err(ValidationError::EndpointKeyField { endpoint: name }.into());
     }
     let base_url = object
         .take_string("base_url")
         .ok_or_else(|| ConfigError::invalid_endpoint_field(&name, "base_url"))?;
     if !validate::is_valid_base_url(&base_url) {
-        return Err(ConfigError::InvalidBaseUrl { endpoint: name });
+        return Err(ValidationError::InvalidBaseUrl { endpoint: name }.into());
     }
     let kind = object
         .take_string("kind")
         .ok_or_else(|| ConfigError::invalid_endpoint_field(&name, "kind"))?;
-    let kind = EndpointKind::parse(&kind).ok_or_else(|| ConfigError::InvalidKind {
+    let kind = EndpointKind::parse(&kind).ok_or_else(|| ValidationError::InvalidKind {
         endpoint: name.clone(),
     })?;
     let models = read_models(&name, &mut object)?;
@@ -125,8 +125,10 @@ fn read_endpoint_name(index: usize, object: &mut JsonObject<'_>) -> Result<Strin
         .take_string("name")
         .ok_or_else(|| ConfigError::invalid_field(format!("endpoints[{index}].name")))?;
     validate::checked_name(&raw).map_err(|rejection| match rejection {
-        NameRejection::Empty => ConfigError::EmptyEndpointName,
-        NameRejection::HasSlash { name } => ConfigError::EndpointNameHasSlash { endpoint: name },
+        NameRejection::Empty => ValidationError::EmptyEndpointName.into(),
+        NameRejection::HasSlash { name } => {
+            ValidationError::EndpointNameHasSlash { endpoint: name }.into()
+        }
     })
 }
 
@@ -140,9 +142,12 @@ fn read_models(
         || ConfigError::invalid_endpoint_field(endpoint, "models"),
         |index, item| read_model(endpoint, index, item),
         |model: &ModelConfig| model.name.as_str(),
-        |model| ConfigError::DuplicateModel {
-            endpoint: endpoint.to_owned(),
-            model,
+        |model| {
+            ValidationError::DuplicateModel {
+                endpoint: endpoint.to_owned(),
+                model,
+            }
+            .into()
         },
     )
 }
@@ -160,7 +165,7 @@ fn read_model(
     };
     let name = read_model_name(endpoint, index, &mut object)?;
     if object.get("endpoint").is_some() {
-        return Err(ConfigError::ModelEndpointField { model: name });
+        return Err(ValidationError::ModelEndpointField { model: name }.into());
     }
     let id = read_model_id(endpoint, &name, &mut object)?;
     let reasoning = read_reasoning(&name, &mut object)?;
@@ -188,11 +193,12 @@ fn read_model_name(
         ConfigError::invalid_endpoint_field(endpoint, format!("models[{index}].name"))
     })?;
     validate::checked_name(&raw).map_err(|rejection| match rejection {
-        NameRejection::Empty => ConfigError::empty_model_name(endpoint),
-        NameRejection::HasSlash { name } => ConfigError::ModelNameHasSlash {
+        NameRejection::Empty => ValidationError::empty_model_name(endpoint).into(),
+        NameRejection::HasSlash { name } => ValidationError::ModelNameHasSlash {
             endpoint: endpoint.to_owned(),
             model: name,
-        },
+        }
+        .into(),
     })
 }
 
@@ -220,9 +226,10 @@ fn read_reasoning(
     };
     reasoning
         .map(Some)
-        .ok_or_else(|| ConfigError::InvalidReasoning {
+        .ok_or_else(|| ValidationError::InvalidReasoning {
             model: model.to_owned(),
         })
+        .map_err(ConfigError::from)
 }
 
 fn read_extra(
@@ -236,10 +243,11 @@ fn read_extra(
         return Ok(BTreeMap::new());
     };
     if let Some(key) = validate::first_present_key(&extra, &validate::RESERVED_EXTRA_KEYS) {
-        return Err(ConfigError::ExtraReservedKey {
+        return Err(ValidationError::ExtraReservedKey {
             model: model.to_owned(),
             key: key.to_owned(),
-        });
+        }
+        .into());
     }
     Ok(to_extra_map(extra))
 }

@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 use jsonc_parser::{JsonObject, JsonValue};
 
-use super::error::ConfigError;
+use super::super::error::{ConfigError, ValidationError};
 use super::types::Sampling;
 use super::validate;
 use crate::jsonc::{WrongType, parse_number, pick_object, take_optional};
@@ -28,9 +28,12 @@ pub(super) fn read_sampling(object: JsonObject<'_>, owner: &str) -> Result<Sampl
     let mut sampling = Sampling::default();
     for (key, value) in object {
         let item = key.as_ref();
-        let out_of_range = || ConfigError::SamplingOutOfRange {
-            item: item.to_owned(),
-            model: owner.to_owned(),
+        let out_of_range = || {
+            ValidationError::SamplingOutOfRange {
+                item: item.to_owned(),
+                model: owner.to_owned(),
+            }
+            .into()
         };
         match item {
             "temperature" => {
@@ -45,9 +48,10 @@ pub(super) fn read_sampling(object: JsonObject<'_>, owner: &str) -> Result<Sampl
                     read_checked(&value, validate::is_valid_max_tokens, &out_of_range)?;
             }
             _ => {
-                return Err(ConfigError::UnknownSamplingItem {
+                return Err(ValidationError::UnknownSamplingItem {
                     item: item.to_owned(),
-                });
+                }
+                .into());
             }
         }
     }

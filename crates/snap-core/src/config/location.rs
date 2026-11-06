@@ -2,7 +2,7 @@
 
 use std::path::{Path, PathBuf};
 
-use super::error::ConfigError;
+use super::error::{ConfigError, ReadingError};
 
 /// 설정 폴더 이름입니다.
 const APP_DIR_NAME: &str = "agent-snap";
@@ -37,7 +37,7 @@ pub struct ConfigEnv {
 /// 아래 `agent-snap`, 그 밖은 `$XDG_CONFIG_HOME/agent-snap`(없으면 `~/.config/agent-snap`)입니다.
 ///
 /// # 오류
-/// 관례 폴더를 계산할 환경 정보가 없으면 [`ConfigError::ConfigDirUnknown`]입니다.
+/// 관례 폴더를 계산할 환경 정보가 없으면 [`ReadingError::ConfigDirUnknown`]입니다.
 pub fn resolve_config_dir(env: &ConfigEnv) -> Result<PathBuf, ConfigError> {
     if let Some(dir) = non_empty(&env.config_dir_override) {
         return Ok(dir.to_path_buf());
@@ -48,7 +48,7 @@ pub fn resolve_config_dir(env: &ConfigEnv) -> Result<PathBuf, ConfigError> {
             .map(|xdg| xdg.join(APP_DIR_NAME))
             .or_else(|| non_empty(&env.home).map(|home| home.join(".config").join(APP_DIR_NAME))),
     };
-    convention_dir.ok_or(ConfigError::ConfigDirUnknown)
+    convention_dir.ok_or(ReadingError::ConfigDirUnknown.into())
 }
 
 fn non_empty(path: &Option<PathBuf>) -> Option<&Path> {

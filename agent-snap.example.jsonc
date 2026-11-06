@@ -18,7 +18,8 @@
           // "reasoning": "off", // off | low | medium | high
           // "context_window": 65536, // 토큰. 생략 시 65536. max_tokens(생성 길이)와 다름
           // "sampling": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 4096 },
-          // "extra": { "keep_alive": 0 }
+          // "extra": { "keep_alive": 0 }, // 서버에 보낼 추가 값. 전용 키가 없는 옵션도 extra에 넣습니다.
+          // "extra": { "thinking": { "budgetTokens": 2048 }, "textVerbosity": "high" } // 생각 길이·`textVerbosity`는 extra로 보냅니다(D40)
         }
       ]
     },

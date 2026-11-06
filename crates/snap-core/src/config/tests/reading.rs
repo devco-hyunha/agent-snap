@@ -9,7 +9,7 @@ use super::support::{
 };
 use crate::config::{
     CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, EndpointKind, ExtraValue, HttpSettings,
-    Reasoning, Sampling, load_config, load_credentials,
+    ReadingError, Reasoning, Sampling, load_config, load_credentials,
 };
 
 const FULL_CONFIG: &str = r#"
@@ -252,7 +252,9 @@ fn load_missing_config_reports_folder_and_file_name_only() {
 
     let error = load_config(folder.path()).expect_err("설정 파일이 없으면 오류여야 합니다");
 
-    assert!(matches!(&error, ConfigError::Io { file, .. } if *file == CONFIG_FILE_NAME));
+    assert!(
+        matches!(&error, ConfigError::Reading(ReadingError::Io{ file, .. }) if *file == CONFIG_FILE_NAME)
+    );
     let text = error.to_string();
     assert!(text.contains(CONFIG_FILE_NAME));
     assert!(text.contains(&folder.path().display().to_string()));
@@ -266,6 +268,9 @@ fn load_credentials_with_invalid_content_reports_credentials_error() {
 
     let error = load_credentials(folder.path()).expect_err("객체가 아닌 api_keys는 거부됩니다");
 
-    assert!(matches!(error, ConfigError::Credentials(_)));
+    assert!(matches!(
+        error,
+        ConfigError::Reading(ReadingError::Credentials(_))
+    ));
     assert!(!error.to_string().contains("leak-key-value-9"));
 }
