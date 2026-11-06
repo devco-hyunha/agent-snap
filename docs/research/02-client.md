@@ -263,3 +263,49 @@
 - 핵심: 재시도에는 무작위 지수 백오프를 쓰고 요청당 횟수를 제한하며, 재시도 가능한 오류만 재시도하라고 권합니다. 층마다 재시도하면 시도가 곱으로 늘어나므로 한 층에서만 재시도하라고 합니다.
 - 적용: 02-4(`llm/retry` 대상·횟수·facade), 02-6(적용 층), D13. 재시도 대상 상태 코드 한정, 최대 횟수, 클라이언트 한 층 재시도. 프로세스 단위 재시도 예산은 단일 사용자 에이전트라 지금 필요하지 않아 적용하지 않습니다.
 - 관련 작업: 02
+
+## 02-8 설정 저장 조사
+
+확인 날짜는 2026-11-05입니다. 각 링크를 그 날짜에 직접 열었습니다. 결정 정본은 [D40](../decisions/D40-save-editor.md)입니다.
+
+### jsonc-parser(Rust) 0.34.0 CST 편집
+
+- 링크: [crates.io jsonc-parser 0.34.0 버전 정보](https://crates.io/api/v1/crates/jsonc-parser/0.34.0), [Cargo.toml](https://raw.githubusercontent.com/dprint/jsonc-parser/main/Cargo.toml), [LICENSE](https://raw.githubusercontent.com/dprint/jsonc-parser/main/LICENSE), [src/lib.rs](https://raw.githubusercontent.com/dprint/jsonc-parser/main/src/lib.rs)
+- 확인 날짜: 2026-11-05
+- 핵심: 라이선스 표기는 MIT(crates.io 라이선스 표기 MIT, 저장소 LICENSE 전문도 MIT)입니다. `cst` 선택 기능을 켜면 CST(원문 구조를 주석·공백까지 보관하는 트리) 편집 API(`CstRootNode::parse`, `set_value`, `append`)로 값만 고치고 주석은 그대로 둡니다. `cst`는 의존을 더 붙이지 않는 선택 기능입니다.
+- 적용: 02-8 설정·자격 파일 쓰기. D18로 정한 같은 크레이트 0.34.0에 `cst` 기능만 더해 쓰므로 새 의존이 없습니다(D40).
+- 적용 위치(2026-11-06 확인, 잔여 폴더 분리 후 갱신): `crates/snap-core/src/config/save/config.rs`(`CstRootNode::parse`, `set_value`, `append`로 엔드포인트·모델·`extra` 편집), `crates/snap-core/src/config/save/credentials.rs`(`api_keys_of`로 키 추가·변경·삭제). 주석과 손대지 않은 항목이 그대로 남는 결과는 `crates/snap-core/src/config/tests/save/config.rs`·`crates/snap-core/src/config/tests/save/credentials.rs` 단위 시험으로 확인했습니다. `jsonc-parser` 0.34.0 `cst`는 `crates/snap-core/Cargo.toml`에 그대로 둡니다(D40).
+- 관련 작업: 02-8
+
+### monochromatic-jsonc-edit(Rust) 0.1.2 — 기각
+
+- 링크: [crates.io monochromatic-jsonc-edit 0.1.2](https://crates.io/api/v1/crates/monochromatic-jsonc-edit/0.1.2)
+- 확인 날짜: 2026-11-05
+- 핵심: 설명에 "주석 보존 파싱·편집·출력"이 있고 라이선스 표기는 LGPL-3.0-or-later입니다. 최근 내려받기 실적이 적고 2026-10-31 최초 게시의 실험적인 크레이트입니다.
+- 미적용: LGPL-3.0-or-later는 프로젝트의 허용형 기준(D5: MIT·Apache-2.0)에 맞지 않습니다. 저장소 LICENSE 파일과 Cargo.toml 표기는 열지 못했고 crates.io 레지스트리 표기만 확인했습니다.
+- 관련 작업: 02-8
+
+### jsonc-parser(npm) 3.3.1 `modify`·`applyEdits` — 참고만
+
+- 링크: [npm registry jsonc-parser](https://registry.npmjs.org/jsonc-parser), [microsoft/node-jsonc-parser README](https://raw.githubusercontent.com/microsoft/node-jsonc-parser/main/README.md)
+- 확인 날짜: 2026-11-05
+- 핵심: 최신 3.3.1의 라이선스 표기는 MIT입니다. `modify`(경로로 값 삽입· 교체·삭제 편집 계산)와 `applyEdits`(원문에 편집 적용)가 원문 텍스트에 남은 오프셋 편집이라 주석·다른 항목을 건드리지 않습니다.
+- 미적용: Rust 프로젝트이므로 npm 패키지를 그대로 쓰지 않습니다. 주석 보존 편집 방식(오프셋 편집) 확인용으로만 참고했습니다.
+- 관련 작업: 02-8
+
+### 파일 원자적 교체 (임시 파일에 쓰고 바꾸기)
+
+- 링크: [std::fs::rename](https://doc.rust-lang.org/stable/std/fs/fn.rename.html), [man7 rename(2)](https://man7.org/linux/man-pages/man2/rename.2.html), [MoveFileExW](https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-movefileexw), [Moving and Replacing Files](https://learn.microsoft.com/en-us/windows/desktop/FileIO/moving-and-replacing-files)
+- 확인 날짜: 2026-11-05
+- 핵심: `std::fs::rename`은 Unix `rename`, Windows에서는 `MoveFileExW`(그 이후 지원 방식) 경로이며 대상이 있으면 바꾸고, 다른 볼륨(마운트 지점)에서는 실패합니다. `rename(2)`는 "newpath가 이미 있으면 원자적으로 바뀌어 다른 프로세스가 그 파일을 잃는 지점이 없다", "실패하면 newpath를 제자리에 남긴다"로 실패 시 기존 파일 보존을 명시하고, 볼륨 다름을 `EXDEV`로 알려줍니다. Windows `Moving and Replacing Files`는 연 파일(쓰기 열림)을 이동·복사할 수 없다고 하고, `MoveFileExW`의 `MOVEFILE_REPLACE_EXISTING`이 대상 교체 규칙과 ACL 요건을 밝힙니다.
+- 적용: 02-8 안전한 쓰기(같은 폴더 임시 파일에 쓰고 `sync_all` 후 `fs::rename` 교체, 같은 볼륨 요구, 교체 실패 시 기존 파일 보존·임시 파일 정리).
+- 적용 위치(2026-11-06 확인, 잔여 폴더 분리 후 갱신): `crates/snap-core/src/config/save/atomic.rs`(`write_replacing`이 임시 파일에 쓰기 → `sync_all` → `replace_file`의 `std::fs::rename`, `temp_name`이 같은 폴더 임시 파일 이름 규칙, 교체 실패 시 이번 저장이 만든 임시 파일만 정리). 두 파일을 함께 바꿀 순서는 `crates/snap-core/src/config/save/store.rs`(검증 → 자격 교체 → 설정 교체, D41).
+- Windows 열려 있는 파일 교체 실패: 위 문서들에 코드 값이 없어 02-8 작업 4에서 직접 확인했습니다. 공유 설정 없이(`share_mode(0)`) 열어 둔 대상은 `std::fs::rename`이 실패하고, `std::io::Error`의 원시 번호 32(공유 위반)로 나며, 읽기 전용 열림은 교체를 막지 않습니다. 확인한 코드는 `crates/snap-core/src/config/save/error.rs`의 `SHARING_VIOLATION`(32)과 `SaveIoKind::SharingViolation`이고, 시험은 `crates/snap-core/src/config/tests/save/atomic.rs`(`windows_open_target_file_fails_standard_rename_and_keeps_file`, `windows_read_only_open_allows_standard_rename`)입니다.
+- 관련 작업: 02-8
+
+### 02-8 잔여 SRP 적용 위치
+
+- 확인 날짜: 2026-11-06
+- 핵심: 순수 구조 정리입니다. 학술·기술 조사는 생략했고(하네스 3절 Research Gate), 적용 경로만 남깁니다. 결정 정본은 [D42](../decisions/D42-config-error-partial.md)입니다.
+- 적용 위치: `crates/snap-core/src/config/error/`(부분 열거형 `reading.rs`·`validation.rs`·`save.rs`, 감싸기는 `config/error.rs`), `crates/snap-core/src/config/save/`(저장·원자적 교체·이름 바꾸기), `crates/snap-core/src/config/read/`(설정 해석·검증 읽기), `crates/snap-core/src/config/tests/save/`(저장 단위 시험).
+- 관련 작업: 02-8 잔여(구 02-9)

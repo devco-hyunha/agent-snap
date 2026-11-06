@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use super::support::{TempDir, empty_env};
 use crate::config::{
-    CONFIG_FILE_NAME, ConfigEnv, ConfigError, HostOs, load_config, resolve_config_dir,
+    CONFIG_FILE_NAME, ConfigEnv, ConfigError, HostOs, ReadingError, load_config, resolve_config_dir,
 };
 
 /// AC 1: `AGENT_SNAP_CONFIG_DIR` 값이 있으면 운영체제와 관계없이 그 폴더를 쓴다.
@@ -92,7 +92,10 @@ fn missing_environment_information_is_an_error() {
     for os in [HostOs::Windows, HostOs::Other] {
         let error = resolve_config_dir(&empty_env(os)).expect_err("정보가 없으면 오류여야 합니다");
 
-        assert!(matches!(error, ConfigError::ConfigDirUnknown));
+        assert!(matches!(
+            error,
+            ConfigError::Reading(ReadingError::ConfigDirUnknown)
+        ));
     }
 }
 

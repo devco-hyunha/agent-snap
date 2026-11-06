@@ -6,7 +6,7 @@ use std::time::Duration;
 use crate::secrets::SecretValue;
 
 /// `target_language`를 생략했을 때의 기본값입니다.
-pub(super) const DEFAULT_TARGET_LANGUAGE: &str = "ko";
+pub(in crate::config) const DEFAULT_TARGET_LANGUAGE: &str = "ko";
 
 /// `agent-snap.jsonc`를 읽어 검증한 설정입니다(DECISIONS D10, D20).
 ///
@@ -91,6 +91,18 @@ impl EndpointKind {
             _ => None,
         }
     }
+
+    /// 설정 파일에 적는 서버 종류 이름을 돌려줍니다(`parse`와 같은 표기를 짝으로 씁니다).
+    pub(in crate::config) fn to_name(self) -> &'static str {
+        match self {
+            Self::OpenAi => "openai",
+            Self::OpenRouter => "openrouter",
+            Self::Ollama => "ollama",
+            Self::Vllm => "vllm",
+            Self::LlamaCpp => "llamacpp",
+            Self::LmStudio => "lmstudio",
+        }
+    }
 }
 
 /// 모델의 공통 생각 옵션입니다(D15). 서버별 요청 필드로 바꾸는 일은 02-5가 합니다.
@@ -115,6 +127,16 @@ impl Reasoning {
             "medium" => Some(Self::Medium),
             "high" => Some(Self::High),
             _ => None,
+        }
+    }
+
+    /// 설정 파일에 적는 생각 옵션 이름을 돌려줍니다(`parse`와 같은 표기를 짝으로 씁니다).
+    pub(in crate::config) fn to_name(self) -> &'static str {
+        match self {
+            Self::Off => "off",
+            Self::Low => "low",
+            Self::Medium => "medium",
+            Self::High => "high",
         }
     }
 }

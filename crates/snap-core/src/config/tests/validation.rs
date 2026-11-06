@@ -7,7 +7,7 @@ use super::support::{
     config_without_kind, config_without_model_id, endpoint_object, model_object, parse_err,
     parse_ok, rejection_cases,
 };
-use crate::config::ConfigError;
+use crate::config::{ConfigError, ValidationError};
 
 /// AC 2: 표의 각 설정은 기대한 오류로 거부되고, 오류에 주소·키 값이 없다.
 #[test]
@@ -73,7 +73,7 @@ fn every_http_time_item_rejects_zero_with_item_name_only() {
 
         let expected = format!("http.{item}");
         assert!(
-            matches!(&error, ConfigError::InvalidField { field } if *field == expected),
+            matches!(&error, ConfigError::Validation(ValidationError::InvalidField{ field }) if *field == expected),
             "{item}: {error}"
         );
         assert_error_hides_secrets(item, &error);
@@ -87,7 +87,10 @@ fn inverted_backoff_range_names_both_items_without_values() {
         r#","http":{"backoff_min":777,"backoff_max":3}"#,
     ));
 
-    assert!(matches!(error, ConfigError::BackoffRangeInverted));
+    assert!(matches!(
+        error,
+        ConfigError::Validation(ValidationError::BackoffRangeInverted)
+    ));
     let text = format!("{error} {error:?}");
     assert!(text.contains("backoff_min") && text.contains("backoff_max"));
     assert!(!text.contains("777"));
@@ -107,18 +110,18 @@ fn base_url_accepts_http_and_https_without_checking_path() {
 fn missing_required_fields_are_rejected_with_field_names_only() {
     assert!(matches!(
         parse_err(&config_without_kind()),
-        ConfigError::InvalidEndpointField { endpoint, field } if endpoint == "main" && field == "kind"
+        ConfigError::Validation(ValidationError::InvalidEndpointField{ endpoint, field }) if endpoint == "main" && field == "kind"
     ));
 
     assert!(matches!(
         parse_err(&config_without_model_id()),
-        ConfigError::InvalidModelField { endpoint, model, field }
+        ConfigError::Validation(ValidationError::InvalidModelField{ endpoint, model, field })
             if endpoint == "main" && model == "fast" && field == "id"
     ));
 
     assert!(matches!(
         parse_err(r#"{"endpoints":{}}"#),
-        ConfigError::InvalidField { field } if field == "endpoints"
+        ConfigError::Validation(ValidationError::InvalidField{ field }) if field == "endpoints"
     ));
 }
 

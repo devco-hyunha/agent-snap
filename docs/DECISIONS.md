@@ -222,3 +222,24 @@
 - 결정: 목록 조회의 형식 오류는 `llm::error::models_format`의 전용 타입 `ModelsListFormatError`로 낸다. 종류는 `ModelsListFormatKind`(잘못된 JSON·`data` 없음·`data`가 배열 아님·`id` 없음·`id`가 문자열 아님)로 두고, Display·Debug에는 종류 표기와 안내 말만 남기고 본문 원문은 남기지 않는다. 전송 오류 `TransportError`에는 종류만 통째로 실어 통과시키는 `#[from]` 변형 하나를 더해, 채팅 오류 체인 규칙(키·주소 비노출)을 목록에도 그대로 적용한다. 본문이 빈 200 응답은 JSON을 읽지 못한 것으로 같은 종류를 쓴다(빈 목록 성공 금지). 항목의 `id`가 정한 형식이 아니면 목록 전체 조회를 실패로 본다.
 - 근거: spec 38~39행·51행은 `data`·`id` 형식 실패와 본문 비노출을 요구한다. 본문·키·주소를 섞기 쉬운 채팅 오류 타입에 변형을 더하면 요약 경로(`scrub`)를 거치지 않는 자리가 생겨 가리기가 망가진다. 종류만 담는 전용 타입이면 요약할 본문이 애초에 생기지 않는다.
 - 다시 볼 점: 서버마다 형식이 다른 목록(llama.cpp의 `meta: null`, Ollama식 추가 필드)이 더 엄격한 요구로 번지면 종류를 더 넓힐 때 spec 38행과 함께 판단한다.
+
+## D40 02-8 저장 편집 도구와 원자적 교체 (2026-11-05)
+- 상태: 정본 **recorded** (2026-11-05 사용자 승인).
+- 결정(요약): 주석 보존 편집은 `jsonc-parser` 0.34.0의 `cst` 기능을 켠 것으로 쓴다(라이선스 MIT, crates.io·저장소 LICENSE 확인, `cst`는 의존 추가 없음). 저장은 같은 폴더 임시 파일에 쓰고 `sync_all` 뒤 `std::fs::rename`으로 교체하며, 교체 실패 시 기존 파일은 그대로 두고 임시 파일만 지운다. 두 파일을 함께 바꿀 때는 자격 파일을 먼저 쓰고 설정 파일을 그 뒤에 쓴다. 기각 후보 `monochromatic-jsonc-edit` 0.1.2는 LGPL-3.0-or-later라 D5 기준에 맞지 않는다.
+- 정본: [docs/decisions/D40-save-editor.md](decisions/D40-save-editor.md)
+- 근거: D18의 같은 크레이트로 새 의존 없이 해결(dev-principles 3절 재사용 사다리 3번), 원자적 교체는 `std::fs::rename`·`rename(2)`·`MoveFileExW` 문서 근거.
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다. Windows의 열려 있는 파일 교체 실패 코드 세부(값)는 문서에 없어 02-8 작업 4에서 직접 확인했고, 원시 번호 32(공유 위반)임을 확인했다(정본 D40의 「구현 후 확인 메모」).
+
+## D41 두 파일 저장 순서는 검증 → 자격 교체 → 설정 교체 (2026-11-06)
+- 상태: 정본 **recorded** (2026-11-06 사용자 승인).
+- 결정(요약): 두 파일을 함께 고치는 저장은 검증을 자격 파일 쓰기 전에 마친다. 순서는 검증 → 자격 교체 → 설정 교체이며, 검증에 걸리는 입력은 어느 파일도 바꾸지 않고 거부한다(AC 2 정본). 교체 순서는 D40 규칙 3을 그대로 따른다.
+- 정본: [docs/decisions/D41-save-order-validation.md](decisions/D41-save-order-validation.md)
+- 근거: spec의 "쓰기 전에 검증 통과" 규칙과 AC 2가 정본. 거부가 자격 교체 뒤에 있으면 자격 파일만 바뀐 채로 거부되어 AC 2가 깨짐(2026-11-06 사용자 승인).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
+
+## D42 설정 오류는 읽기·검증·저장 부분 열거형으로 나눈다 (2026-11-06)
+- 상태: 정본 **recorded** (2026-11-06 사용자 승인·02-8 잔여 반영).
+- 결정(요약): `ConfigError` 공개 경로는 유지하고, 안을 `ReadingError`·`ValidationError`·`SaveError` 부분 열거형으로 나눈 뒤 `#[from]`으로 감싼다. Display·Debug 가리기는 부분 열거형마다 두어 합친 문구는 이전과 같다. 파일은 `config/error/`·`config/save/`·`config/read/`·`config/tests/save/`에 둔다.
+- 정본: [docs/decisions/D42-config-error-partial.md](decisions/D42-config-error-partial.md)
+- 근거: 하네스 10절·dev-principles 2절 SRP(변경 이유별 파일 분리). 동작·문구·담는 값·D41 순서는 바꾸지 않음.
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다.

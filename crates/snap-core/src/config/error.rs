@@ -1,123 +1,71 @@
-//! 설정 읽기·검증 오류: 이름만 담고 base_url·키 값은 담지 않습니다.
+//! 설정 읽기·검증·저장 오류의 합쳐진 타입: 세 부분 열거형을 감싸기만 합니다.
+//!
+//! 부분 열거형의 변형과 만들기 도움 함수는 아래 `pub use`로 그대로 재수출합니다.
+//! 감싸는 열거형의 변형 이름은 호출부에서 `ConfigError` 경로를 그대로 쓰는 기준으로
+//! 부분 열거형 타입 이름을 붙인 생성 함수를 씁니다.
+
+mod reading;
+mod save;
+mod validation;
+
+pub use reading::ReadingError;
+pub use save::SaveError;
+pub use validation::ValidationError;
 
 use std::fmt;
-use std::path::PathBuf;
 
 use crate::credentials::CredentialsError;
 use crate::jsonc::JsoncError;
 
-/// 설정 파일 읽기·검증에 실패했을 때 나오는 오류입니다.
+/// 설정 파일 읽기·검증·저장에 실패했을 때 나오는 오류입니다.
 ///
-/// Display·Debug에 base_url 호스트와 키 값을 담지 않습니다(명세 AC 2·4·5).
+/// 변경 이유가 서로 다른 셋(읽기·검증·저장)을 각각의 부분 열거형으로 놓고, 이 타입은 그
+/// 셋을 감싸는 자리만 맡습니다(하네스 1절 SRP). 표시 규칙은 부분 열거형마다 있어서,
+/// 합쳐서 드러나는 문구는 이전과 같습니다(명세 AC 2·4·5).
 #[derive(thiserror::Error)]
 pub enum ConfigError {
-    /// JSONC 문법 오류입니다. 줄 번호만 담고 줄 내용과 값은 담지 않습니다.
-    #[error("설정 파일 해석 실패: JSONC 문법 오류 (줄 {line}번)")]
-    JsoncSyntax { line: usize },
-    /// 설정 파일이 최상위 객체가 아닙니다.
-    #[error("설정 파일 해석 실패: 최상위가 객체가 아닙니다")]
-    RootNotObject,
-    /// 설정 폴더에서 파일을 읽지 못했습니다. 폴더 경로와 파일 이름만 담습니다.
-    #[error("설정 파일 접근 실패: `{folder}`의 `{file}`")]
-    Io {
-        folder: PathBuf,
-        file: &'static str,
-        #[source]
-        source: std::io::Error,
-    },
-    /// 설정 폴더 위치를 계산할 환경 정보가 부족합니다. 경로는 담지 않습니다.
-    #[error("설정 폴더 위치를 정할 수 없습니다: 환경 정보가 부족합니다")]
-    ConfigDirUnknown,
-    /// 자격 파일 해석 오류를 그대로 드러냅니다(키 값은 담지 않음).
+    /// 파일을 찾고 읽고 해석하는 단계가 실패했습니다.
     #[error(transparent)]
-    Credentials(#[from] CredentialsError),
-    /// 최상위에 옛 `models` 칸이 있습니다.
-    #[error("설정 오류: 모델은 endpoints[].models에 둡니다")]
-    LegacyTopLevelModels,
-    /// 엔드포인트에 키 칸(`api_key` 또는 `api_key_env`)이 있습니다. 값은 담지 않습니다.
-    #[error(
-        "설정 오류: 엔드포인트 `{endpoint}`에 키 칸이 있습니다. 키는 credentials.jsonc에 둡니다"
-    )]
-    EndpointKeyField { endpoint: String },
-    /// 모델에 `endpoint` 칸이 있습니다.
-    #[error("설정 오류: 모델 `{model}`에 `endpoint` 칸이 있습니다")]
-    ModelEndpointField { model: String },
-    /// 엔드포인트 이름이 중복됩니다(trim 후 정확히 같은 문자열).
-    #[error("설정 오류: 엔드포인트 이름 `{endpoint}`이(가) 중복됩니다")]
-    DuplicateEndpoint { endpoint: String },
-    /// 같은 엔드포인트 안에서 모델 이름이 중복됩니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 모델 이름 `{model}`이(가) 중복됩니다")]
-    DuplicateModel { endpoint: String, model: String },
-    /// 엔드포인트 이름이 trim 후 비어 있습니다.
-    #[error("설정 오류: 엔드포인트 이름이 비어 있습니다")]
-    EmptyEndpointName,
-    /// 모델 이름이 trim 후 비어 있습니다. 이름이 비어 모델 이름은 담지 못합니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 모델 이름이 비어 있습니다")]
-    EmptyModelName { endpoint: String },
-    /// 모델 id가 trim 후 비어 있습니다. trim한 모델 이름을 담습니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 모델 `{model}`의 id가 비어 있습니다")]
-    EmptyModelId { endpoint: String, model: String },
-    /// 엔드포인트 이름에 `/`가 있습니다.
-    #[error("설정 오류: 엔드포인트 이름 `{endpoint}`에 `/`를 넣을 수 없습니다")]
-    EndpointNameHasSlash { endpoint: String },
-    /// 모델 이름에 `/`가 있습니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 모델 이름 `{model}`에 `/`를 넣을 수 없습니다")]
-    ModelNameHasSlash { endpoint: String, model: String },
-    /// `kind` 값이 지원 목록에 없습니다. 입력 값은 담지 않습니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 `kind` 값이 올바르지 않습니다")]
-    InvalidKind { endpoint: String },
-    /// `base_url` 값이 검증을 통과하지 못했습니다. 입력 값은 담지 않습니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 `base_url` 값이 올바르지 않습니다")]
-    InvalidBaseUrl { endpoint: String },
-    /// `reasoning` 값이 지원 목록에 없습니다. 입력 값은 담지 않습니다.
-    #[error("설정 오류: 모델 `{model}`의 `reasoning` 값이 올바르지 않습니다")]
-    InvalidReasoning { model: String },
-    /// `extra`에 클라이언트가 채우는 예약 키가 있습니다.
-    #[error("설정 오류: 모델 `{model}`의 `extra`에 예약 키 `{key}`가 있습니다")]
-    ExtraReservedKey { model: String, key: String },
-    /// 샘플링 항목이 범위를 벗어났습니다. 값은 담지 않습니다.
-    #[error("설정 오류: 샘플링 `{item}`이(가) 모델 `{model}`에서 범위를 벗어났습니다")]
-    SamplingOutOfRange { item: String, model: String },
-    /// 지원하지 않는 샘플링 항목입니다.
-    #[error("설정 오류: 지원하지 않는 샘플링 항목 `{item}`")]
-    UnknownSamplingItem { item: String },
-    /// `http`에 인정하지 않는 키가 있습니다.
-    #[error("설정 오류: 지원하지 않는 `http` 항목 `{item}`")]
-    UnknownHttpItem { item: String },
-    /// `http.backoff_min`이 `http.backoff_max`보다 큽니다. 항목 이름만 담고 값은 담지 않습니다(D21).
-    #[error("설정 오류: `http.backoff_min`이(가) `http.backoff_max`보다 큽니다")]
-    BackoffRangeInverted,
-    /// 필수 칸이 없거나 타입이 맞지 않습니다. 칸 이름만 담습니다.
-    #[error("설정 오류: `{field}` 칸이 없거나 형식이 올바르지 않습니다")]
-    InvalidField { field: String },
-    /// 엔드포인트 항목의 필수 칸이 없거나 타입이 맞지 않습니다.
-    #[error("설정 오류: 엔드포인트 `{endpoint}`의 `{field}` 칸이 없거나 형식이 올바르지 않습니다")]
-    InvalidEndpointField { endpoint: String, field: String },
-    /// 모델 항목의 필수 칸이 없거나 타입이 맞지 않습니다.
-    #[error(
-        "설정 오류: 엔드포인트 `{endpoint}`의 모델 `{model}`의 `{field}` 칸이 없거나 형식이 올바르지 않습니다"
-    )]
-    InvalidModelField {
-        endpoint: String,
-        model: String,
-        field: String,
-    },
+    Reading(#[from] ReadingError),
+    /// 채운 값이 02-2 검증 규칙을 통과하지 못했습니다.
+    #[error(transparent)]
+    Validation(#[from] ValidationError),
+    /// 파일을 쓰다가 실패했습니다.
+    #[error(transparent)]
+    Save(#[from] SaveError),
+}
+
+impl From<JsoncError> for ConfigError {
+    fn from(error: JsoncError) -> Self {
+        Self::Reading(ReadingError::from(error))
+    }
+}
+
+impl From<CredentialsError> for ConfigError {
+    fn from(error: CredentialsError) -> Self {
+        Self::Reading(ReadingError::from(error))
+    }
 }
 
 impl ConfigError {
+    // 이 도움 함수들은 부분 열거형의 같은 생성 함수를 공개 경로(`ConfigError`) 이름으로
+    // 이어 주는 forwarding입니다. 새 도움 생성 함수는 부분 열거형(`ReadingError`·
+    // `ValidationError`·`SaveError`)의 대응 자리에 먼저 만들고, 호출부가 공개 경로를 써야
+    // 할 때만 이 타입에 forwarding을 더합니다.
+    //
+    // 저장이 바꿀 엔드포인트가 없을 때의 오류입니다. spec 표 3번째 줄대로 이름만 담습니다.
+    pub(super) fn missing_endpoint(endpoint: &str) -> Self {
+        Self::Save(SaveError::missing_endpoint(endpoint))
+    }
+
     /// 루트나 `http`·`sampling` 같은 칸의 필수 값이 없거나 타입이 맞지 않을 때의 오류입니다.
     pub(super) fn invalid_field(field: impl Into<String>) -> Self {
-        Self::InvalidField {
-            field: field.into(),
-        }
+        Self::Validation(ValidationError::invalid_field(field))
     }
 
     /// 엔드포인트 항목의 칸이 없거나 타입이 맞지 않을 때의 오류입니다.
     pub(super) fn invalid_endpoint_field(endpoint: &str, field: impl Into<String>) -> Self {
-        Self::InvalidEndpointField {
-            endpoint: endpoint.to_owned(),
-            field: field.into(),
-        }
+        Self::Validation(ValidationError::invalid_endpoint_field(endpoint, field))
     }
 
     /// 모델 항목의 칸이 없거나 타입이 맞지 않을 때의 오류입니다.
@@ -126,35 +74,12 @@ impl ConfigError {
         model: &str,
         field: impl Into<String>,
     ) -> Self {
-        Self::InvalidModelField {
-            endpoint: endpoint.to_owned(),
-            model: model.to_owned(),
-            field: field.into(),
-        }
-    }
-
-    /// 모델 이름이 trim 후 비었을 때의 오류입니다.
-    pub(super) fn empty_model_name(endpoint: &str) -> Self {
-        Self::EmptyModelName {
-            endpoint: endpoint.to_owned(),
-        }
+        Self::Validation(ValidationError::invalid_model_field(endpoint, model, field))
     }
 
     /// 모델 id가 trim 후 비었을 때의 오류입니다. `model`은 trim한 모델 이름입니다.
     pub(super) fn empty_model_id(endpoint: &str, model: &str) -> Self {
-        Self::EmptyModelId {
-            endpoint: endpoint.to_owned(),
-            model: model.to_owned(),
-        }
-    }
-}
-
-impl From<JsoncError> for ConfigError {
-    fn from(error: JsoncError) -> Self {
-        match error {
-            JsoncError::Syntax { line } => Self::JsoncSyntax { line },
-            JsoncError::RootNotObject => Self::RootNotObject,
-        }
+        Self::Validation(ValidationError::empty_model_id(endpoint, model))
     }
 }
 

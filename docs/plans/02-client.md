@@ -1,6 +1,6 @@
 # 02 설정과 스트리밍 클라이언트
 
-- 상태: 진행 중 (02-2~02-6 완료, 리뷰 PASS 기록 있음. 02-6은 커밋 보류)
+- 상태: 진행 중 (02-1~02-7 완료·리뷰 PASS. 02-8 본 작업 done·잔여 SRP 문서 마감 남음. 02-9는 작업 02 전체 리뷰 게이트)
 
 ## 목적
 설정을 읽고 OpenAI 호환 엔드포인트와 스트리밍으로 대화하는 클라이언트를 만든다. 감시기(작업 05)가 스트림을 중간에 끊을 수 있어야 하고, 에이전트 루프(작업 03)는 이 클라이언트를 트레이트로만 받는다.
@@ -15,7 +15,8 @@
 - 02-5: LLM 클라이언트 트레이트와 OpenAI 호환 스트리밍 전송(시간 초과, 취소, 오류 가리기, 사용량과 시각, 모델별 `reasoning` 변환과 `extra` 병합).
 - 02-6: 재시도를 전송에 적용.
 - 02-7: 선택 키(`엔드포인트이름/모델이름`)로 클라이언트 만들기, 엔드포인트의 모델 목록 조회.
-- 02-8: 설정 저장(엔드포인트 추가·수정·삭제, 키는 자격 파일에만 저장, 두 파일 모두 주석 보존).
+- 02-8: 설정 저장(엔드포인트 추가·수정·삭제, 키는 자격 파일에만 저장, 두 파일 모두 주석 보존). 개발 규칙 점검 잔여(오류·저장 모듈 SRP 분리)도 02-8에 포함한다.
+- 02-9: 작업 02 전체 리뷰(기획·코드 정합, 하네스 준수, 코드 리뷰). 새 기능 없음.
 
 ## 비범위(Out)
 - 에이전트 루프와 도구(작업 03), 대화형 CLI와 세션 로그, `ls` 같은 사용자 명령(작업 04).
@@ -75,7 +76,8 @@
 | 02-6 | 재시도 적용 | 02-5 | [plan](02-client/02-6-retry-apply/plan.md) · [spec](02-client/02-6-retry-apply/spec.md) · [tasks](02-client/02-6-retry-apply/tasks.md) |
 | 02-7 | 모델 선택과 모델 목록 조회 | 02-6 | [plan](02-client/02-7-model-select/plan.md) · [spec](02-client/02-7-model-select/spec.md) · [tasks](02-client/02-7-model-select/tasks.md) |
 | 02-2b | 모델 `context_window` 읽기·검증·예시 | 02-7 | [02-2 plan](02-client/02-2-config/plan.md) 후속 보강(D29). 별도 brief 폴더는 두지 않고 02-2 문서·코드에 이어서 구현한다. |
-| 02-8 | 설정 저장 | 02-2b | [plan](02-client/02-8-config-save/plan.md) · [spec](02-client/02-8-config-save/spec.md) · [tasks](02-client/02-8-config-save/tasks.md) |
+| 02-8 | 설정 저장(+ SRP 잔여) | 02-2b | [plan](02-client/02-8-config-save/plan.md) · [spec](02-client/02-8-config-save/spec.md) · [tasks](02-client/02-8-config-save/tasks.md) · [잔여](02-client/02-8-config-save/srp-residual/README.md) |
+| 02-9 | 작업 02 전체 리뷰(정합·하네스·코드 리뷰) | 02-8 | [plan](02-client/02-9-client-review/plan.md) · [spec](02-client/02-9-client-review/spec.md) · [tasks](02-client/02-9-client-review/tasks.md) |
 
 ### 세부 작업 공통 기준
 각 세부 작업의 tasks.md는 이 절을 따른다.
@@ -84,17 +86,18 @@
 - 공통 DoD: 그 세부 작업의 AC를 충족한다. 검증 명령이 통과한다. `docs/RESEARCH.md` 적용 위치를 갱신했다. 코드 품질 리뷰(review-harness 체크리스트와 dev-principles 2~10절(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`), 테스트 코드 포함)가 PASS했고 기록이 `docs/reviews/`에 있다.
 
 ## AC
-1. 세부 작업 02-1~02-8의 AC를 모두 충족한다.
+1. 세부 작업 02-1~02-8(잔여 SRP 포함)의 AC를 모두 충족한다.
 2. 설계 요약의 경계를 따른다. LLM 클라이언트는 트레이트로만 노출되고, HTTP 라이브러리는 전송 구현 밖에서 쓰이지 않으며, 02-1~02-4는 네트워크 없이 테스트된다.
 3. 키 값과 base_url 호스트가 이 작업의 어떤 Debug·Display·오류에도 나오지 않는다(세부 작업별 테스트로 확인).
-4. 테스트 밖 unwrap/expect/panic 0, 공개 항목 한국어 문서 주석. 검증 명령(세부 작업 공통 기준)이 통과하고 dev-principles 2~10절(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`) 코드 품질 리뷰가 PASS한다.
+4. 테스트 밖 unwrap/expect/panic 0, 공개 항목 한국어 문서 주석. 검증 명령(세부 작업 공통 기준)이 통과하고, **02-9 작업 02 전체 리뷰**에서 review-harness·dev-principles 2~11절·하네스 준수가 PASS한다.
 5. `docs/RESEARCH.md` 작업 02 절의 각 항목에 세부 작업별 적용 위치 또는 미적용 이유가 있다.
 
 ## 테스트 계획
 작업 전체 수준만 적는다. 세부 계획은 각 세부 작업의 tasks.md에 있다.
 - 02-1~02-4: 네트워크 없는 단위 테스트. 난수와 파일 위치는 주입하고 임시 폴더를 쓴다.
 - 02-5~02-7: 로컬 모의 서버 통합 테스트.
-- 02-8: 임시 폴더에서 파일 쓰기 단위 테스트.
+- 02-8: 임시 폴더에서 파일 쓰기 단위 테스트. 잔여 SRP는 구조 정리·기존 테스트 유지.
+- 02-9: 새 테스트 없음. 검증 3종 재실행과 작업 02 합본 리뷰.
 - 시간에 의존하는 테스트는 시험용 시간 값을 짧게 주고, 경과 시간은 넉넉한 하한·상한으로만 확인한다.
 - 설정이 있을 때 실제 엔드포인트로 1회 확인한다. 출력에 URL과 키를 찍지 않는다.
 
@@ -113,4 +116,4 @@
 - 설정 파일을 다시 쓸 때 주석이 사라지거나 파일이 깨질 수 있다. 02-8에서 주석 보존과 임시 파일 교체로 막는다(D16).
 
 ## DoD
-세부 작업 02-1~02-8이 각자의 DoD(각 tasks.md)를 만족하고, 작업 전체 AC를 충족하며, 작업 전체 코드 품질 리뷰가 PASS한 상태.
+세부 작업 02-1~02-8(잔여 포함)이 각자의 DoD를 만족하고, 작업 전체 AC를 충족하며, **02-9 작업 02 전체 리뷰**가 PASS한 상태.
