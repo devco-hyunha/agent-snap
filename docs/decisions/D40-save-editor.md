@@ -1,7 +1,7 @@
 # D40 02-8 설정·자격 저장 편집 도구와 원자적 교체 (2026-11-05)
 
 - 상태: recorded (2026-11-05 사용자 승인 완료)
-- 관련: [02-8 plan](../plans/02-client/02-8-config-save/plan.md), [spec](../plans/02-client/02-8-config-save/spec.md), [작업 1](../tasks/02-8-config-save-1-jsonc-editor.md), [RESEARCH 02-8](../research/02-client.md)
+- 관련: [02-8 plan](../plans/02-client/02-08-config-save/plan.md), [spec](../plans/02-client/02-08-config-save/spec.md), [작업 1](../tasks/02/08-config-save/T1-jsonc-editor.md), [RESEARCH 02-8](../research/02-client.md)
 
 ## 결정(제안)
 

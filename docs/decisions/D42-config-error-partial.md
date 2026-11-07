@@ -3,7 +3,7 @@
 - 상태: recorded (2026-11-06 사용자 승인·02-8 잔여 작업 1~5 반영)
 - 요약 인덱스: [docs/DECISIONS.md](../DECISIONS.md#d42-설정-오류는-읽기검증저장-부분-열거형으로-나눈다)
 - 이 문서가 해당 결정의 상세 정본. DECISIONS.md에는 요약과 링크만.
-- 관련: [D40](D40-save-editor.md), [D41](D41-save-order-validation.md), [02-8 잔여 spec](../plans/02-client/02-8-config-save/srp-residual/spec.md), [잔여 tasks](../plans/02-client/02-8-config-save/srp-residual/tasks.md)
+- 관련: [D40](D40-save-editor.md), [D41](D41-save-order-validation.md), [02-8 잔여 spec](../plans/02-client/02-08-config-save/srp-residual/spec.md), [잔여 tasks](../plans/02-client/02-08-config-save/srp-residual/tasks.md)
 
 ## 결정
 
@@ -25,5 +25,5 @@
 
 ## 구현 후 확인 메모 (2026-11-06, 02-8 잔여)
 
-- 작업 1~3·5 리뷰 PASS 기록: `docs/reviews/02-client/02-9-error-split-task1-review-1.md` ~ `task5-review-2.md`(파일명은 구 번호, 내용은 02-8 잔여).
+- 작업 1~3·5 리뷰 PASS 기록: `docs/reviews/02/08-config-save/srp-task1-review-1.md` ~ `task5-review-2.md`(파일명은 구 번호, 내용은 02-8 잔여).
 - `jsonc-parser` 0.34.0 `cst`는 D40대로 `crates/snap-core/Cargo.toml`에 유지한다. 잔여 작업에서 버전·기능을 바꾸지 않았다.

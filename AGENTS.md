@@ -42,7 +42,7 @@
 
 [안전 예외 승인: 3번 커밋 — 작업 단위(= `docs/plans/`의 세부 작업 하나)의 전체 리뷰 PASS 기록이 있고, 그 결과를 사용자에게 보고한 뒤 로컬 커밋을 한다(푸시·병합은 사용자 허락 필수)]
 
-- 프로젝트 규칙 정본은 `harness/PROJECT_HARNESS.md`입니다. 이 파일에는 선언과 색인만 두고, 규칙 본문은 그 정본을 읽습니다.
-- 흐름: 구현 서브 → 독립 리뷰 세션 2단계, 작업 단위 전체 리뷰 PASS 기록(`docs/reviews/`) 뒤에 커밋(`harness/PROJECT_HARNESS.md`).
-- 개발 규칙과 나머지 오버레이 항목은 `harness/PROJECT_HARNESS.md`에 있다.
+- 프로젝트 규칙 정본은 `harness/PROJECT_RULES.md`입니다. 이 파일에는 선언과 색인만 두고, 규칙 본문은 그 정본을 읽습니다.
+- 흐름: 구현 서브 → 독립 리뷰 세션 2단계, 작업 단위 전체 리뷰 PASS 기록(`docs/reviews/`) 뒤에 커밋(`harness/PROJECT_RULES.md`).
+- 개발 규칙과 나머지 오버레이 항목은 `harness/PROJECT_RULES.md`에 있다.
 

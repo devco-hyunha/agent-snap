@@ -3,7 +3,7 @@
 - 상태: recorded (2026-11-06 사용자 승인)
 - 요약 인덱스: [docs/DECISIONS.md](../DECISIONS.md#d41-두-파일-저장-순서는-검증--자격-교체--설정-교체)
 - 이 문서가 해당 결정의 상세 정본. DECISIONS.md에는 요약과 링크만.
-- 관련: [D40](D40-save-editor.md), [02-8 spec](../plans/02-client/02-8-config-save/spec.md), [작업 4](../tasks/02-8-config-save-4-atomic-save.md)
+- 관련: [D40](D40-save-editor.md), [02-8 spec](../plans/02-client/02-08-config-save/spec.md), [작업 4](../tasks/02/08-config-save/T4-atomic-save.md)
 
 ## 결정
 

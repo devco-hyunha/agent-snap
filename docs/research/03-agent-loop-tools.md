@@ -1,4 +1,4 @@
-﻿# 작업 03 agent-loop-tools 조사 상세
+# 작업 03 agent-loop-tools 조사 상세
 
 - 인덱스: [docs/RESEARCH.md](../RESEARCH.md) 해당 작업 절
 - 역할: 조사 상세. 규범 정본이 아님. 정책은 docs/decisions/… 및 DECISIONS.
@@ -115,7 +115,7 @@
 확인 날짜는 2026-11-02이며 아래 링크를 직접 열어 확인했습니다. [prospero.org](http://www.prospero.org/)는 동명 디렉터리 서비스로 본 하네스와 무관합니다(이름 충돌).
 
 - Prospero (nullprogram / skeeto)
-  - 링크: [nullprogram (2026-10-31)](https://nullprogram.com/blog/2026/10/31/), [skeeto/prospero](https://github.com/skeeto/prospero)(README·`docs/windows.md` 요약), [GeekNews](https://news.hada.io/topic?id=36346)
+  - 링크: [nullprogram (2026-10-31)](https://nullprogram.com/blog/2026-10-31/), [skeeto/prospero](https://github.com/skeeto/prospero)(README·`docs/windows.md` 요약), [GeekNews](https://news.hada.io/topic?id=36346)
   - 핵심: 모든 작업에 deadline을 두고(Plan·`ask_user`만 무기한), 권한 미응답은 timeout으로 거부하며, 네트워크·watchdog·mailbox bound·셸 timeout 후 비동기 백그라운드와 주기 wake를 씁니다. 자식 프로세스는 트리와 함께 수명을 맞추고 Windows에서는 Job Object를 씁니다. 모델 제공자는 비내장(OpenAI Chat Completions·Anthropic Messages, INI·`env:KEY`)이며, 권한은 완전한 보안 경계가 아니라 실수·범위 상기용입니다(실격리는 하네스 격리). 서브에이전트·원격 헤드리스·데스크톱 제어·패시브 렌더링·스킬/자기문서가 제품 차별점입니다.
   - snap 대조: 엔드포인트·키 비내장(D10/D20, PLAN), HTTP connect/header/stream_idle(D20, config), `run_command` 승인(03)은 이미 가깝거나 기획됨. Job Object는 D9 후보. 03에 아직 없는 것은 셸·도구 deadline, timeout→백그라운드 폴링, 프로세스 트리 종료, 권한 응답 timeout입니다. GUI·ImGui, 원격 엔진, 데스크톱 제어, 런타임 서브에이전트, CE/Pro 모델은 범위 밖·보류입니다.
   - 적용 위치: 작업 03 또는 D9 재검토 시 Never wait forever의 셸·승인 timeout, Job Object/프로세스 트리 정리를 우선 참고. timeout→백그라운드 전환과 에이전트 폴링은 자율 빌드 루프의 부분 적용 후보.

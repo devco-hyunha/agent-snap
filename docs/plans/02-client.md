@@ -71,7 +71,7 @@
 | 02-1 | 비밀 값 래퍼와 자격 파일 읽기 | 없음 | [plan](02-client/02-1-secrets/plan.md) · [spec](02-client/02-1-secrets/spec.md) · [tasks](02-client/02-1-secrets/tasks.md) |
 | 02-2 | 설정 읽기와 검증 | 02-1 | [plan](02-client/02-2-config/plan.md) · [spec](02-client/02-2-config/spec.md) · [tasks](02-client/02-2-config/tasks.md) |
 | 02-3 | SSE 파싱과 델타 복원 | 02-2 | [plan](02-client/02-3-sse/plan.md) · [spec](02-client/02-3-sse/spec.md) · [tasks](02-client/02-3-sse/tasks.md) |
-| 02-4 | 재시도 판단 | 02-3 | [plan](02-client/02-4-retry/plan.md) · [spec](02-client/02-4-retry/spec.md) · [tasks](02-client/02-4-retry/tasks.md) |
+| 02-4 | 재시도 판단 | 02-3 | [plan](02-client/02-4-retry/plan.md) · [spec](reviews/02/04-retry/spec.md) · [tasks](02-client/02-4-retry/tasks.md) |
 | 02-5 | 클라이언트 트레이트와 스트리밍 전송 | 02-4 | [plan](02-client/02-5-transport/plan.md) · [spec](02-client/02-5-transport/spec.md) · [tasks](02-client/02-5-transport/tasks.md) |
 | 02-6 | 재시도 적용 | 02-5 | [plan](02-client/02-6-retry-apply/plan.md) · [spec](02-client/02-6-retry-apply/spec.md) · [tasks](02-client/02-6-retry-apply/tasks.md) |
 | 02-7 | 모델 선택과 모델 목록 조회 | 02-6 | [plan](02-client/02-7-model-select/plan.md) · [spec](02-client/02-7-model-select/spec.md) · [tasks](02-client/02-7-model-select/tasks.md) |
