@@ -40,7 +40,7 @@
   - 근거: rustc 1.99.1과 MSVC Build Tools가 설치되어 있다. Tauri 백엔드가 Rust라서 앱이 코어 크레이트를 그대로 쓴다. 실행 파일 하나로 배포된다.
   - 다시 볼 점: 판정 모델 런타임의 Windows 빌드가 막히면 다시 검토한다.
 - 대상 언어는 기본 한국어이고 설정으로 바꾼다.
-- 설정 파일 `agent-snap.toml`(엔드포인트 목록과 모델 목록)은 git에서 제외한다. 키는 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)의 키 파일 `.env`를 먼저, 없으면 환경 변수에서 읽고 설정 파일에는 변수 이름만 둔다. 예시 파일에는 자리표시자만 둔다. 세션 로그에는 base_url과 키를 남기지 않는다.
+- 설정 파일 `agent-snap.jsonc`(엔드포인트 목록과 모델 목록, 주석 허용 JSON)는 git에서 제외한다. 키는 설정 파일과 별도로 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)의 자격 파일 `credentials.jsonc`의 `api_keys`에서 엔드포인트 이름으로 읽고, 없으면 키 없이 요청한다. 설정 파일 엔드포인트에 `api_key`가 있으면 거부한다. 예시 파일에는 자리표시자만 둔다. 세션 로그에는 base_url과 키를 남기지 않는다.
 - AGENTS.md의 마커 블록은 템플릿 원문 그대로 둔다. 이 PC의 하네스 경로 차이는 마커 밖에 적는다.
 - 기존 에이전트를 포크하지 않고 새로 짠다.
   - opencode(MIT), Codex CLI(Apache-2.0), Hermes Agent(MIT)의 설계는 참고한다. 코드를 가져오면 출처와 라이선스를 표기한다.
@@ -50,8 +50,8 @@
 ## 사용자가 해 주셔야 할 설정
 
 1. 이 PC에서 닿는 OpenAI 호환 서버를 준비한다.
-2. `agent-snap.toml`에 엔드포인트(이름, base_url)와 모델(id, 쓸 엔드포인트)을 적는다.
-3. 설정 파일 `agent-snap.toml`과 키 파일 `.env`는 같은 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)에 둔다. 키가 필요한 서버라면 키를 그 `.env` 또는 환경 변수에 넣고, 그 변수 이름을 엔드포인트의 api_key_env에 적는다.
+2. `agent-snap.jsonc`에 엔드포인트(`name`, `base_url`, 서버 종류 `kind`)와 모델(id, 쓸 엔드포인트)을 적는다.
+3. 설정 파일 `agent-snap.jsonc`와 자격 파일 `credentials.jsonc`는 같은 사용자 설정 폴더(Windows `%APPDATA%\agent-snap\`)에 둔다. 키가 필요한 서버라면 키를 `credentials.jsonc`의 `api_keys` 아래에 엔드포인트 이름으로 적는다.
 4. 작업 07이 끝나면 판정 모델 후보 목록을 승인한다.
 
 도메인, 터널, 계정, 확장 프로그램은 필요 없다.

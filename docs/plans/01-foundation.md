@@ -13,19 +13,19 @@
   - 멈추는 조건(새 권한, 비가역 작업, 보안, 제품 결과 변경, 같은 지적으로 보정 2회 후에도 미달)이 아니면 묻지 않고 추천안으로 진행한다. 그 결정은 `docs/DECISIONS.md`에 결정, 근거, 다시 볼 점으로 기록한다.
   - 서브에이전트 모델: 단순 작업은 haiku, 구현은 sonnet, 어려운 설계는 opus.
   - 이 PC의 하네스 문서는 `~/.claude/harness/GLOBAL_HARNESS.md`, 스킬은 `~/.claude/skills/`에 있다.
-  - 엔드포인트 주소를 코드와 문서에 넣지 않는다. 키는 사용자 설정 폴더의 키 파일 또는 환경 변수로만 받고 어디에도 값을 남기지 않는다.
+  - 엔드포인트 주소를 코드와 문서에 넣지 않는다. 키는 사용자 설정 폴더의 `credentials.jsonc`로만 받고 어디에도 값을 남기지 않는다.
   - Hugging Face 모델은 용량·라이선스 목록 승인 후에만 받는다.
   - 에이전트(M1)를 먼저 완성한다. 판정 모델 작업은 M1 이후, 실제 세션 출력으로만 평가한다.
   - 작업마다 논문·자료를 조사해 `docs/RESEARCH.md`에 기록하고, 적용 위치나 미적용 이유를 남긴다. 링크는 직접 열어 실제로 있는지 확인한 것만 적는다.
 - 개발 규칙
   - 크레이트: `snap-core`(라이브러리, 모든 로직)와 `snap-cli`(입출력만 맡는 얇은 실행 파일).
   - 모듈은 하나의 책임만 맡는다: config, llm, agent, tools, monitor, session, context. 도구는 `Tool` 트레이트 구현 하나당 파일 하나.
-  - 소스 파일은 300줄을 목표로 하고, 500줄을 넘으면 나눈다(테스트 모듈 제외). 함수는 60줄 이하를 목표로 한다.
+  - 파일·함수·테스트에 줄 수 기준은 두지 않는다. 같은 기준으로 볼 항목은 중복이다: 한 지식·동작이 두 곳에 있으면 함수로 분리해 한 곳에서 부르게 한다. 같은 일을 하는 함수를 다시 정의하지 않는다. 코드리뷰에서 dev-principles 3절(DRY)·6절(이름과 함수) 기준으로 측정한다.
   - 오류: 라이브러리는 `thiserror`, 실행 파일만 `anyhow`. 테스트 밖 `unwrap`/`expect` 금지.
   - 비밀 값은 Debug 출력에서 가리는 래퍼 타입으로 다룬다.
   - 공개 항목에는 문서 주석을 단다. 주석은 한국어로 쓴다.
   - 모든 기능에 단위 테스트를 두고, 네트워크 경로는 모의 서버 통합 테스트로 확인한다.
-  - `dev-principles` 스킬을 따른다.
+  - dev-principles 스킬을 따르며, 지시와 리뷰에는 반드시 경로를 명시해 파일을 읽게 한다: `.agents/skills/dev-principles/SKILL.md` (Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`). 리뷰 프롬프트에는 2~10절 항목을 함께 담는다.
 - `CLAUDE.md`(`@AGENTS.md` 한 줄), `.cursor/rules/agent-snap.mdc`(`alwaysApply: true`, AGENTS.md 안내와 핵심 규칙 요약), `docs/INDEX.md`, `docs/DECISIONS.md`(PLAN.md의 D1~D6), `docs/RESEARCH.md`(기록 형식: 제목, 링크, 확인 날짜, 핵심, 적용 위치 또는 미적용 이유, 관련 작업), `.gitignore`(`.env`, `*.env`, `agent-snap.toml`, `target/`, `models/`, `logs/`, `.agent-snap/`), 짧은 `README.md`.
 - Cargo 워크스페이스 뼈대: 위 모듈의 빈 파일과 컴파일되는 최소 코드.
 
