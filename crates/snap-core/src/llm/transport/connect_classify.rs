@@ -29,7 +29,9 @@ const CONNECT_KIND_KEYS: &[&[&str]] = &[
 ];
 
 /// 열쇠 표의 줄 번호를 헤더 전 연결 세부 6종과 연결한 표입니다.
-const CONNECT_KIND_BY_ROW: [PreHeaderConnectKind; 6] = [
+///
+/// 시험이 분류와 같은 표를 직접 읽게 `pub(crate)`로 둶니다(표 한 곳에서만 확인).
+pub(crate) const CONNECT_KIND_BY_ROW: [PreHeaderConnectKind; 6] = [
     PreHeaderConnectKind::DnsFailure,
     PreHeaderConnectKind::ConnectionRefused,
     PreHeaderConnectKind::ConnectTimeout,
@@ -45,14 +47,6 @@ const EAI_HOST_NOT_FOUND: i32 = 111;
 const EAI_NO_DATA: i32 = 5;
 const EAI_FAIL: i32 = 4;
 const EAI_AGAIN: i32 = 7;
-
-/// 열쇠 표의 줄 번호에 해당하는 헤더 전 연결 세부 6종입니다.
-///
-/// 분류가 열쇠 표를 어떤 세부 6종으로 연결하는지 테스트가 확인할 때 씁니다.
-#[cfg(test)]
-pub(crate) fn connect_kinds_by_row() -> [PreHeaderConnectKind; 6] {
-    CONNECT_KIND_BY_ROW
-}
 
 /// 헤더 전 연결 오류에서 세부 종류를 고릅니다.
 ///

@@ -51,6 +51,12 @@ pub enum ValidationError {
     /// `reasoning` 값이 지원 목록에 없습니다. 입력 값은 담지 않습니다.
     #[error("설정 오류: 모델 `{model}`의 `reasoning` 값이 올바르지 않습니다")]
     InvalidReasoning { model: String },
+    /// `context_window` 값이 1 이상 정수가 아닙니다. 모델 이름만 밝히고 입력 값은 담지
+    /// 않습니다(D29). 값을 표시하지 않는 이유는 설정에 적힌 토큰 수가 개인 정보처럼 보일 수
+    /// 있고, 오류를 화면에 그대로 보여주는 CLI에서 숫자가 번지면 혼란과 정보 노출을 막기
+    /// 어렵기 때문입니다.
+    #[error("설정 오류: 모델 `{model}`의 `context_window` 값이 올바르지 않습니다")]
+    InvalidContextWindow { model: String },
     /// `extra`에 클라이언트가 채우는 예약 키가 있습니다.
     #[error("설정 오류: 모델 `{model}`의 `extra`에 예약 키 `{key}`가 있습니다")]
     ExtraReservedKey { model: String, key: String },

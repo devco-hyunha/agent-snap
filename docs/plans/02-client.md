@@ -1,6 +1,6 @@
 # 02 설정과 스트리밍 클라이언트
 
-- 상태: 진행 중 (02-1~02-7 완료·리뷰 PASS. 02-8 본 작업 done·잔여 SRP 문서 마감 남음. 02-9는 작업 02 전체 리뷰 게이트)
+- 상태: 완료 (02-1~02-8·잔여 SRP 완료·리뷰 PASS. 02-9 전체 리뷰: 1차 미달(major 02-2b) → 02-2b 구현 → 2차 미달(fmt) → 형식 보정 → 3차 PASS → 후속 minor(시험 조력자 SRP) 보정 → 4차 PASS. AC 1~5·DoD 충족)
 
 ## 목적
 설정을 읽고 OpenAI 호환 엔드포인트와 스트리밍으로 대화하는 클라이언트를 만든다. 감시기(작업 05)가 스트림을 중간에 끊을 수 있어야 하고, 에이전트 루프(작업 03)는 이 클라이언트를 트레이트로만 받는다.
@@ -75,7 +75,7 @@
 | 02-5 | 클라이언트 트레이트와 스트리밍 전송 | 02-4 | [plan](02-client/02-5-transport/plan.md) · [spec](02-client/02-5-transport/spec.md) · [tasks](02-client/02-5-transport/tasks.md) |
 | 02-6 | 재시도 적용 | 02-5 | [plan](02-client/02-6-retry-apply/plan.md) · [spec](02-client/02-6-retry-apply/spec.md) · [tasks](02-client/02-6-retry-apply/tasks.md) |
 | 02-7 | 모델 선택과 모델 목록 조회 | 02-6 | [plan](02-client/02-7-model-select/plan.md) · [spec](02-client/02-7-model-select/spec.md) · [tasks](02-client/02-7-model-select/tasks.md) |
-| 02-2b | 모델 `context_window` 읽기·검증·예시 | 02-7 | [02-2 plan](02-client/02-2-config/plan.md) 후속 보강(D29). 별도 brief 폴더는 두지 않고 02-2 문서·코드에 이어서 구현한다. |
+| 02-2b | 모델 `context_window` 읽기·검증·예시 (구현 완료, 재리뷰 대기) | 02-7 | [02-2 plan](02-client/02-2-config/plan.md) 후속 보강(D29). 별도 brief 폴더는 두지 않고 02-2 문서·코드에 이어서 구현한다. |
 | 02-8 | 설정 저장(+ SRP 잔여) | 02-2b | [plan](02-client/02-8-config-save/plan.md) · [spec](02-client/02-8-config-save/spec.md) · [tasks](02-client/02-8-config-save/tasks.md) · [잔여](02-client/02-8-config-save/srp-residual/README.md) |
 | 02-9 | 작업 02 전체 리뷰(정합·하네스·코드 리뷰) | 02-8 | [plan](02-client/02-9-client-review/plan.md) · [spec](02-client/02-9-client-review/spec.md) · [tasks](02-client/02-9-client-review/tasks.md) |
 

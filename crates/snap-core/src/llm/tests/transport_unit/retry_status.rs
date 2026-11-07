@@ -14,7 +14,7 @@ use super::super::common::mock_server::{MockResponseScript, MockServer};
 use super::super::common::support::{
     body_parts_sse, content_events, sample_request, success_stream_body,
 };
-use super::{client_at_with, drain, retry_status_http};
+use super::{client_at_with, drain, retry_status_http, set_unit_sample};
 use snap_core::llm::{
     CancellationToken, LlmClient, NotCandidateDetail, RetryGiveUpReason, TransportError,
 };
@@ -78,8 +78,10 @@ async fn retry_after_within_cap_retries_once_and_succeeds() {
         swap.set_script(success_script("첫성공")).await;
     });
 
-    let client =
-        client_at_with(server.base_url(), None, retry_status_http(3)).with_unit_sample(1.0);
+    let client = set_unit_sample(
+        client_at_with(server.base_url(), None, retry_status_http(3)),
+        1.0,
+    );
     let mut stream = client
         .stream_chat(sample_request(None), CancellationToken::new())
         .await
@@ -104,8 +106,10 @@ async fn retry_after_within_cap_retries_once_and_succeeds() {
 #[tokio::test]
 async fn plain_503_gives_up_after_attempt_limit() {
     let server = MockServer::spawn(plain_status(StatusCode::SERVICE_UNAVAILABLE)).await;
-    let client =
-        client_at_with(server.base_url(), None, retry_status_http(1)).with_unit_sample(1.0);
+    let client = set_unit_sample(
+        client_at_with(server.base_url(), None, retry_status_http(1)),
+        1.0,
+    );
     let error = client
         .stream_chat(sample_request(None), CancellationToken::new())
         .await
@@ -137,8 +141,10 @@ async fn retry_after_over_cap_ends_at_one_request() {
         "3",
     ))
     .await;
-    let client =
-        client_at_with(server.base_url(), None, retry_status_http(1)).with_unit_sample(1.0);
+    let client = set_unit_sample(
+        client_at_with(server.base_url(), None, retry_status_http(1)),
+        1.0,
+    );
     let started = Instant::now();
     let error = client
         .stream_chat(sample_request(None), CancellationToken::new())
@@ -163,8 +169,10 @@ async fn retry_after_over_cap_ends_at_one_request() {
 #[tokio::test]
 async fn plain_400_ends_at_one_request() {
     let server = MockServer::spawn(plain_status(StatusCode::BAD_REQUEST)).await;
-    let client =
-        client_at_with(server.base_url(), None, retry_status_http(3)).with_unit_sample(1.0);
+    let client = set_unit_sample(
+        client_at_with(server.base_url(), None, retry_status_http(3)),
+        1.0,
+    );
     let error = client
         .stream_chat(sample_request(None), CancellationToken::new())
         .await

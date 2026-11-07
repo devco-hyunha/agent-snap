@@ -13,11 +13,11 @@ use super::super::error::{ConfigError, ValidationError};
 use super::http::read_http;
 use super::sampling::{read_root_sampling, read_sampling};
 use super::types::{
-    Config, DEFAULT_TARGET_LANGUAGE, EndpointConfig, EndpointKind, ExtraValue, ModelConfig,
-    Reasoning,
+    Config, DEFAULT_CONTEXT_WINDOW, DEFAULT_TARGET_LANGUAGE, EndpointConfig, EndpointKind,
+    ExtraValue, ModelConfig, Reasoning,
 };
 use super::validate::{self, NameRejection};
-use crate::jsonc::{self, WrongType, pick_array, pick_object, take_optional};
+use crate::jsonc::{self, WrongType, parse_number, pick_array, pick_object, take_optional};
 use crate::secrets::SecretValue;
 
 impl Config {
@@ -175,12 +175,14 @@ fn read_model(
         .transpose()?
         .unwrap_or_default();
     let extra = read_extra(endpoint, &name, &mut object)?;
+    let context_window = read_context_window(&name, &mut object)?;
     Ok(ModelConfig {
         name,
         id,
         sampling,
         reasoning,
         extra,
+        context_window,
     })
 }
 
@@ -227,6 +229,20 @@ fn read_reasoning(
     reasoning
         .map(Some)
         .ok_or_else(|| ValidationError::InvalidReasoning {
+            model: model.to_owned(),
+        })
+        .map_err(ConfigError::from)
+}
+
+/// 모델의 `context_window`를 읽습니다. 칸이 없으면 65536 기본값이고, 값이 있으면 1 이상 정수만
+/// 받아들이며 그 밖의 값은 모델 이름만 밝히고 거부합니다(D29).
+fn read_context_window(model: &str, object: &mut JsonObject<'_>) -> Result<u64, ConfigError> {
+    let Some(value) = object.take("context_window") else {
+        return Ok(DEFAULT_CONTEXT_WINDOW);
+    };
+    parse_number::<u64>(&value)
+        .filter(validate::is_valid_context_window)
+        .ok_or_else(|| ValidationError::InvalidContextWindow {
             model: model.to_owned(),
         })
         .map_err(ConfigError::from)

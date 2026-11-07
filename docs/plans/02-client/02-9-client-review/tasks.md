@@ -32,9 +32,9 @@
 
 ## DoD
 
-- [ ] spec.md AC 5개 충족.
-- [ ] 작업 02 전체 리뷰 PASS 기록이 `docs/reviews/`에 있다.
-- [ ] [02-client.md](../../02-client.md) DoD를 닫을 수 있는 상태다(또는 미달 시 지적만 남김).
+- [x] spec.md AC 5개 충족 (3차 리뷰 PASS `docs/reviews/02-client/02-client-full-review-3.md`).
+- [x] 작업 02 전체 리뷰 PASS 기록이 `docs/reviews/`에 있다 (1차 미달 → 02-2b 보정 → 2차 미달 → fmt 보정 → 3차 PASS).
+- [x] [02-client.md](../../02-client.md) DoD를 닫을 수 있는 상태다.
 
 ## 문서 영향
 

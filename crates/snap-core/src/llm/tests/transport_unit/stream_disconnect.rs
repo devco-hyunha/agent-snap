@@ -5,7 +5,7 @@
 
 use super::super::common::mock_server::{MockBodyPart, MockResponseScript, MockServer};
 use super::super::common::support::{content_events, delta_line, sample_request};
-use super::{client_at_with, retry_status_http};
+use super::{client_at_with, retry_status_http, set_unit_sample};
 use snap_core::llm::{CancellationToken, LlmClient, TransportError};
 
 // AC 5: 스트림 시작 후 끊김 — 요청 1회로 스트림 오류(재시도 없음), 받은 내용은 끊김 지점까지 유지.
@@ -18,8 +18,10 @@ async fn mid_stream_disconnect_keeps_received_content_and_ends() {
         MockBodyPart::disconnect(),
     ]))
     .await;
-    let client =
-        client_at_with(server.base_url(), None, retry_status_http(3)).with_unit_sample(1.0);
+    let client = set_unit_sample(
+        client_at_with(server.base_url(), None, retry_status_http(3)),
+        1.0,
+    );
     let mut stream = client
         .stream_chat(sample_request(None), CancellationToken::new())
         .await

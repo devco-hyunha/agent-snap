@@ -42,6 +42,36 @@ fn reserved_extra_key_rejects_before_touching_file() {
     }
 }
 
+/// AC 1(D29): 저장한 `context_window`를 02-2 읽기로 다시 읽으면 같은 값이 읽힌다.
+#[test]
+fn saved_context_window_roundtrips_to_same_value() {
+    let folder = TempDir::new("맥락-창-왕복");
+    folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
+
+    save_endpoint(folder.path(), &full_save("main", &base_url())).expect("저장이 성공해야 합니다");
+
+    let saved = parse_ok(&folder.read(CONFIG_FILE_NAME));
+    // `full_save`의 모델이 32768를 쓰므로, 읽기도 같은 값을 돌려줘 왕복이 성립한다.
+    assert_eq!(saved.endpoints[0].models[0].context_window, 32768);
+}
+
+/// AC 1(D29): `context_window`를 생략한 저장은 파일에 칸을 만들지 않고, 다시 읽으면 65536이다.
+#[test]
+fn omitted_context_window_roundtrips_to_default() {
+    let folder = TempDir::new("맥락-창-생략-왕복");
+    folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
+
+    // `reasoning`만 준 저장은 `context_window`를 쓰지 않는다(AC 4의 생략 규칙과 같은 입력).
+    save_endpoint(folder.path(), &reasoning_only_save()).expect("저장이 성공해야 합니다");
+
+    let text = folder.read(CONFIG_FILE_NAME);
+    assert!(
+        !text.contains("\"context_window\""),
+        "생략한 칸은 쓰면 안 됩니다: {text}"
+    );
+    assert_eq!(parse_ok(&text).endpoints[0].models[0].context_window, 65536);
+}
+
 /// AC 1: 저장한 파일을 02-2로 다시 읽으면 새 값이 읽히고, 주석과 손대지 않은 항목은 그대로입니다.
 #[test]
 fn added_endpoint_keeps_comments_and_untouched_entries() {

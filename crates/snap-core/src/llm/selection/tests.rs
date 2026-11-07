@@ -24,6 +24,8 @@ fn config_with_two_endpoints() -> Config {
         },
         reasoning: Some(Reasoning::Low),
         extra: BTreeMap::from([("keep_alive".into(), ExtraValue::Number("0".into()))]),
+        // 선택 경로 시험이라 맥락 창 값은 기본값을 그대로 둔다(생략할 때의 값과 같은 65536).
+        context_window: 65536,
     };
     let model_second = ModelConfig {
         name: "fast".into(),
@@ -35,6 +37,7 @@ fn config_with_two_endpoints() -> Config {
         },
         reasoning: None,
         extra: BTreeMap::new(),
+        context_window: 65536,
     };
     Config {
         target_language: "ko".into(),

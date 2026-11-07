@@ -182,6 +182,14 @@
 - 적용 위치: 02-7(`data[].id`만 읽고 나머지는 버림). 쪽 나누기는 적용하지 않았습니다(미적용 이유: 매개변수 없이 호출하면 전체를 돌려준다고 문서화됨). HTTP 오류 본문은 요약하고 키와 주소를 가려 싣습니다. 기본 필터(`output_modalities=text`)도 적용하지 않았습니다(미적용 이유: 코딩 에이전트는 텍스트 생성 모델만 쓰므로, 서버가 그 필터로 내보낸 목록이 사용자에게 손해가 되는 경우가 문서에 없고 설정 `models` 수동 입력이 정본이라 목록은 참고용이다).
 - 관련 작업: 02
 
+### OpenRouter 모델 목록의 `context_length`과 D29(02-2b)
+
+- 링크: [OpenRouter List models](https://openrouter.ai/docs/api/api-reference/models/get-models) (위 OpenRouter 모델 목록 절에서 2026-11-05에 직접 연 것을 그대로 씁니다)
+- 핵심: 서버의 모델 목록 응답에는 `context_length` 필드가 있지만, D29는 이 값으로 설정을 자동 채우지 않기로 했습니다. 로컬 서버가 창 크기를 안 알려 주거나 클라이언트가 과대 기본(예: 1M)을 쓰는 것을 막기 위해 설정에 적거나 생략 시 64K를 따릅니다.
+- 적용: 02-2b(D29) 읽기·검증. `crates/snap-core/src/config/read/parse.rs`의 `read_context_window`(생략 시 65536, 1 이상 정수만 받아들임), `crates/snap-core/src/config/read/validate.rs`의 `is_valid_context_window`, 거부는 `crates/snap-core/src/config/error/validation.rs`의 `InvalidContextWindow`로 모델 이름만 밝힙니다. 확인은 `crates/snap-core/src/config/tests/reading.rs`(값 읽기·생략 시 65536)·`crates/snap-core/src/config/tests/validation.rs`(거부·값 비가리기), 02-8 왕복은 `crates/snap-core/src/config/tests/save/config.rs`의 `saved_context_window_roundtrips_to_same_value`·`omitted_context_window_roundtrips_to_default`.
+- 미적용: 서버 `context_length`로 설정을 자동 채우는 일(D29 결정으로 하지 않음). 한도를 써서 오래된 도구 출력을 줄이는 일은 작업 04가 맡습니다.
+- 관련 작업: 02-2b, D29
+
 ### 모델 목록 서버별 정리
 
 - `data[].id`는 여섯 곳 모두에서 확인되거나 OpenAI 형식에서 전제되는 유일한 공통 필드입니다.

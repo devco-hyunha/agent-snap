@@ -84,8 +84,8 @@ fn config_debug_hides_base_url_host() {
 /// `ConfigError`에 걸린 변형의 수입니다. 변형 부분 열거형에 변형을 추가하면
 /// `variant_name`의 `match`가 컴파일을 멈춰 알려 주고, 이 값을 함께 올려야 합니다. 올린 뒤에도
 /// 견본이 새 변형을 만들지 않으면 아래 테스트가 실패합니다. 목록 하나로 세려면 매크로나 새
-/// 의존성이 필요해 이 값 하나만 남깁니다.
-pub(super) const VARIANT_COUNT: usize = 30;
+/// 의존성이 필요해 이 값 하나만 남깁니다. D29의 `context_window` 값 오류가 견본 표에 늘어 31개입니다.
+pub(super) const VARIANT_COUNT: usize = 31;
 
 /// 오류 변형 이름입니다. `match`가 감싸는 변형을 부분 열거형까지 갈라 모든 변형을 다뤄야
 /// 하므로, 변형이 늘면 컴파일이 멈춥니다.
@@ -112,6 +112,7 @@ pub(super) fn variant_name(error: &ConfigError) -> &'static str {
             ValidationError::InvalidKind { .. } => "InvalidKind",
             ValidationError::InvalidBaseUrl { .. } => "InvalidBaseUrl",
             ValidationError::InvalidReasoning { .. } => "InvalidReasoning",
+            ValidationError::InvalidContextWindow { .. } => "InvalidContextWindow",
             ValidationError::ExtraReservedKey { .. } => "ExtraReservedKey",
             ValidationError::SamplingOutOfRange { .. } => "SamplingOutOfRange",
             ValidationError::UnknownSamplingItem { .. } => "UnknownSamplingItem",
@@ -129,6 +130,23 @@ pub(super) fn variant_name(error: &ConfigError) -> &'static str {
             SaveError::MissingEndpoint { .. } => "MissingEndpoint",
         },
     }
+}
+
+/// AC 5(2): `context_window` 값 오류 견본이 호스트·키 없이 모델 이름만 담는지 확인한다(D29).
+#[test]
+fn context_window_rejection_sample_hides_host_and_key() {
+    let case = rejection_cases()
+        .into_iter()
+        .find(|case| case.label == "context_window가 숫자 아님")
+        .expect("거부 사례 표에 `context_window` 숫자 아님 사례가 있어야 합니다");
+    let error = parse_err(&case.text);
+
+    assert!(matches!(
+        &error,
+        ConfigError::Validation(ValidationError::InvalidContextWindow { model }) if model == "fast"
+    ));
+    assert!(error.to_string().contains("fast"));
+    assert_error_hides_secrets("context_window 숫자 아님", &error);
 }
 
 /// 거부 사례 표가 만들지 못하는 오류(문법·필수 칸·읽기 실패·폴더 위치·자격 파일)를 만듭니다.

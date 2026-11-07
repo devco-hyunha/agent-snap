@@ -363,6 +363,32 @@ pub(crate) fn rejection_cases() -> Vec<RejectionCase> {
             config_with_model_tail(&format!(r#","reasoning":"{KEY_VALUE}""#)),
             |e| matches!(e, ConfigError::Validation(ValidationError::InvalidReasoning{ model }) if model == "fast"),
         ),
+        // D29: `context_window`는 1 이상 정수만 받아들입니다. 값은 오류에 밝히지 않습니다.
+        case(
+            "context_window가 0",
+            config_with_model_tail(r#","context_window":0"#),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidContextWindow{ model }) if model == "fast"),
+        ),
+        case(
+            "context_window가 음수",
+            config_with_model_tail(r#","context_window":-1"#),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidContextWindow{ model }) if model == "fast"),
+        ),
+        case(
+            "context_window가 정수 아님",
+            config_with_model_tail(r#","context_window":1.5"#),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidContextWindow{ model }) if model == "fast"),
+        ),
+        case(
+            "context_window가 숫자 아님",
+            config_with_model_tail(&format!(r#","context_window":"{KEY_VALUE}""#)),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidContextWindow{ model }) if model == "fast"),
+        ),
+        case(
+            "context_window가 범위 초과",
+            config_with_model_tail(r#","context_window":18446744073709551616"#),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidContextWindow{ model }) if model == "fast"),
+        ),
         sampling_case("temperature 범위 초과", "temperature", "2.5"),
         sampling_case("temperature 음수", "temperature", "-0.1"),
         sampling_case("top_p가 0", "top_p", "0"),

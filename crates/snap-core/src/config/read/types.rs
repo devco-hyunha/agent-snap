@@ -8,6 +8,9 @@ use crate::secrets::SecretValue;
 /// `target_language`를 생략했을 때의 기본값입니다.
 pub(in crate::config) const DEFAULT_TARGET_LANGUAGE: &str = "ko";
 
+/// `context_window`를 생략했을 때의 기본값입니다(D29). 과대 기본을 막으려 흔한 로컬 창인 64K를 씁니다.
+pub(in crate::config) const DEFAULT_CONTEXT_WINDOW: u64 = 65536;
+
 /// `agent-snap.jsonc`를 읽어 검증한 설정입니다(DECISIONS D10, D20).
 ///
 /// 내부 진실은 `endpoints[].models` 중첩이며, 모델 조회는 [`Config::models`]로 합니다.
@@ -59,6 +62,8 @@ pub struct ModelConfig {
     pub reasoning: Option<Reasoning>,
     /// 요청 본문에 합칠 추가 값입니다. 없으면 빈 맵입니다.
     pub extra: BTreeMap<String, ExtraValue>,
+    /// 클라이언트가 맞출 맥락 창 한도(토큰)입니다. 생략 시 [`DEFAULT_CONTEXT_WINDOW`]이고, 요청 본문에는 싣지 않습니다(D29).
+    pub context_window: u64,
 }
 
 /// 엔드포인트가 따르는 서버 종류입니다(D20).
