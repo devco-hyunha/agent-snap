@@ -4,6 +4,9 @@
 //! 교체 지점 시험과 검증 거부가 남습니다. `replace`로 자기가 쓰는 파일 이름의 교체를 막고
 //! 기존 파일이 그대로이고 임시 파일이 남지 않는지, 검증 실패 입력이 파일을 안 바꾸는지 봅니다.
 
+// Windows 전용 시험(`windows_open_target_file_*`, `windows_read_only_open_*`)이 쓰는 경로라
+// Windows가 아닌 빌드에서는 죽은 코드로 잡히지 않게 gate를 함께 둩니다.
+#[cfg(windows)]
 use crate::config::save::atomic::replace_file;
 use crate::config::save::config::save_endpoint_with;
 use crate::config::save::credentials::save_key_with;
@@ -13,7 +16,9 @@ use crate::config::{
 };
 use crate::secrets::SecretValue;
 
-use super::super::support::{KEY_VALUE, TempDir, blocking_replacement, endpoint_save};
+#[cfg(windows)]
+use super::super::support::endpoint_save;
+use super::super::support::{KEY_VALUE, TempDir, blocking_replacement};
 
 /// AC 1(키 값 저장 쪽 교체 실패): 키 값 저장이 교체에 실패하면 자격 파일은 그대로이고
 /// 임시 파일이 남지 않습니다.
@@ -143,11 +148,14 @@ fn windows_read_only_open_allows_standard_rename() {
 }
 
 /// 검증만 통과하면 그대로 저장할 수 있는 `main` 엔드포인트 정보입니다.
+// Windows 전용 시험만 이 정보를 쓰므로 Windows가 아닌 빌드에서는 죽은 코드로 잡힙니다.
+#[cfg(windows)]
 fn main_endpoint_save() -> EndpointSave {
     endpoint_save("main", LOCAL_BASE_URL)
 }
 
 /// 교체 성공 확인에 쓰는 로컬 엔드포인트 주소입니다.
+#[cfg(windows)]
 const LOCAL_BASE_URL: &str = "http://local.invalid/v1";
 
 /// `main` 엔드포인트 하나가 있고 사용자 주석이 있는 설정 파일 텍스트입니다.
