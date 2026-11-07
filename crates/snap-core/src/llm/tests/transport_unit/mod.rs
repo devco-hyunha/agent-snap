@@ -4,7 +4,7 @@
 //! 함께 쓰는 도우미는 바깥 공통 트리의 `support`에서 한 자리로 다시 내보냅니다.
 
 pub(crate) use super::common::support::{
-    client_at_with, connect_check_http, drain, retry_status_http, test_http,
+    client_at_with, connect_check_http, drain, retry_status_http, set_unit_sample, test_http,
 };
 
 mod connect_errors;

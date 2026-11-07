@@ -75,7 +75,7 @@ async fn dns_failure_is_pre_header_connect_kind() {
 // AC 6: 분류가 내보내는 세부 6종이 02-4 표의 「헤더 전 연결」 후보와 같은 값으로 채워진다.
 #[test]
 fn connect_kinds_from_classification_match_retry_input_names() {
-    let kinds = crate::llm::transport::connect_kinds_by_row();
+    let kinds = crate::llm::transport::connect_classify::CONNECT_KIND_BY_ROW;
     assert_eq!(
         kinds,
         [

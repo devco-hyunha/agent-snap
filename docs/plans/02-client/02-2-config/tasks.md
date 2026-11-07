@@ -15,6 +15,9 @@
 - [x] 9. 저장소 루트 `agent-snap.example.jsonc`에 자리표시자만으로 예시 파일을 만들고(중첩 `endpoints[].models` 형태, `/v1`은 안내만), 옛 형식 예시 파일 `agent-snap.example.toml`을 삭제하고(D10), `.gitignore`의 `agent-snap.toml`을 `agent-snap.jsonc`로 바꾼다. 확인: 예시 파일을 읽는 단위 테스트(AC 5), 예시 파일이 `.jsonc` 1개로 통일됨.
 - [x] 10. `docs/RESEARCH.md` 작업 02 절에 기록한 llama.cpp 서버 README와 Ollama OpenAI compatibility·Authentication 항목의 02-2 적용 위치(base_url 검증, 키 정하기)를 갱신한다.
 
+## 02-2b 후속 보강(D29 `context_window`)
+- [ ] 11. `ModelConfig`에 `context_window`(`u64`)를 읽고, 생략 시 65536으로 정규화하고 1 이상 정수만 받아들이며 0·음수·소수·문자열·범위 초과는 모델 이름만 밝힌 설정 오류로 거부한다. 확인: 읽기·거부·값 비가리기 단위 테스트, 02-8 저장 왕복 테스트. 구현 완료(2026-11-07), 검증 3종 통과. 02-9 전체 리뷰 재리뷰 남아 있음(여기 `[x]`는 재리뷰 PASS 뒤에 올린다).
+
 ## 테스트 계획
 - 종류: 네트워크 없는 단위 테스트.
 - 주입할 것: 운영체제 관례에 필요한 환경 정보, 키 파일에서 읽은 이름별 값. 설정 읽기 시험은 임시 폴더를 쓴다.

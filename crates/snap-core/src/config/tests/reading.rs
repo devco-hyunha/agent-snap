@@ -28,6 +28,7 @@ const FULL_CONFIG: &str = r#"
           "id": " path/to/model.gguf ",
           "reasoning": "medium",
           "sampling": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 4096, },
+          "context_window": 8192,
           "extra": { "keep_alive": 0, "options": { "num_ctx": 8192, "stop": ["a", null] } },
         },
         { "name": "plain", "id": "plain-id" },
@@ -64,6 +65,7 @@ fn parse_full_config_with_comments_reads_every_value() {
     assert_eq!(fast.name, "fast");
     assert_eq!(fast.id, "path/to/model.gguf");
     assert_eq!(fast.reasoning, Some(Reasoning::Medium));
+    assert_eq!(fast.context_window, 8192);
     assert_eq!(
         fast.sampling,
         Sampling {
@@ -91,6 +93,8 @@ fn parse_full_config_with_comments_reads_every_value() {
     assert_eq!(plain.sampling, Sampling::default());
     assert_eq!(plain.reasoning, None);
     assert!(plain.extra.is_empty());
+    // D29: `context_window`를 생략하면 기본 65536이 읽힌다.
+    assert_eq!(plain.context_window, 65536);
 
     assert_eq!(config.sampling.temperature, Some(1.0));
     assert_eq!(config.sampling.top_p, None);

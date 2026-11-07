@@ -76,6 +76,11 @@ pub(in crate::config) fn is_valid_max_tokens(value: &u64) -> bool {
     *value >= 1
 }
 
+/// `context_window`는 1 이상입니다(D29). 0은 창이 없다는 뜻이라 쓰지 못하게 막습니다.
+pub(in crate::config) fn is_valid_context_window(value: &u64) -> bool {
+    *value >= 1
+}
+
 /// `http` 시간 값은 0보다 커야 합니다(D21). 0초 대기·0초 제한은 요청을 즉시 실패시킵니다.
 pub(in crate::config) fn is_positive_duration(value: &Duration) -> bool {
     !value.is_zero()

@@ -89,6 +89,14 @@ pub fn client_at_with(
     client_at(base_url, EndpointKind::OpenAi, api_key, http)
 }
 
+/// 백오프 난수를 고정하는 시험 전용 주입입니다(02-6 시험 계획의 시간 주입).
+///
+/// 제품 쪽의 `set_unit_sample`을 시험 지원 한 자리로만 감쌉니다.
+/// 값 두기는 제품 한 곳에서만 하고, 바깥 시험·라이브러리 안 시험·통합 시험이 같은 헬퍼를 씁니다.
+pub fn set_unit_sample(client: OpenAiCompatClient, unit_sample: f64) -> OpenAiCompatClient {
+    client.set_unit_sample(unit_sample)
+}
+
 pub fn data_line(json: &str) -> String {
     format!("data: {json}\n\n")
 }

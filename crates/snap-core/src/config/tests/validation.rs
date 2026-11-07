@@ -23,6 +23,40 @@ fn every_rejection_case_is_rejected_with_the_expected_error_without_values() {
     }
 }
 
+/// AC 2(D29): `context_window`는 경계 값 1과 `u64` 상단이 통과한다.
+#[test]
+fn context_window_boundary_values_are_accepted() {
+    let low = parse_ok(&config_with_model_tail(r#","context_window":1"#));
+    assert_eq!(low.endpoints[0].models[0].context_window, 1);
+
+    let max = parse_ok(&config_with_model_tail(
+        r#","context_window":18446744073709551615"#,
+    ));
+    assert_eq!(max.endpoints[0].models[0].context_window, u64::MAX);
+}
+
+/// AC 2(D29): `context_window` 거부는 모델 이름만 밝히고 입력 값은 밝히지 않는다.
+#[test]
+fn context_window_rejection_names_model_without_the_value() {
+    // 거부되려면 값이 규칙을 위반해야 합니다. 0은 1 미만의 정수라 거부되고, 그 숫자가 오류에
+    // 나오지 않는지 보는 확인용 표지로 0을 씁니다.
+    let error = parse_err(&config_with_model_tail(r#","context_window":0"#));
+
+    assert!(matches!(
+        &error,
+        ConfigError::Validation(ValidationError::InvalidContextWindow { model }) if model == "fast"
+    ));
+    // Display·Debug에 입력 값이 없고 모델 이름만 있다.
+    let text = format!("{error} {error:?}");
+    assert!(
+        text.contains("context_window"),
+        "칸 이름이 있어야 합니다: {text}"
+    );
+    assert!(text.contains("fast"), "모델 이름이 있어야 합니다: {text}");
+    assert!(!text.contains(":0"), "입력 값이 있습니다: {text}");
+    assert_error_hides_secrets("context_window 값 오류", &error);
+}
+
 /// AC 2: 경계 값(`temperature` 0과 2, `top_p` 1, `max_tokens` 1)은 통과한다.
 #[test]
 fn sampling_boundary_values_are_accepted() {

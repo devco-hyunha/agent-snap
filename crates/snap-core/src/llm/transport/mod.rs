@@ -16,5 +16,3 @@ mod stream_chat;
 mod stream_state;
 
 pub use client::OpenAiCompatClient;
-#[cfg(test)]
-pub(crate) use connect_classify::connect_kinds_by_row;
