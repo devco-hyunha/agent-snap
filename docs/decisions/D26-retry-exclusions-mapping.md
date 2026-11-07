@@ -4,14 +4,14 @@
 - 요약 인덱스: [docs/DECISIONS.md](../DECISIONS.md#d26-02-4-재시도-비대상402-등과-입력-매핑)
 - 이 문서가 해당 결정의 상세 정본. DECISIONS.md에는 요약과 링크만.
 - 변경: 사용자 승인 후 이 파일과 DECISIONS 요약을 함께 고친다. 서브에이전트 임의 재해석 금지.
-- 관련 기획: [02-4 plan](../plans/02-client/02-4-retry/plan.md), [02-4 spec](../plans/02-client/02-4-retry/spec.md)
+- 관련 기획: [02-4 plan](../plans/02-client/02-04-retry/plan.md), [02-4 spec](../plans/02-client/02-04-retry/spec.md)
 
 ## 결정
 
 - 결정: 02-4 재시도 판단의 비대상·경계·입력 매핑을 다음과 같이 정한다.
   - OpenRouter **402**(크레딧 부족·in-flight 등)는 **재시도하지 않는다**. Out과 결정에 명시한다. `Retry-After`가 있어도 재시도 후보가 아니다.
   - AC 경계: `Retry-After` 0·과거 HTTP 날짜 → 대기 0초. 음수·해석 불가 → 헤더 없음(백오프). 헤더 대기 초과 → 비재시도. 목록 밖 5xx(500/502/503/504 외)·408·425·그 밖의 4xx(429 제외) → 즉시 포기.
-  - [02-5](../plans/02-client/02-5-transport/spec.md) 오류 → 02-4 입력 매핑 표를 spec에 고정한다. 실제 호출·적용은 02-6이고, 02-4는 입력 종류만 정의한다.
+  - [02-5](../plans/02-client/02-05-transport/spec.md) 오류 → 02-4 입력 매핑 표를 spec에 고정한다. 실제 호출·적용은 02-6이고, 02-4는 입력 종류만 정의한다.
     - 재시도 후보: DNS 실패, 연결 거부, 연결 시간 초과, 헤더 전 연결 재설정, TLS, 프록시(`PreHeaderConnectKind` 전부).
     - 비재시도 입력: 헤더 대기 시간 초과.
     - 02-5 오류 표에 TLS·프록시 행을 두고, 모두 **헤더 전 연결 오류** 후보로 매핑한다.

@@ -77,7 +77,7 @@
 - 다시 볼 점: 실제 서버 확인(작업 06)에서 다른 샘플링 항목이 필요하거나 헤더 대기 시간 초과 재시도가 필요해지면 다시 검토한다.
 
 ## D15 생각 옵션과 추가 요청 값
-- 결정: 모델에 공통 `reasoning`(`off`, `low`, `medium`, `high`)을 두고 엔드포인트 `kind`에 맞는 요청 필드로 바꿔 보낸다. 값 매핑은 `off`→`none`, 나머지는 그대로. 변환 표(2026-11-03 문서 확인): `openai`/`ollama`/`vllm`/`llamacpp` → `reasoning_effort`; `openrouter` → `reasoning: { effort }`; `lmstudio` → 공통 필드 없음(필요 시 `extra`만). 상세·링크는 [research/02-client.md](research/02-client.md#kind별-reasoning-요청-필드-변환-02-5)와 [02-5 plan](plans/02-client/02-5-transport/plan.md). 공통 옵션에 없는 값은 모델의 `extra`(하위 객체 포함)에 적으면 요청 본문에 그대로 넣고, `model`, `messages`, `stream`, `tools`를 덮어쓰려 하면 설정 오류로 거부한다.
+- 결정: 모델에 공통 `reasoning`(`off`, `low`, `medium`, `high`)을 두고 엔드포인트 `kind`에 맞는 요청 필드로 바꿔 보낸다. 값 매핑은 `off`→`none`, 나머지는 그대로. 변환 표(2026-11-03 문서 확인): `openai`/`ollama`/`vllm`/`llamacpp` → `reasoning_effort`; `openrouter` → `reasoning: { effort }`; `lmstudio` → 공통 필드 없음(필요 시 `extra`만). 상세·링크는 [research/02-client.md](research/02-client.md#kind별-reasoning-요청-필드-변환-02-5)와 [02-5 plan](plans/02-client/02-05-transport/plan.md). 공통 옵션에 없는 값은 모델의 `extra`(하위 객체 포함)에 적으면 요청 본문에 그대로 넣고, `model`, `messages`, `stream`, `tools`를 덮어쓰려 하면 설정 오류로 거부한다.
 - 근거: 같은 기능도 서버마다 필드 이름과 모양이 다르다. 문서로 확인한 뒤 표를 고정해 02-5가 임의 변환하지 않게 한다.
 - 다시 볼 점: 작업 06 실제 서버에서 `lmstudio`·모델별 effort 거절을 다시 본다.
 
@@ -148,7 +148,7 @@
 - 관련 작업: [docs/tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md)
 
 ## D28 02 클라이언트 브랜치 리뷰 1 보정 범위 (2026-11-03)
-- 결정: `docs/reviews/02-client-branch-review-1.md` 미달에 대해 major 2건은 전부 고친다. (1) 제품 코드 `unreachable!` 제거(패닉 없는 경로). (2) `serde_json`에 `preserve_order`를 켜고 한 델타 안 생각·모르는 필드 순서를 테스트로 고정한다(02-3 AC·주석 약속과 맞춤). minor 중 이번에 고칠 것: `facade`→한국어, `llm.rs` 모듈 문서, 재시도 중간 API를 `pub(crate)`로 좁혀 lib 공개는 `decide_retry`와 02-6에 필요한 입력·결과 타입만, `index`는 `u32::try_from`. 미룸 중 **디코더 실패 후 Ok·알고 있는 키·호스트 가리기**는 02-5 plan/spec/tasks·AC에 반영함(2026-11-03). 남은 미룸: SSE 버퍼 비용, tasks 옛 경로·상위 상태 문구(문서 정리).
+- 결정: `docs/reviews/02/branch-review-1.md` 미달에 대해 major 2건은 전부 고친다. (1) 제품 코드 `unreachable!` 제거(패닉 없는 경로). (2) `serde_json`에 `preserve_order`를 켜고 한 델타 안 생각·모르는 필드 순서를 테스트로 고정한다(02-3 AC·주석 약속과 맞춤). minor 중 이번에 고칠 것: `facade`→한국어, `llm.rs` 모듈 문서, 재시도 중간 API를 `pub(crate)`로 좁혀 lib 공개는 `decide_retry`와 02-6에 필요한 입력·결과 타입만, `index`는 `u32::try_from`. 미룸 중 **디코더 실패 후 Ok·알고 있는 키·호스트 가리기**는 02-5 plan/spec/tasks·AC에 반영함(2026-11-03). 남은 미룸: SSE 버퍼 비용, tasks 옛 경로·상위 상태 문구(문서 정리).
 - 근거: 리뷰 major는 AC 미달. `preserve_order`는 승인된 “보낸 순서” 약속을 코드로 맞춘다. 공개면 축소는 02-4-4·ISP. 전송 관련 minor는 02-5 AC에 넣었다.
 - 전이 의존 라이선스(`preserve_order`): `indexmap`·`equivalent`·`hashbrown`은 MIT 또는 Apache-2.0, `foldhash`는 Zlib(모두 허용형, 리뷰2 N2 확인).
 - 다시 볼 점: D27의 “retry 공개 API 유지”는 http_date 분리 당시 범위다. 이번 축소 후 02-6이 `decide_retry`만으로 충분한지 확인한다.
@@ -185,7 +185,7 @@
 - 다시 볼 점: 모델을 지정할 수 있는 도구(Claude Code·Cursor)로 위임할 때만 8절 단계를 쓰고, OpenCode에서는 같은 모델로 실패 원인만 바꿔 재시도한다. 결과가 미달이면 모델 문제인지 작업량 문제인지 나눠 본다.
 
 ## D35 프로젝트 규칙 정본 분리 (2026-11-05)
-- 결정: 프로젝트 고유 규칙 정본을 `harness/PROJECT_HARNESS.md`로 옮긴다. `AGENTS.md`의 `## 프로젝트 오버레이`에는 `[안전 예외 승인: 3번]` 선언과 정본을 가리키는 색인만 둔다. OpenCode는 서브에이전트를 지금 세션과 같은 모델로만 열고, 모델 지정 인자를 쓰지 않는다.
+- 결정: 프로젝트 고유 규칙 정본을 `harness/PROJECT_RULES.md`로 옮긴다. `AGENTS.md`의 `## 프로젝트 오버레이`에는 `[안전 예외 승인: 3번]` 선언과 정본을 가리키는 색인만 둔다. OpenCode는 서브에이전트를 지금 세션과 같은 모델로만 열고, 모델 지정 인자를 쓰지 않는다.
 - 근거: 사용자가 프로젝트 규칙을 하네스 파일 한 곳에 별도 작성을 정했다. HARNESS.md 1절은 프로젝트 규칙을 오버레이 한 곳에 두고 분량이 크면 링크 한 줄만 두라고 한다. 하네스 마커 블록은 읽기 전용이라 프로젝트 고유 규칙이 블록에 섞이지 않는다. OpenCode 서브 모델 지정은 같은 세션 모델만 허용한다는 사용자 지시를 반영한다.
 - 다시 볼 점: 하네스 템플릿이 오버레이 파일 경로를 `docs/PROJECT_RULES.md`로 정하면 이름을 맞춘다. 서브 모델 지정이 가능한 도구로 옮기면 하네스 8절 3단계를 다시 쓰고, OpenCode는 같은 모델 규칙을 유지한다.
 

@@ -4,7 +4,7 @@
 - 요약 인덱스: [docs/DECISIONS.md](../DECISIONS.md#d29-모델별-맥락-창context_window)
 - 이 문서가 해당 결정의 상세 정본. DECISIONS.md에는 요약과 링크만.
 - 변경: 사용자 승인 후 이 파일과 DECISIONS 요약을 함께 고친다. 서브에이전트 임의 재해석 금지.
-- 관련 기획: [02-client.md](../plans/02-client.md), [02-2](../plans/02-client/02-2-config/plan.md), [02-8](../plans/02-client/02-8-config-save/plan.md), [04](../plans/04-cli-session-context.md)
+- 관련 기획: [02-client.md](../plans/02-client.md), [02-2](../plans/02-client/02-02-config/plan.md), [02-8](../plans/02-client/02-08-config-save/plan.md), [04](../plans/04-cli-session-context.md)
 
 ## 결정
 
