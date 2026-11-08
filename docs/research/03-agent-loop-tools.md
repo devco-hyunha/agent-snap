@@ -124,6 +124,31 @@
   - 이미 정렬: 제공자 비내장, 권한≠완전 보안 경계(D9 경량).
   - 관련 작업: 03-agent-loop-tools, D9(HTTP는 02-client)
 
+### 멀티 세션·서브세션 기능 비교 (타 에이전트)
+
+확인 날짜는 2026-11-07이며 공식 문서와 저장소 원문을 직접 열었습니다. Prospero는 README 페이지 본문이 비어 있어 같은 저장소의 `docs/usage.md` 원문과 저자 블로그로 확인했습니다.
+
+- Claude Code
+  - 링크: [Sub-agents](https://code.claude.com/docs/en/sub-agents), [Sessions](https://code.claude.com/docs/en/sessions), [Agents](https://code.claude.com/docs/en/agents), [Agent teams](https://code.claude.com/docs/en/agent-teams)
+  - 핵심: 서브에이전트는 빈 컨텍스트에서 부모가 만든 위임 문맥만 받고 요약만 돌려줍니다. 포크(fork)만 부모 대화 전체를 상속합니다. 에이전트 팀의 mailbox와 cross-session messaging이 세션 간 전달을 맡습니다. `claude --continue`·`--resume`·`/resume`·`/clear`·`/compact`가 있습니다.
+  - snap 관련: 서브 세션 열기와 부모-자식 전달은 04 범위 확장 항목입니다. 03의 단발 run에는 들어가지 않습니다.
+- Cursor
+  - 링크: [Subagents](https://cursor.com/docs/subagents), [CLI overview](https://cursor.com/docs/cli/overview), [Agent overview](https://cursor.com/docs/agent/overview)
+  - 핵심: Task 도구로 서브에이전트를 열고, 부모가 프롬프트에 필요한 정보를 담아 보낸 뒤 결과만 받습니다. CLI는 `agent resume`·`--continue`, 사이드 채팅(`/.side`)로 부모를 숨은 참고용으로 씁니다.
+- Codex CLI
+  - 링크: [CLI reference](https://learn.chatgpt.com/docs/cli/reference.md)
+  - 핵심: `codex resume --last`·`codex fork`·세션 저장(기본 `~/.codex`)을 지원합니다. `codex queue --thread <id> --message`로 이미 열린 세션에 메시지를 보냅니다.
+- Prospero
+  - 링크: [docs/usage.md 원문](https://raw.githubusercontent.com/skeeto/prospero/master/docs/usage.md), [저자 블로그](https://nullprogram.com/blog/2026-10-31/)
+  - 핵심: 서브에이전트가 부모를 깨우는 통지로 보고하고, `send_message`와 `@세션 지목`으로 세션 간 대화를 합니다. `/compact`·`/side`·`/fork`가 있고, 폴더 없는 대화("No folder")로 프로젝트와 무관한 대화도 합니다.
+- Gemini CLI·OpenCode·Antigravity
+  - 링크: [Gemini CLI subagents](https://github.com/google-gemini/gemini-cli/blob/main/docs/core/subagents.md), [Gemini CLI session management](https://github.com/google-gemini/gemini-cli/blob/main/docs/cli/session-management.md), [OpenCode agents](https://opencode.ai/docs/agents/)
+  - 핵심: 서브에이전트(격리 컨텍스트)와 세션 이어가기를 지원합니다. OpenCode는 `mode: subagent`로 자식 세션을 새로 열고 `--continue`·`--session`·`--fork`로 이어갑니다. Gemini는 `/resume` 체크포인트가 있습니다. Antigravity는 공식 문서가 없어 Google 블로그 기준으로 서브에이전트 위임과 새 주제별 새 채팅 안내만 확인했습니다.
+- 공통 소견: 새 세션 열기와 브리프 전달을 한 개의 명령으로 묶은 도구는 없습니다. 새 세션은 `prospero DIR`, `/clear`로 열고, 브리프는 `send_message`(Prospero), `codex queue`, Claude Code의 `@` 세션 지목으로 따로 보냅니다.
+- 적용 제안(승인 대기): 서브 세션 열기, 부모→자식 중간 지시, 자식→부모 보고, 세션 간 대화, 사이드 대화, 새 세션 + 브리프 전달은 03 범위 밖이고 04(세션 저장·지목 호출) 위에 얹는 확장입니다. 하네스의 delegation-brief 포인터 샌드위치가 브리프 전달 규격 정본이므로 제품 규칙으로 옮깁니다.
+- 미적용: Prospero식 GUI·데스크톱 제어, Antigravity 블로그 기반 설계(공식 문서 아님). 03에는 반영하지 않습니다.
+- 관련 작업: 04(주), 03(단발 run 경계 확인)
+
 ### 자동화 단계·체크포인트·무인 옵션 검토
 - 확인 날짜: 2026-11-02
 - 링크: Prospero RESEARCH 절, opencode allow/ask/deny(RESEARCH 작업 03), 문 유형·자율성 단계(RESEARCH), D22
