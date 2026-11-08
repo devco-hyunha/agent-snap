@@ -25,12 +25,30 @@ pub struct ChatRequest {
 }
 
 /// 대화 메시지 한 줄입니다.
-#[derive(Debug, Clone, PartialEq, Eq)]
+///
+/// 도구를 부르는 `assistant` 메시지는 `tool_calls`를, 도구 결과를 담은 `tool` 메시지는
+/// `tool_call_id`를 씁니다. 둘 다 없으면 내용만 보내는 평범한 메시지입니다.
+#[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ChatMessage {
     /// 역할 이름입니다(`system`, `user`, `assistant`, `tool` 등).
     pub role: String,
     /// 본문 텍스트입니다.
     pub content: String,
+    /// `assistant`이 도구를 부른 자리입니다. 없으면 빈 목록입니다.
+    pub tool_calls: Vec<AssistantToolCall>,
+    /// `tool` 메시지가 답한 도구 호출 id입니다. 없으면 보내지 않습니다.
+    pub tool_call_id: Option<String>,
+}
+
+/// 모델이 부른 도구 호출 한 개입니다(요청 본문 `assistant`용).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AssistantToolCall {
+    /// 서버가 준 호출 id입니다. 결과를 붙일 때 이 id를 그대로 씁니다.
+    pub id: String,
+    /// 호출한 도구 이름입니다.
+    pub name: String,
+    /// 모델이 준 인자 JSON 원문입니다.
+    pub arguments: String,
 }
 
 /// 요청에 실을 도구 한 개의 정의입니다.

@@ -1,7 +1,8 @@
 //! 모의 서버의 수명(띄우기·접기)과 시험 조종 창구만 다룹니다.
 //!
 //! 응답 스크립트 규격은 `super::script`, 공유 상태는 `super::shared`, 연결 수 가드는
-//! `super::guard`, 본문 스트림 구현은 `super::body_stream`에 있습니다.
+//! `super::guard`, 본문 스트림 구현은 `super::body_stream`, 스크립트 대기열 규칙은
+//! `super::queue`에 있습니다(서버 수명 책임과 스크립트 대기열 책임 분리).
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -15,6 +16,7 @@ use tokio::task::JoinHandle;
 
 use super::chat_handler::handle_chat_completions;
 use super::models_handler::handle_models;
+use super::queue;
 use super::record::RecordedRequest;
 use super::script::MockResponseScript;
 use super::shared::Shared;
@@ -37,6 +39,22 @@ impl MockServer {
                 .with_state(shared)
         })
         .await
+    }
+
+    /// 왕복 여러 턴(에이전트 루프처럼 한 요청이 아닌 요청) 시험을 위해, 스크립트를 앞부터
+    /// 순서대로 써서 응답하는 서버를 띄웁니다. 대기열이 비면 마지막 스크립트를 그대로 씁니다.
+    /// 대기열 채우기 규칙은 `super::queue`에 있습니다(서버 수명 책임과 스크립트 대기열 책임 분리).
+    pub async fn spawn_queue(scripts: Vec<MockResponseScript>) -> Self {
+        let (tail, remaining) = queue::split(scripts);
+        let server = Self::spawn_with(tail, |shared| {
+            Router::new()
+                .route("/chat/completions", post(handle_chat_completions))
+                .route("/models", get(handle_models))
+                .with_state(shared)
+        })
+        .await;
+        queue::fill(&server.shared, remaining).await;
+        server
     }
 
     /// 라우트를 직접 정해서 띄우는 기본 만들기입니다. 라우트 등록 쪽만 바뀌면 서버 수명 코드를

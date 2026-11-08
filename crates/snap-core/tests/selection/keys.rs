@@ -35,6 +35,7 @@ fn ac1_request() -> ChatRequest {
         messages: vec![ChatMessage {
             role: "user".into(),
             content: "hello".into(),
+            ..Default::default()
         }],
         tools: Vec::new(),
         sampling: Sampling::default(),

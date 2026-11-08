@@ -9,11 +9,14 @@ mod frames;
 mod give_up_note;
 mod outcome;
 mod request;
+pub(crate) mod schema_openai;
 mod segment;
 mod sse;
 mod stream;
 mod timing;
 mod traits;
+
+pub(crate) use schema_openai::message_json;
 
 /// 스트림 취소를 알리는 토큰입니다. 복제본이 같은 취소 상태를 나눕니다.
 pub use tokio_util::sync::CancellationToken;
@@ -21,7 +24,7 @@ pub use tokio_util::sync::CancellationToken;
 pub use error::TransportError;
 pub(crate) use frames::{ChatDriver, ChatFrame};
 pub use outcome::StreamOutcome;
-pub use request::{ChatMessage, ChatRequest, ToolDefinition};
+pub use request::{AssistantToolCall, ChatMessage, ChatRequest, ToolDefinition};
 pub use segment::TimeoutSegment;
 pub use sse::{SseItem, SseParser};
 pub use stream::ChatStream;

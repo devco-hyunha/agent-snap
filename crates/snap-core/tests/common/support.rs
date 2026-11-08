@@ -213,6 +213,7 @@ pub fn sample_request(reasoning: Option<Reasoning>) -> ChatRequest {
         messages: vec![ChatMessage {
             role: "user".into(),
             content: "hello".into(),
+            ..Default::default()
         }],
         tools: if reasoning.is_some() {
             vec![ToolDefinition {

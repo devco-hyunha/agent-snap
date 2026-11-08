@@ -7,8 +7,7 @@ use std::time::Duration;
 use jsonc_parser::JsonObject;
 
 /// 모델 `extra`에 적을 수 없는, 클라이언트가 채우는 요청 키입니다(D15).
-pub(in crate::config) const RESERVED_EXTRA_KEYS: [&str; 4] =
-    ["model", "messages", "stream", "tools"];
+pub(crate) const RESERVED_EXTRA_KEYS: [&str; 4] = ["model", "messages", "stream", "tools"];
 
 /// 엔드포인트에 적으면 거부하는 키 칸입니다(D10, D20).
 pub(in crate::config) const ENDPOINT_KEY_FIELDS: [&str; 2] = ["api_key", "api_key_env"];
@@ -62,7 +61,8 @@ pub(in crate::config) fn is_valid_base_url(raw: &str) -> bool {
 }
 
 /// `temperature`는 0 이상 2 이하입니다(D14).
-pub(in crate::config) fn is_valid_temperature(value: &f64) -> bool {
+/// 03-2가 도구 호출 턴 온도를 같은 규칙으로 검사하게 `pub(crate)`로 열린다(02-2 규칙 재사용).
+pub(crate) fn is_valid_temperature(value: &f64) -> bool {
     (0.0..=2.0).contains(value)
 }
 

@@ -14,3 +14,6 @@ pub use types::{
     Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning,
     Sampling,
 };
+
+/// 03-2 에이전트가 설정 검증 규칙을 그대로 재사용하게 여는 자리입니다(D15, DRY).
+pub(crate) use validate::{RESERVED_EXTRA_KEYS, is_valid_temperature};

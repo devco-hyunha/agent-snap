@@ -119,18 +119,49 @@ impl DeltaAssembler {
 
     fn apply_parsed_delta(&mut self, delta: ParsedDelta, events: &mut Vec<StreamEvent>) {
         if let Some(content) = delta.content {
-            self.assembled.content.push_str(&content);
+            self.apply_event(&StreamEvent::Content(content.clone()));
             events.push(StreamEvent::Content(content));
         }
         for text in delta.reasonings {
-            self.assembled.reasoning.push_str(&text);
+            self.apply_event(&StreamEvent::Reasoning(text.clone()));
             events.push(StreamEvent::Reasoning(text));
         }
         for piece in delta.tool_calls {
+            // `apply_tool_call_delta`가 누적하고 이벤트를 내므로, 여기서 `apply_event`를 다시 부르지 않습니다.
             events.push(self.apply_tool_call_delta(piece));
         }
         for (key, raw) in delta.unknown_fields {
             self.assembled.unknown_delta_fields.push((key, raw));
+        }
+    }
+
+    /// 스트림 이벤트 하나를 합친 응답에 누적합니다.
+    ///
+    /// 루프(03-2)처럼 이벤트를 이미 받은 쪽이 같은 누적 규칙을 다시 적지 않게 하는 창구입니다(DRY).
+    /// `unknown_delta_fields`는 원문 JSON이 필요해 이벤트에만 있고, 여기서는 다루지 않습니다.
+    pub fn apply_event(&mut self, event: &StreamEvent) {
+        match event {
+            StreamEvent::Content(text) => self.assembled.content.push_str(text),
+            StreamEvent::Reasoning(text) => self.assembled.reasoning.push_str(text),
+            StreamEvent::ToolCallDelta {
+                index,
+                id,
+                name,
+                arguments,
+            } => {
+                let entry = self.assembled.tool_calls.entry(*index).or_default();
+                if let Some(text) = id {
+                    entry.id.push_str(text);
+                }
+                if let Some(text) = name {
+                    entry.name.push_str(text);
+                }
+                if let Some(text) = arguments {
+                    entry.arguments.push_str(text);
+                }
+            }
+            StreamEvent::Usage(usage) => self.assembled.usage = Some(usage.clone()),
+            StreamEvent::Done => {}
         }
     }
 
