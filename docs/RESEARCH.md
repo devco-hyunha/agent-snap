@@ -70,13 +70,17 @@
 | 제목 | 상세 | 확인 | 핵심(한 줄) | 적용 위치 또는 미적용 | **상태** | 관련 |
 |---|---|---|---|---|---|---|
 | 설정·키·비밀 차단 | [03-agent-loop-tools.md#설정키-위치와-비밀-파일-차단](research/03-agent-loop-tools.md#설정키-위치와-비밀-파일-차단) | 2026-10-28 | 사용자 설정 폴더·자격 분리·`.env` 차단 관례 | 사용자 설정 폴더, `AGENT_SNAP_CONFIG_DIR`, 파일 도구 차단; D10·02-1/2/8; **미적용**: 프로젝트 덮어쓰기, `dirs`, macOS App Support | 기획 반영 | 03 |
-| 도구 인터페이스·SLM 논문 | [03-agent-loop-tools.md#도구-인터페이스와-작은-모델-논문](research/03-agent-loop-tools.md#도구-인터페이스와-작은-모델-논문) | 2026-10-28 | SWE-agent·Sub-2B·To Diff | `tools/`(7개, `Tool`, `set.rs`), `args.rs`, `runner.rs`, `edit_file.rs`, `system_prompt.txt`, `with_default_temperature` | 기획 반영 | 03 |
+| 도구 인터페이스·SLM 논문 | [03-agent-loop-tools.md#도구-인터페이스와-작은-모델-논문](research/03-agent-loop-tools.md#도구-인터페이스와-작은-모델-논문) | 2026-10-28 | SWE-agent·Sub-2B·To Diff | `tools/`(7개, `Tool`, `set.rs`), `args.rs`, `runner.rs`, `edit_file.rs`, `system_prompt.txt`, `with_default_temperature`; `tools/tool.rs` 서명은 03-1 설계 확정으로 고정(2026-11-08, spec.md) | 설계 확정(03-1) → 구현 대기 | 03 |
 | opencode·Codex·Pi·Flue | [03-agent-loop-tools.md#에이전트-도구-설계-참고-opencode-codex-cli-pi-flue](research/03-agent-loop-tools.md#에이전트-도구-설계-참고-opencode-codex-cli-pi-flue) | 2026-10-28 | 승인·grep·트레이트 패턴 | `run_command.rs`, `approval.rs`, `console.rs`, `select.rs`; **미적용**: `.gitignore` 해석, 샌드박스, Pi 무승인, Flue 에이전트 선언·원격 샌드박스 | 기획 반영 | 03 |
 | OpenAI 호환 tool calling | [03-agent-loop-tools.md#openai-호환-도구-호출-형식과-미지원-서버-동작](research/03-agent-loop-tools.md#openai-호환-도구-호출-형식과-미지원-서버-동작) | 2026-10-28 | `tools`/`tool_calls`/`role:tool` | `runner.rs`, `args.rs`; 4xx→`ToolsUnsupported`; **미적용**: tools 없는 텍스트만 응답 판별(스모크), `supported_parameters` 사전 필터 | 기획 반영 | 03 |
 | 일방·양방향 문 분류 | [03-agent-loop-tools.md#에이전트-도구의-일방향양방향-문-분류](research/03-agent-loop-tools.md#에이전트-도구의-일방향양방향-문-분류) | 2026-10-30 | Type1/2·승인 게이트 | 03 승인 정책(D9); **미적용**: 80% 수치, 자율성 단계 확대(04 이후) | 조사됨 | 03, D9 |
 | 에이전트 승인·되돌리기 비교 | [03-agent-loop-tools.md#코딩-에이전트별-승인되돌리기샌드박스-비교](research/03-agent-loop-tools.md#코딩-에이전트별-승인되돌리기샌드박스-비교) | 2026-10-30 | Claude/Codex/Gemini/Aider 등 | D9 판단 근거; **미적용**: Docker/WSL 등 샌드박스 구현(D9) | 조사됨 | 03, D9 |
 | Prospero 벤치마크 | [03-agent-loop-tools.md#prospero-코딩-하네스-벤치마크](research/03-agent-loop-tools.md#prospero-코딩-하네스-벤치마크) | 2026-11-02 | deadline·Job Object·권한 timeout 등 | 03·D9 재검토 참고; 정책·단계는 **D22 정본**; GUI·원격·데스크톱 제어 등 **미적용·보류** | D22에 반영 | 03, D9, D22 |
 | 자동화·체크포인트·무인 검토 | [03-agent-loop-tools.md#자동화-단계체크포인트무인-옵션-검토](research/03-agent-loop-tools.md#자동화-단계체크포인트무인-옵션-검토) | 2026-11-02 | L1~L3+체크포인트 비교 | [D22](decisions/D22-execution-reliability-autonomy.md), [03 기획](plans/03-agent-loop-tools.md); L2·L3 UI/키는 06 이후; **미적용(지금)**: L2·L3 구현, 기본 무인 | D22에 반영 | 03, D22 |
+| 멀티 세션·서브세션 기능 비교 | [03-agent-loop-tools.md#멀티-세션·서브세션-기능-비교-타-에이전트](research/03-agent-loop-tools.md#멀티-세션·서브세션-기능-비교-타-에이전트) | 2026-11-07 | 타 에이전트의 서브 세션·세션 간 대화·요약 기능 비교 | **03 범위 밖(04 확장 제안)**: 서브 세션 열기·세션 간 대화·새 세션+브리프 전달은 04에 반영; 03은 단발 run 경계 유지 | 조사됨 → 기획 반영 대기(04 착수 시) | 04(주), 03 |
+| RAG·OKF·메모리·스킬 로드 조사 | [11-rag-okf-memory-skills.md](research/11-rag-okf-memory-skills.md) | 2026-11-07 | 코드 RAG(BM25 우위·grep 우선), OKF 구조, 메모리 계층(MemGPT·Mem0·HiMem·TierMem), 스킬 3단계 점진 공개, EvoHarness-RL BPE 확인, 스킬 색인 관리 파일 설계 제안(사용자 제안 2026-11-07) | **04 배치(D43)**: 검색은 grep(BM25) 기본, 메모리 계층·세션 임시 문서 설계 근거. 상세는 11-rag-okf-memory-skills.md. 교정: 컨텍스트 엔지니어링 서밸의 arXiv 번호 2507.13223 → 2507.13334 (상세 문서 교정 메모) | 조사됨 → 04 착수 시 기획 반영 | 04, D36, D43 |
+| 에이전트 기능 목록(도구·스킬·메모리·하네스 전체 분석) | [agent-feature-inventory-2026-11-07.md](research/agent-feature-inventory-2026-11-07.md) | 2026-11-07 | Claude Code·Cursor·Codex·OpenCode·Prospero의 도구/승인/스킬/메모리/컨텍스트/서브/감시/확장 기능을 카테고리별 표로 정리, 채택·후보·미채택 매김 | 완성 대조용: 03은 (a)(b) 중심 채움, 04가 (b)~(e)(g) 배치(D43). 05·06 이후 미룸 금지 | 기획 반영 | 03, 04 (D43) |
+| 에이전트별 도구 호출 형식 비교·검토 | [12-tool-calling-forms.md](research/12-tool-calling-forms.md) | 2026-11-08 | 네이티브 함수 호출·텍스트 프로토콜·코드 모드 3갈래, 에이전트별 형식 표 | **D46 확정(2026-11-08)**: 3갈래 조합 채택 — 1안 03-2(기본), 2안 03-4(로컬 폴백, 스모크보다 앞), 3안 03-8(execute 브리지, 읽기 전용 1차). 배치: 03-1→03-2→03-3→03-4→03-8→03-10 | D46에 반영 → 기획 반영 완료 | 03 (03-1·03-2·03-4·03-8) |
 
 ## 구조·관례 (snap-core)
 
@@ -89,4 +93,9 @@
 
 - `RESEARCH.md` = 인덱스(적용·상태·링크)
 - `docs/research/*.md` = 조사 상세(규범 정본 아님)
-- `.local/research/` = 논문 전문(git 제외, 본 작업에서 미변경)
+- `.local/research/` = 논문 전문(git 제외, 플랜별 폴더 01~06·07-09로 나눔)
+- `.local/research/<플랜>/arxiv-<id>.kr.md` = 한국어 번역 전문(첫머리 300자 요약 포함)
+- 번역 규칙: 번역은 **그 플랜 착수 시점에 그 플랜이 채택한 논문만** 한다. 미리 다 해두지 않는다(기획이 우선).
+  - 완료: 01(2610.14224), 03(2405.15793, 2604.27296, 2609.07370), 04(2307.03172, 2508.21433, 2610.31710, 2603.28052) = 8편
+  - 05: 14편 번역 완료(언어·반복·루프·압축 논문). 남은 편 2편(2608.23041, 2609.40169)은 06 착수 시 순차 번역(06 채택 논문).
+  - 06: 2608.27763은 미채택이라 번역 대상 아님. 07-09 6편은 07 착수 시 번역.

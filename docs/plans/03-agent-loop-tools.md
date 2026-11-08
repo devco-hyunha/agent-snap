@@ -6,7 +6,8 @@
 도구를 써서 실제 코딩 작업을 끝까지 수행하는 에이전트 루프를 만든다.
 
 ## 범위(In)
-- agent: 시스템 프롬프트, 메시지 기록, OpenAI tools 형식 도구 호출, 도구 결과 전달, 반복 상한, 종료 조건.
+- agent: 시스템 프롬프트, 메시지 기록, 도구 호출, 도구 결과 전달, 반복 상한, 종료 조건.
+- 도구 호출 형식은 모델 프로필로 고른다(2026-11-08 사용자 결정 반영): 기본은 OpenAI `tools`/`tool_calls`, 로컬 미지원 모델은 텍스트 프로토콜 폴백, `execute`(코드 모드)는 도구 목록을 한 자리에 몰아 넣는 브리지로 둔다. 상세: [12번 문서](../research/12-tool-calling-forms.md).
 - tools(`Tool` 트레이트, 도구당 파일 하나): read_file, write_file, edit_file(정확한 문자열 교체, 일치가 하나가 아니면 이유를 담아 실패), list_dir, glob, grep, run_command.
 - 작업 폴더 경계: `..`, 절대 경로, 심볼릭 링크로 작업 폴더 밖에 쓰는 것을 거부한다.
 - 승인·실행은 CLI가 주입하는 승인자 인터페이스로 분리한다(이후 자동화 단계 교체 가능). M1 기본 승인자는 명령마다 확인한다.
@@ -19,6 +20,7 @@
 - 단발 호출의 작업 명세는 사용자 원문을 보존하고 목표·입력·완료 조건만 담는다.
 - 작업 명세의 완료 조건에 검증 명령이 있으면 에이전트가 끝난 뒤 그 명령을 실행해 성공 여부를 확인하고, 실패하면 실패를 드러낸다.
 - 모델 선택: `run`은 `--model <이름>`으로 모델을 고른다. 지정하지 않으면 설정의 모델 목록에서 고르게 하고 이어서 실행한다. 입력을 받을 수 없으면 모델 이름 목록을 담은 오류로 끝낸다.
+- (AGENTS.md 읽기 추가, 2026-11-08 사용자 승인) 작업 폴더의 `AGENTS.md`를 읽어 프로젝트 지시로 시스템 프롬프트에 조립한다. 03 단발 실행 에이전트가 코딩 한 바퀴에 프로젝트 지시를 반영하는 필수 요소로 두는다. 04 대화형 세션의 AGENTS.md 읽기와 같은 규칙 파일 사용이고, 03은 04 규칙 계층 설계에 앞서 최소 형태만 쓴다.
 - 설정·키 위치: 사용자 설정 폴더의 `agent-snap.jsonc`와 자격 파일 `credentials.jsonc`를 읽는다. `AGENT_SNAP_CONFIG_DIR`로 폴더를 바꿀 수 있다. `agent-snap.example.jsonc`의 위치 설명을 맞춘다.
 - 비밀 파일 차단: 파일 도구는 사용자 설정 폴더 아래와 작업 폴더(하위 폴더 포함)의 `agent-snap.jsonc`와 `credentials.jsonc`를 읽거나 쓰지 않고 목록·검색 결과로도 내보내지 않는다(DECISIONS D17).
 - 도구 호출 인자: 인자 JSON을 해석하고, 깨진 JSON은 복구를 시도하며, 실패하면 모델에 짧은 오류를 돌려준다.
@@ -73,14 +75,35 @@ D22 **정책 정본**은 `docs/decisions/D22-execution-reliability-autonomy.md`�
 
 ## DoD
 AC 충족, 검증 통과, 리뷰 PASS.
+- 추가(D43): 03 완료 시 "코딩 한 바퀴" 기본 도구가 전부 갖춰진 상태여 한다. [기능 목록](../research/agent-feature-inventory-2026-11-07.md) (a) 항목과 대조한 결과를 `docs/reports/03-smoke.md`에 남긴다. 목록의 후보 중 04 배치 항목을 04 기획에 넘기는지 확인한다.
+- 추가(2026-11-08): AGENTS.md 읽기(03 범위)를 03-1에서 구현하고 (a) 대조에 포함한다. 심볼 도구·지시 파일 색인·규칙 계층·메모리는 04 배치 확정(D43·D45)로 03 범위 밖이다.
+
+### 세부 작업 공통 기준
+각 세부 작업의 tasks.md는 이 절을 따른다.
+- 문서 규격(2026-11-08, PROJECT_RULES 문서 규격 절): 각 세부 plan.md에 `## 작업계획` 표를 두고 열은 `| 작업 | 범위 | 금지 | 산출물 | 검증 명령 |`로 한다(행 이름은 `T<번호> <작업명>`). plan.md·tasks.md에는 `## 작업 파일` 표를 두고 열은 `| 파일 | 작업 | 상태 |`로 한다. 상태는 계획 / 진행 / 완료 / 막힘 중 하나이고, 상세 작업 파일(T-파일)의 상태가 바뀔 때마다 plan.md와 tasks.md의 표를 함께 고친다. 상세 작업 파일은 T1부터 순번을 붙인 `T<번호>-<짧은 이름>.md` 파일 하나이며, 절은 목표·근거·읽을 파일·할 일·검증·완료 조건·상태·라운드 보고로 한다. 상세 작업 파일에는 결정 문서 본문을 복제하지 않고 절 번호와 포인터만 적는다.
+- 하네스 전달(2026-11-08): 상세 작업 파일의 `읽을 파일`에는 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 경로(`.agents/skills/dev-principles/SKILL.md`, Claude Code·Cursor는 `.claude/skills/dev-principles/SKILL.md`)를 반드시 넣는다. `할 일`에 "dev-principles 2~11절 준수(SRP에 따라 책임을 파일별로 분리, DRY 재사용 사다리로 기존 함수 먼저 검색)" 단계를 넣고, `완료 조건`에 "dev-principles 2~11절 준수 확인"을 넣는다. 위임 프롬프트는 delegation-brief의 포인터 샌드위치(가드레일 6줄 → 작업 포인터 → 자기점검 4줄, 500자 이하)로 보내고, 가드레일 3번에 위 4개 문서 선독이 들어 있다.
+- 작업 방식: 한 번 위임하고 한 번 코드 리뷰로 끝낸다(D11).
+- 검증 명령: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`.
+- 공통 DoD: 그 세부 작업의 AC를 충족한다. 검증 명령이 통과한다. `docs/RESEARCH.md` 적용 위치를 갱신했다. 코드 품질 리뷰(review-harness 체크리스트와 dev-principles 2~11절(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`), 테스트 코드 포함)가 PASS했고 기록이 `docs/reviews/03/`에 있다.
 
 ## 세부 작업
-세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝나는 기능 하나다(DECISIONS D11). 자동화 단계 L2·L3는 본 작업 비범위(D22)이다. 아래 순서대로 하나씩 진행한다. 세부 작업마다 plan.md, spec.md, tasks.md를 둔다. **(03 세부 plan 착수 시 plan/spec/tasks 작성. 지금은 표의 번호·이름·선행만 확정)**
+세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝나는 기능 하나다(DECISIONS D11). 자동화 단계 L2·L3는 본 작업 비범위(D22)이다. 아래 순서대로 하나씩 진행한다. 세부 작업마다 plan.md, spec.md, tasks.md를 둔다. (2026-11-08 번호 재정렬: 작업 순서대로 03-1부터 03-10까지. 착수 전 상태는 각 문서 상단에 `planned`로 둔다.)
 
-| 번호 | 이름 | 선행 | 문서 |
-|---|---|---|---|
-| 03-1 | 에이전트 루프·Tool 트레이트·파일 도구 | 02 | (03 세부 plan 착수 시 작성) |
-| 03-2 | run_command·승인자 주입·승인/실행 deadline | 03-1 | (03 세부 plan 착수 시 작성) |
-| 03-3 | 프로세스 트리 종료(Job Object 등) | 03-2 | (03 세부 plan 착수 시 작성) |
-| 03-4 | (후보) timeout→백그라운드·주기 wake | 03-3 | (03 세부 plan 착수 시 작성) |
-| 03-5 | 단발 run·작업 명세·검증 명령·스모크 | 03-2 | (03 세부 plan 착수 시 작성) |
+| 순서 | 번호 | 이름 | 선행 | 문서 |
+|---|---|---|---|---|
+| 1 | 03-1 | `Tool` 트레이트 설계(도구 등록·결과·승인자 자리) | 02 | [03-01-tool-trait](03-agent-loop-tools/03-01-tool-trait/plan.md) |
+| 2 | 03-2 | 에이전트 루프·호출 형식 1안(OpenAI 기본 경로) | 03-1 | [03-02-agent-loop](03-agent-loop-tools/03-02-agent-loop/plan.md) |
+| 3 | 03-3 | 파일 도구·grep·glob·list_dir·비밀 파일 차단 | 03-1, 03-2 | [03-03-file-tools](03-agent-loop-tools/03-03-file-tools/plan.md) |
+| 4 | 03-4 | 호출 형식 2안 텍스트 프로토콜 폴백(로컬 미지원 모델) | 03-2 | [03-04-form-protocol](03-agent-loop-tools/03-04-form-protocol/plan.md) |
+| 5 | 03-5 | AGENTS.md 읽기 조립 | 03-2 | [03-05-agents-md](03-agent-loop-tools/03-05-agents-md/plan.md) |
+| 6 | 03-6 | run_command·승인자 주입·승인/실행 deadline | 03-2 | [03-06-run-command](03-agent-loop-tools/03-06-run-command/plan.md) |
+| 7 | 03-7 | 프로세스 트리 종료(Job Object 등) | 03-6 | [03-07-process-tree](03-agent-loop-tools/03-07-process-tree/plan.md) |
+| 8 | 03-8 | 호출 형식 3안 execute 브리지(읽기 전용 도구부터) | 03-3, 03-6 | [03-08-execute-bridge](03-agent-loop-tools/03-08-execute-bridge/plan.md) |
+| 9 | 03-9 | (후보) timeout→백그라운드·주기 wake | 03-7 | [03-09-timeout-background](03-agent-loop-tools/03-09-timeout-background/plan.md) |
+| 10 | 03-10 | 단발 run·작업 명세·검증 명령·스모크 | 03-4, 03-8, 03-6 | [03-10-run-once-smoke](03-agent-loop-tools/03-10-run-once-smoke/plan.md) |
+
+순서 정정 근거(2026-11-08):
+- 03-1(트레이트 설계)이 루프·파일도구·execute의 재료이므로 맨 앞에 둔다.
+- 03-4(로컬 AI 폴백)는 스냅 메인 사용처가 로컬 모델이므로 스모크(03-10)보다 앞서 만든다.
+- 03-8(execute)은 도구 7개가 갖춰진 뒤(03-3·03-6) 같은 게이트를 지나는 브리지로 붙인다.
+- 03-10(스모크)는 3형식(1안·2안·3안)을 다 갖춘 뒤 최종 검증으로 맨 마지막에 둔다.
