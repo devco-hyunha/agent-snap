@@ -5,13 +5,16 @@ use std::fmt;
 use crate::llm::client::error::TransportError;
 use crate::llm::client::frames::{ChatDriver, ChatFrame};
 use crate::llm::client::outcome::StreamOutcome;
-use crate::llm::codec::delta::StreamEvent;
+use crate::llm::codec::assembly::ChatAssembly;
+use crate::llm::codec::delta::{AssembledResponse, StreamEvent};
 
 /// 복원한 [`StreamEvent`]를 순서대로 꺼내는 스트림 손잡이입니다.
 ///
 /// 안쪽 HTTP 응답·디코더는 전송 구현만 만집니다. 공개면에는 이벤트만 보입니다.
+/// 이벤트는 그대로 내보내면서 동시에 02-3 조립기로 누적합니다(합친 응답 재사용, DRY).
 pub struct ChatStream {
     driver: Option<Box<dyn ChatDriver>>,
+    assembly: ChatAssembly,
     outcome: Option<StreamOutcome>,
     finished: bool,
 }
@@ -21,6 +24,7 @@ impl ChatStream {
     pub(crate) fn new(driver: Box<dyn ChatDriver>) -> Self {
         Self {
             driver: Some(driver),
+            assembly: ChatAssembly::new(),
             outcome: None,
             finished: false,
         }
@@ -32,7 +36,10 @@ impl ChatStream {
     pub async fn next_event(&mut self) -> Option<Result<StreamEvent, TransportError>> {
         let driver = self.driver.as_mut()?;
         match driver.next_frame().await {
-            ChatFrame::Event(Ok(event)) => Some(Ok(event)),
+            ChatFrame::Event(Ok(event)) => {
+                self.assembly.apply_event(&event);
+                Some(Ok(event))
+            }
             ChatFrame::Event(Err(error)) => {
                 self.close(None);
                 Some(Err(error))
@@ -58,6 +65,13 @@ impl ChatStream {
         } else {
             None
         }
+    }
+
+    /// 지금까지 꺼낸 이벤트를 누적해 합친 응답입니다.
+    ///
+    /// 루프(03-2)는 스트림이 끝난 뒤 내용·도구 호출을 여기서 한 번에 읽습니다.
+    pub fn assembled(&self) -> &AssembledResponse {
+        self.assembly.assembled()
     }
 }
 

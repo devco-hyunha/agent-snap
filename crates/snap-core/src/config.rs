@@ -20,6 +20,8 @@ pub use save::{
 
 // 크레이트 안 호출부가 `crate::config::extra_json` 경로를 그대로 쓰게 부모에서 재수출합니다.
 pub(crate) use read::extra_json;
+// 03-2 에이전트가 설정 검증 규칙과 예약 키 목록을 그대로 재사용하게 여는 자리입니다(D15, DRY).
+pub(crate) use read::{RESERVED_EXTRA_KEYS, is_valid_temperature};
 
 #[cfg(test)]
 mod tests {

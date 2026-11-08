@@ -9,6 +9,7 @@ use serde_json::{Map, Value};
 
 use crate::config::extra_json::{extra_to_json, json_f64};
 use crate::config::{EndpointKind, ExtraValue, Reasoning, Sampling};
+use crate::llm::client::message_json;
 use crate::llm::client::{ChatMessage, ChatRequest, ToolDefinition};
 
 /// 스트리밍 대화 요청 본문을 JSON 값으로 만듭니다.
@@ -29,17 +30,7 @@ pub(crate) fn build_chat_completions_body(kind: EndpointKind, request: &ChatRequ
 }
 
 fn messages_json(messages: &[ChatMessage]) -> Value {
-    Value::Array(
-        messages
-            .iter()
-            .map(|message| {
-                let mut item = Map::new();
-                item.insert("role".into(), Value::String(message.role.clone()));
-                item.insert("content".into(), Value::String(message.content.clone()));
-                Value::Object(item)
-            })
-            .collect(),
-    )
+    Value::Array(messages.iter().map(message_json).collect())
 }
 
 fn tools_json(tools: &[ToolDefinition]) -> Value {

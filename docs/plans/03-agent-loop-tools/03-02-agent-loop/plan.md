@@ -1,6 +1,6 @@
 # 03-2 에이전트 루프: 상세 기획
 
-- 상태: planned
+- 상태: 계획
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md)
 
 ## 목적
@@ -44,5 +44,5 @@
 
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-02-agent-loop/T1-agent-loop.md` | 루프 골격·1안 경로 | 계획 |
+| `docs/tasks/03/03-02-agent-loop/T1-agent-loop.md` | 루프 골격·1안 경로 | 완료 |
 | `docs/tasks/03/03-02-agent-loop/T2-fallback-point.md` | 폴백 연결 지점 | 계획 |

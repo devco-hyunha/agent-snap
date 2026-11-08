@@ -12,8 +12,8 @@ pub mod selection;
 mod transport;
 
 pub use client::{
-    CancellationToken, ChatMessage, ChatRequest, ChatStream, LlmClient, SseItem, SseParser,
-    StreamOutcome, StreamTiming, TimeoutSegment, ToolDefinition, TransportError,
+    AssistantToolCall, CancellationToken, ChatMessage, ChatRequest, ChatStream, LlmClient, SseItem,
+    SseParser, StreamOutcome, StreamTiming, TimeoutSegment, ToolDefinition, TransportError,
 };
 pub use codec::decode::StreamDecoder;
 pub use codec::delta::{AssembledResponse, DeltaAssembler, StreamEvent, ToolCall, Usage};

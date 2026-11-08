@@ -20,6 +20,7 @@ pub(crate) mod mock_server {
     mod guard;
     mod models_handler;
     mod models_response;
+    mod queue;
     pub mod record;
     mod response;
     #[cfg(test)]
@@ -43,6 +44,7 @@ mod mock_server {
     mod guard;
     mod models_handler;
     mod models_response;
+    mod queue;
     pub mod record;
     mod response;
     #[cfg(test)]
