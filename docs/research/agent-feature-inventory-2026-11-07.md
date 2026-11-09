@@ -14,7 +14,7 @@
 | grep·glob·폴더 목록 | OpenCode grep/glob(ripgrep), Claude Grep/Glob | **채택** 03: `grep`·`glob`·`list_dir` |
 | 웹 검색·웹 열람 | Claude WebFetch/WebSearch, OpenCode webfetch | **03-12 배치 (D43 2차 개정, 2026-11-09)**: `web_search`·`web_fetch` 도구를 03-12에 배치 |
 | 노트 편집(Jupyter) | Claude NotebookEdit | **미채택**: 스냅 코딩 범위와 무관 |
-| LSP 연동(진단·이동) | OpenCode LSP 도구 | **03-13 배치 (D43 2차 개정, 2026-11-09)**: 심볼 조회 1차(`find_symbol`)를 03-13에 배치. 편집·이름 바꾸기 2차는 06 이후 판단 |
+| LSP 연동(진단·이동) | OpenCode LSP 도구 | **03-13 배치 (D43 2차 개정, 2026-11-09)**: Serena 후보 7종(`find_symbol`·`file_symbols`·`find_refs`·`find_declaration`·`replace_symbol`·`rename_symbol`·`file_diagnostics`) 전량을 03-13에 배치(D33 2026-11-09 확정). 네이티브 구현, Serena MCP 결합 금지 |
 | 계획 모드(to-do 목록) | Claude TodoWrite, Codex plan mode | **03-11 배치 (D43 2차 개정, 2026-11-09)**: 계획 모드 도구(`plan_list`)를 03-11에 배치 |
 | (a) 배치 보정 메모 (2026-11-08) | — | (a)의 기본 7개(read/write/edit/list_dir/glob/grep/run_command)는 03 채택 그대로. 웹·LSP·계획 모드 도구를 04에 두는 것은 "도구라는 이름" 때문이 아니라 코딩 한 바퀴에 필수인 7개와 필수 아닌 도구를 가른 것이다(D43 1항). 03 DoD는 7개 +α 확정 시 (a) 전체와 대조해 구멍이 없음을 확인한다(D43 다시 볼 점). 단, 이 2026-11-08 기준은 2026-11-09 2차 개정(D43)으로 웹·LSP·계획 모드·체크포인트·승인 규칙·MCP가 03-11~13으로 이관되어 우선한다. |
 
