@@ -55,6 +55,47 @@ impl TempFolder {
         std::fs::read_to_string(self.path.join(name))
             .unwrap_or_else(|error| panic!("임시 파일을 읽지 못했습니다: {error}"))
     }
+
+    /// 임시 폴더 아래에 심볼릭 링크를 만듭니다. 실패하면 `false`(권한·미지원 환경).
+    ///
+    /// 링크 시험이 링크를 만들 수 없는 환경(Windows: 개발 모드·권한)에서는 시험이
+    /// 스스로 통과하게 두고, 링크 검사 자체는 `path_guard` 시험에서 확인합니다.
+    pub fn try_symlink_dir(&self, target: &Path, link_name: &str) -> bool {
+        let link = self.path.join(link_name);
+        make_symlink(target, &link, true)
+    }
+
+    /// 임시 폴더 아래에 파일 심볼릭 링크를 만듭니다. 실패하면 `false`.
+    pub fn try_symlink_file(&self, target: &Path, link_name: &str) -> bool {
+        let link = self.path.join(link_name);
+        make_symlink(target, &link, false)
+    }
+}
+
+/// OS 관례로 심볼릭 링크를 만들어 주는 한 자리입니다(두 OS 동등, 개발 규칙 이식성).
+///
+/// Windows는 폴더·파일 링크를 따로 만들고, 권한이 없으면 실패합니다. `is_dir` 값으로
+/// 만들 종류를 정하고, 둘 다 실패하면 `false`를 줍니다.
+#[must_use]
+pub fn make_symlink(target: &Path, link: &Path, is_dir: bool) -> bool {
+    #[cfg(windows)]
+    let made = {
+        let old = std::fs::remove_dir_all(link).or_else(|_| std::fs::remove_file(link));
+        let _ = old;
+        let dir_result = std::os::windows::fs::symlink_dir(target, link);
+        if is_dir && dir_result.is_ok() {
+            return true;
+        }
+        let _ = std::fs::remove_file(link);
+        std::os::windows::fs::symlink_file(target, link).is_ok()
+    };
+    #[cfg(unix)]
+    let made = {
+        let _ = std::fs::remove_file(link);
+        let _ = is_dir;
+        std::os::unix::fs::symlink(target, link).is_ok()
+    };
+    made
 }
 
 impl Drop for TempFolder {
@@ -68,7 +109,7 @@ impl Drop for TempFolder {
 pub struct TempWorkdir(TempFolder);
 
 impl TempWorkdir {
-    /// 임시 폴더를 만들고 작업 폴더 이름만 붙여 돌려줍니다.
+    /// 임시 폴더를 만들어 작업 폴더로 쓰는 타입입니다.
     pub fn new(label: &str) -> Self {
         Self(TempFolder::new(label))
     }

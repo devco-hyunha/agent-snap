@@ -10,7 +10,7 @@
 - [x] 4. (T1) `edit_file`을 만든다(일치 1개·일치 없음·다중 일치). 확인: 3종 단위 테스트(spec AC 3).
 - [x] 5. (T2) `list_dir`·`glob`을 만든다(경계·비밀 파일 차단, 숨김 기본 제외·opt 포함). 확인: 단위 테스트.
 - [x] 6. (T2) `grep`을 만든다. ripgrep 경로 우선·없으면 내장 검색·결과 200줄(3형식 공통)·잘림·비밀 파일 차단. 확인: 단위 테스트(spec AC 5·6).
-- [ ] 7. (T3) `path_guard` 확장: 심볼릭 링크 검사 추가와 검사 순서 고정(경로 정규화 → 경계 → 링크 → 비밀 목록). 확인: 링크 포함 경계·비밀 차단 단위 테스트(spec AC 2).
+- [x] 7. (T3) `path_guard` 확장: 심볼릭 링크 검사 추가와 검사 순서 고정(경로 정규화 → 경계 → 링크 → 비밀 목록). 확인: 링크 포함 경계·비밀 차단 단위 테스트(spec AC 2). 완료 메모(2026-11-10, Windows): `path_guard.rs` 한 자리로 순서 확정, 링크는 "작업 폴더 안에서 생성된 링크만 허용"(OS별 `#[cfg]` 게이트), `walk`·ripgrep 순회 기준 통일, 게이트 `gate03_t3_t3_cargo` fmt=0·clippy=0·test=0.
 - [x] 8. `docs/RESEARCH.md` 작업 03 절 적용 위치 갱신.
 
 ## 테스트 계획
@@ -20,9 +20,9 @@
 - 구간 읽기는 256KB 넘는 파일을 50KiB 이하 구간으로 읽고, 기본 읽기 거부 안내(`offset`·`limit`·grep)가 결과에 남는지를 확인한다(D49, spec AC 1a).
 
 ## DoD
-- [ ] [spec.md](spec.md) AC 7개(AC 1a 구간 읽기 포함) 충족.
-- [ ] 검증 명령 3종 통과.
-- [ ] `docs/reviews/03/` 리뷰 PASS.
+- [x] [spec.md](spec.md) AC 7개(AC 1a 구간 읽기 포함) 충족. (AC 1·1a·3 = T1, AC 5 = T2, AC 2·4·6 = T1 1차→T2 목록·검색→T3 링크·순회 확정. 03-3 AC 1~7는 T1·T2·T3 각 리뷰 2차 PASS로 확정)
+- [x] 검증 명령 3종 통과. (로그 gate03_t3_t3_cargo·gate03_t3_t3_fasttrack: fmt=0·clippy=0·test=0)
+- [x] `docs/reviews/03/` 리뷰 PASS. (T1·T2·T3 각 2차 PASS, T3는 `docs/reviews/03/03-03-file-tools/T3-review-2.md`에 지적 0건 확정)
 
 ## 문서 영향
 - `docs/RESEARCH.md` 작업 03 절.
@@ -32,4 +32,4 @@
 |---|---|---|
 | `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | T1 읽기·쓰기·편집 | 완료 |
 | `docs/tasks/03/03-03-file-tools/T2-list-search-tools.md` | T2 목록·검색 | 완료 |
-| `docs/tasks/03/03-03-file-tools/T3-path-guard.md` | T3 경계·비밀 차단 | 계획 |
+| `docs/tasks/03/03-03-file-tools/T3-path-guard.md` | T3 경계·비밀 차단 | 완료 |

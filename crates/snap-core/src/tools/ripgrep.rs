@@ -1,7 +1,11 @@
-//! ripgrep 연동 자리입니다(03-3 T2).
+//! ripgrep 연동 자리입니다(03-3 T2·T3).
 //!
 //! ripgrep이 있으면 `--json` 출력으로 찾고, 없거나 결과를 못 읽으면 `None`으로
 //! 알려 내장 검색으로 넘깁니다(조용한 대체).
+//!
+//! 순회 기준은 `walk`과 같은 규칙을 씁니다(T2 리뷰 3항, spec AC 2): `--no-follow`(기본값)로
+//! 링크 폴더를 순회하지 않습니다(`walk`의 링크 폴더 비순회와 동일). 링크를 통한
+//! 경로 탈출은 모든 도구가 부르는 `path_guard`의 경로 검사 한 자리에서 막습니다.
 
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -32,6 +36,7 @@ pub(crate) fn search_with_ripgrep(
     command
         .arg("--json")
         .arg("--no-ignore")
+        .arg("--no-follow")
         .arg("--glob-case-insensitive");
     if include_hidden {
         command.arg("--hidden");

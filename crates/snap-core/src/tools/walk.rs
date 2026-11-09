@@ -1,13 +1,15 @@
-//! 폴더 순회와 자리 거르기를 한곳에 모은 자리입니다(03-3 T2).
+//! 폴더 순회와 자리 거르기를 한곳에 모은 자리입니다(03-3 T2·T3).
 //!
 //! 목록·glob·grep이 같은 순회를 각자 다시 만들지 않게 여기 한 파일에 둡니다(DRY).
 //! 숨김 자리는 요청 시에만 담고, 비밀 파일 자리는 늘 거릅니다.
-//! 심볼릭 링크가 가리키는 폴더로는 내려가지 않습니다(순환·탈출 방지).
+//! 심볼릭 링크 기준은 `path_guard`의 한 판정[`is_symlink_path`]·[`escapes_symlink`]를
+//! 그대로 쓰고, ripgrep 경로는 `--no-follow`(기본값)로 같은 순회 규칙을 맞춥니다
+//! (T2 리뷰 3항, spec AC 2 "작업 폴더 안에서 생성된 링크만 허용").
 
 use std::path::{Path, PathBuf};
 
 use super::display::relative_path;
-use super::path_guard::{check_tool_path, is_secret_name};
+use super::path_guard::{check_tool_path, escapes_symlink, is_secret_name, is_symlink_path};
 
 /// 순회로 줍은 자리 하나입니다.
 pub(crate) struct WalkEntry {
@@ -62,12 +64,19 @@ pub(crate) fn collect(
             if is_secret_name(&path) {
                 continue;
             }
+            // 밖으로 나가는 링크 자리는 목록·검색 결과에 올리지 않습니다(spec AC 6).
+            if escapes_symlink(working_dir, &path) {
+                continue;
+            }
             if !include_hidden && name.starts_with('.') {
                 continue;
             }
             let is_dir = meta.is_dir();
             let rel = relative_path(&path, working_dir);
-            if recursive && is_dir && !meta.is_symlink() {
+            // 링크 폴더는 어떤 방향이든 순회하지 않습니다. 안 링크의 내용도 결과에
+            // 안 나와야 AC 4·AC 6에 맞고, ripgrep 기본(`--no-follow`)과 같은 규칙입니다
+            // (T2 리뷰 3항: 두 순회를 한 규칙으로).
+            if recursive && is_dir && !is_symlink_path(&path) {
                 stack.push(path.clone());
             }
             out.push(WalkEntry { path, rel, is_dir });

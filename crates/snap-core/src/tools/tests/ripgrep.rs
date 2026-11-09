@@ -47,6 +47,8 @@ fn secret_paths_are_dropped_from_parsed_events() {
 }
 
 /// Windows 표시(`\` 구분)도 비밀 이름이면 거르는지 봅니다.
+/// `\` 구분 표기는 Windows에서만 의미 있으므로 이 시험은 Windows 전용입니다.
+#[cfg(windows)]
 #[test]
 fn secret_paths_with_native_separator_are_dropped() {
     let working_dir = PathBuf::from("C:\\work");
