@@ -12,20 +12,20 @@
 | 파일 읽기·쓰기·편집(검색-치환) | Claude Code Read/Write/Edit, Codex apply_patch, OpenCode read/edit/write | **채택** 03: `read_file`·`write_file`·`edit_file` |
 | 셸 명령 실행 | Claude Bash, Codex shell, OpenCode bash | **채택** 03: `run_command` (승인자 주입) |
 | grep·glob·폴더 목록 | OpenCode grep/glob(ripgrep), Claude Grep/Glob | **채택** 03: `grep`·`glob`·`list_dir` |
-| 웹 검색·웹 열람 | Claude WebFetch/WebSearch, OpenCode webfetch | **04 배치(D43)**: `web_search`·`web_fetch` 도구로 04에 추가 (M1 코딩 한 바퀴에 웹 도구는 필수 아님) |
+| 웹 검색·웹 열람 | Claude WebFetch/WebSearch, OpenCode webfetch | **03-12 배치 (D43 2차 개정, 2026-11-09)**: `web_search`·`web_fetch` 도구를 03-12에 배치 |
 | 노트 편집(Jupyter) | Claude NotebookEdit | **미채택**: 스냅 코딩 범위와 무관 |
-| LSP 연동(진단·이동) | OpenCode LSP 도구 | **04 배치(D43)**: 심볼 도구 1차(D33)와 함께 04에서 백엔드 선택. 03은 1차 기본 7개 도구로 먼저 돌리고, 심볼 도구는 03 세부 기획에서 03 포함 여부를 함께 정한다(D33 다시 볼 점) |
-| 계획 모드(to-do 목록) | Claude TodoWrite, Codex plan mode | **04 배치(D43)**: 04에 계획 모드 도구로 추가 |
-| (a) 배치 보정 메모 (2026-11-08) | — | (a)의 기본 7개(read/write/edit/list_dir/glob/grep/run_command)는 03 채택 그대로. 웹·LSP·계획 모드 도구를 04에 두는 것은 "도구라는 이름" 때문이 아니라 코딩 한 바퀴에 필수인 7개와 필수 아닌 도구를 가른 것이다(D43 1항). 03 DoD는 7개 +α 확정 시 (a) 전체와 대조해 구멍이 없음을 확인한다(D43 다시 볼 점). |
+| LSP 연동(진단·이동) | OpenCode LSP 도구 | **03-13 배치 (D43 2차 개정, 2026-11-09)**: Serena 후보 7종(`find_symbol`·`file_symbols`·`find_refs`·`find_declaration`·`replace_symbol`·`rename_symbol`·`file_diagnostics`) 전량을 03-13에 배치(D33 2026-11-09 확정). 네이티브 구현, Serena MCP 결합 금지 |
+| 계획 모드(to-do 목록) | Claude TodoWrite, Codex plan mode | **03-11 배치 (D43 2차 개정, 2026-11-09)**: 계획 모드 도구(`plan_list`)를 03-11에 배치 |
+| (a) 배치 보정 메모 (2026-11-08) | — | (a)의 기본 7개(read/write/edit/list_dir/glob/grep/run_command)는 03 채택 그대로. 웹·LSP·계획 모드 도구를 04에 두는 것은 "도구라는 이름" 때문이 아니라 코딩 한 바퀴에 필수인 7개와 필수 아닌 도구를 가른 것이다(D43 1항). 03 DoD는 7개 +α 확정 시 (a) 전체와 대조해 구멍이 없음을 확인한다(D43 다시 볼 점). 단, 이 2026-11-08 기준은 2026-11-09 2차 개정(D43)으로 웹·LSP·계획 모드·체크포인트·승인 규칙·MCP가 03-11~13으로 이관되어 우선한다. |
 
 ## (b) 승인·권한·샌드박스
 
 | 기능 | 근거 | snap 대응 |
 |---|---|---|
-| allow/ask/deny 3단계, 명령 패턴별 규칙 | OpenCode Permissions, Claude permissions | **04 배치(D43)**: 세션 허용 규칙 설계와 함께 04. L2·L3 UI는 D22대로 06 이후 (단, 단계 정의는 D22가 정본) |
+| allow/ask/deny 3단계, 명령 패턴별 규칙 | OpenCode Permissions, Claude permissions | **03-11 배치 (D43 2차 개정, 2026-11-09)**: 3단계 승인 규칙(규칙 표)을 03-11에 배치. L2·L3 UI는 D22대로 06 이후 (단계 정의는 D22가 정본) |
 | 샌드박스(read-only / workspace-write) | Codex approvals-security | **미채택** (D9: 경량 목표와 충돌) |
-| 세션 동안 허용 | OpenCode 승인 창 | **04 배치(D43)**: 03-2에서 승인자 interface로 허용 지점까지 만들고, 세션 허용은 04에서 결정 |
-| 체크포인트·되돌리기 | Claude checkpointing, Gemini checkpointing | **04 배치(D43)**: git 연동 방식으로 04 |
+| 세션 동안 허용 | OpenCode 승인 창 | **03-11 배치 (D43 2차 개정, 2026-11-09)**: 승인 규칙 표(allow/ask/deny)를 03-11에서 만들고, 세션 허용 UI·표시는 04에서 결정 |
+| 체크포인트·되돌리기 | Claude checkpointing, Gemini checkpointing | **03-12 배치 (D43 2차 개정, 2026-11-09)**: git 연동 방식으로 03-12에 배치 |
 
 ## (c) 스킬·커맨드
 
@@ -84,20 +84,20 @@
 | 기능 | 근거 | snap 대응 |
 |---|---|---|
 | 턴·스텝 훅(`beforeTurn` 등) | Project Think 훅 | **채택** 05: `Monitor` 트레이트 |
-| 훅(Claude hooks: 이벤트 스크립트) | Claude hooks | **후보**: 05 이후(규칙 자동화) |
+| 훅(Claude hooks: 이벤트 스크립트) | Claude hooks | **03-13 배치 (D43 2차 개정, 2026-11-09)**: 03-13에서 훅 연결 지점 인터페이스. 이벤트 스크립트 실행 규칙은 05 이후(규칙 자동화) |
 | 판정 모델 얹기 | (snap M2 계획) | **채택** 08 (snap 독자 설계) |
 
 ## (j) 그 밖의 확장
 
 | 기능 | 근거 | snap 대응 |
 |---|---|---|
-| MCP (외부 도구 연결) | Claude/Cursor/Codex/OpenCode 모두 MCP 지원 | **후보**: 제품 확장. 03 범위 밖. 필요하면 새 작업 문서 |
+| MCP (외부 도구 연결) | Claude/Cursor/Codex/OpenCode 모두 MCP 지원 | **03-13 배치 (D43 2차 개정, 2026-11-09)**: MCP 등록 골격을 03-13에 배치 |
 | 플러그인·확장 | Claude plugins | **미채택**: PLAN.md "다른 도구에 끼워 넣는 확장" 범위 밖 선언과 충돌 |
 | GitHub Actions·CI 연동 | Claude GitHub Actions | **미채택** |
 
 ## 전체 결론
 
-1. 03이 만드는 도구 7개와 승인·deadline 구조는 위 목록의 (a)(b) 중심을 채운다. 03이 "코딩 한 바퀴 기본 도구"의 전부이고, 나머지는 04 배치다(D43).
+1. 03이 만드는 도구 7개와 승인·deadline 구조는 위 목록의 (a)(b) 중심을 채운다. 03이 "코딩 한 바퀴 기본 도구"이고, (a)(b) 이관 항목(계획 모드·웹 도구·승인 규칙·ask_user·체크포인트·심볼 1차·hooks·MCP)은 03-11~13에서 만든다(D43 2차 개정, 2026-11-09). 04에 남는 것은 슬래시 커맨드·메모리 계층·출력 표시·상태 라인이다.
 2. 웹 도구·스킬 내장·메모리 계층·`/compact`·서브 세션·계획 모드·LSP가 타 에이전트에는 있고 snap 계획에 없는 기능들이다.
 3. 위 후보 기능 중 04에 늦게 넘기는 것을 05·06 이후로 미루지 않는다(D43). 03 완료 시점의 완성 여부는 이 목록의 (a)(b) 대조로 판단한다. 04 완료 시점의 완성 여부는 (b)(c)(d)(e)(g) 대조로 판단한다. 04 이후에 추가 배치할 도구가 05·06·07-09에 흩어지는 것을 막는다.
 

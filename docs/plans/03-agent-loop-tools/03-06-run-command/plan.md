@@ -16,7 +16,7 @@
 
 ## 비범위(Out)
 - 프로세스 트리 종료(Job Object): [03-7](../03-07-process-tree/plan.md).
-- L2·L3 자동화 단계·세션 허용 규칙: 04 배치.
+- L2·L3 자동화 단계·세션 허용 UI: 04 배치. 3단계 승인 규칙 표(allow/ask/deny)는 03-11에 배치(D43 2차 개정, 2026-11-09).
 - timeout→백그라운드: [03-9](../03-09-timeout-background/plan.md) 후보.
 - 실행 격리(D9).
 
