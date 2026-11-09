@@ -33,6 +33,18 @@ fn registry_to_definitions_keeps_registration_order() {
     assert_eq!(names, ["read", "write"]);
 }
 
+/// 03-3 T1 등록 확인: 파일 도구를 한 자리에서 조립하면 세 개가 같은 순서로 등록됩니다.
+#[test]
+fn file_tools_registry_has_the_three_file_tools() {
+    let registry = snap_core::agent::ToolRegistry::with_file_tools();
+    let names: Vec<&str> = registry.tools().iter().map(|tool| tool.name()).collect();
+    assert_eq!(names, ["read_file", "write_file", "edit_file"]);
+    assert!(registry.find_duplicate_name().is_none());
+    for name in ["read_file", "write_file", "edit_file"] {
+        assert!(registry.contains(name), "{name}이 등록되어 있어야 합니다");
+    }
+}
+
 /// 이름만 채운 최소 도구입니다. 변환·중복 검사 확인에 씁니다.
 struct FixedNamedTool(&'static str);
 

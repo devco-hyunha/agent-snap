@@ -42,6 +42,6 @@
 
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | 읽기·쓰기·편집 | 계획 |
+| `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | 읽기·쓰기·편집 | 진행 |
 | `docs/tasks/03/03-03-file-tools/T2-list-search-tools.md` | 목록·검색 | 계획 |
 | `docs/tasks/03/03-03-file-tools/T3-path-guard.md` | 경로 경계·비밀 차단 | 계획 |
