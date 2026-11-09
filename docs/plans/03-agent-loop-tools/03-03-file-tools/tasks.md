@@ -8,10 +8,10 @@
 - [x] 2. (T1) `read_file` 도구를 만든다(크기 상한·잘림·바이너리 거부·`offset`·`limit` 구간 읽기·거부 시 안내 문구). 확인: 크기·잘림·바이너리·구간 단위 테스트(spec AC 1).
 - [x] 3. (T1) `write_file`을 만든다. 덮어쓰기 표시. 승인 대상 아님(D49). 확인: 임시 폴더 단위 테스트.
 - [x] 4. (T1) `edit_file`을 만든다(일치 1개·일치 없음·다중 일치). 확인: 3종 단위 테스트(spec AC 3).
-- [ ] 5. (T2) `list_dir`·`glob`을 만든다(경계·비밀 파일 차단, 숨김 기본 제외·opt 포함). 확인: 단위 테스트.
-- [ ] 6. (T2) `grep`을 만든다. ripgrep 경로 우선·없으면 내장 검색·결과 200줄(3형식 공통)·잘림·비밀 파일 차단. 확인: 단위 테스트(spec AC 5·6).
+- [x] 5. (T2) `list_dir`·`glob`을 만든다(경계·비밀 파일 차단, 숨김 기본 제외·opt 포함). 확인: 단위 테스트.
+- [x] 6. (T2) `grep`을 만든다. ripgrep 경로 우선·없으면 내장 검색·결과 200줄(3형식 공통)·잘림·비밀 파일 차단. 확인: 단위 테스트(spec AC 5·6).
 - [ ] 7. (T3) `path_guard` 확장: 심볼릭 링크 검사 추가와 검사 순서 고정(경로 정규화 → 경계 → 링크 → 비밀 목록). 확인: 링크 포함 경계·비밀 차단 단위 테스트(spec AC 2).
-- [ ] 8. `docs/RESEARCH.md` 작업 03 절 적용 위치 갱신.
+- [x] 8. `docs/RESEARCH.md` 작업 03 절 적용 위치 갱신.
 
 ## 테스트 계획
 - 임시 폴더에 파일·링크·비밀 파일을 만들고, 읽기·쓰기·검색을 확인한다.
@@ -30,6 +30,6 @@
 ## 작업 파일
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | T1 읽기·쓰기·편집 | 진행 |
-| `docs/tasks/03/03-03-file-tools/T2-list-search-tools.md` | T2 목록·검색 | 계획 |
+| `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | T1 읽기·쓰기·편집 | 완료 |
+| `docs/tasks/03/03-03-file-tools/T2-list-search-tools.md` | T2 목록·검색 | 완료 |
 | `docs/tasks/03/03-03-file-tools/T3-path-guard.md` | T3 경계·비밀 차단 | 계획 |

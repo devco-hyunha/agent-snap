@@ -130,7 +130,9 @@ fn same_component(a: &Component<'_>, b: &Component<'_>) -> bool {
 /// 마지막 이름이 비밀 파일(`agent-snap.jsonc`·`credentials.jsonc`)인지 확인합니다(D17).
 ///
 /// 정규화가 끝난 경로의 마지막 이름만 비교하므로 폴더 이름과 섞이지 않습니다.
-fn is_secret_name(path: &Path) -> bool {
+///
+/// 목록·검색 도구가 이 판정을 재사용합니다(DRY).
+pub fn is_secret_name(path: &Path) -> bool {
     let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
         return false;
     };

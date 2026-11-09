@@ -57,6 +57,6 @@
 2. 작업 폴더 밖 경로(read_file·write_file·edit_file·list_dir·glob·grep)는 "경계 밖"으로 거부한다.
 3. edit_file이 일치·다중 일치를 테스트로 확인한다.
 4. write_file·read_file·list_dir·glob·grep 결과와 오류가 비밀 파일(`agent-snap.jsonc`·`credentials.jsonc`)을 노출하지 않는다.
-5. grep의 결과 최대 200줄, 잘림 표시.
+5. grep 결과는 최대 200줄 상한을 두고, 넘으면 앞 200줄 뒤에 잘림 표식(`…[truncated]`)을 붙인다.
 6. glob·grep 결과가 작업 폴더 밖 경로를 내보내지 않는다.
 7. 검증 명령 3종 통과(공통 DoD).

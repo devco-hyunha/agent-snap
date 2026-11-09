@@ -1,9 +1,11 @@
-//! 쓰기 결과 표시를 만드는 자리입니다(03-3 T1, dev-principles 3절 DRY).
+//! 결과 표시를 돕는 자리입니다(03-3 T1, dev-principles 3절 DRY).
 //!
-//! 쓰기·편집 결과가 같은 방식으로 경로를 보여야 하므로 이 파일 한 곳에서만 만듭니다.
+//! 경로 표시와 목록·검색 공통 줄 상한을 이 파일 한 곳에서만 만듭니다.
 //! 경로 판단은 `path_guard`가 맡고, 이 파일은 표시만 맡습니다(책임 분리).
 
 use std::path::Path;
+
+use crate::agent::TRUNCATION_MARK;
 
 /// 작업 폴더를 기준으로 한 경로 표시를 만들어 줍니다.
 #[must_use]
@@ -12,6 +14,19 @@ pub fn relative_path(target: &Path, working_dir: &Path) -> String {
         Ok(rel) => display_path(rel),
         Err(_) => display_path(target),
     }
+}
+
+/// 목록·검색 결과가 모델로 가기 전에 자르는 줄 수입니다(spec AC 5).
+pub const MAX_RESULT_LINES: usize = 200;
+
+/// 줄을 상한 아래로 자르고, 잘렸으면 잘림 표식을 끝에 붙입니다.
+#[must_use]
+pub fn cap_lines(mut lines: Vec<String>) -> Vec<String> {
+    if lines.len() > MAX_RESULT_LINES {
+        lines.truncate(MAX_RESULT_LINES);
+        lines.push(TRUNCATION_MARK.to_owned());
+    }
+    lines
 }
 
 /// 경로 구분 기호(`/`와 `\`)를 `/` 하나로 맞춰 한 줄 문자열로 만듭니다.

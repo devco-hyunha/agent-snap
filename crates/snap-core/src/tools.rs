@@ -6,13 +6,22 @@
 pub mod args;
 pub mod display;
 pub mod edit_file;
+pub mod glob;
+pub mod grep;
+pub mod list_dir;
 pub mod path_guard;
 pub mod read_file;
+pub(crate) mod ripgrep;
+pub(crate) mod search;
 pub mod tool;
+pub(crate) mod walk;
 pub mod write_file;
 
 pub use args::parse_tool_args;
 pub use edit_file::EditFileTool;
+pub use glob::GlobTool;
+pub use grep::GrepTool;
+pub use list_dir::ListDirTool;
 pub use path_guard::{PathGuardError, check_tool_path};
 pub use read_file::ReadFileTool;
 pub use write_file::WriteFileTool;
