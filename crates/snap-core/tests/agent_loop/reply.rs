@@ -1,12 +1,15 @@
 //! 03-2 루프 왕복 시험: AC 1(도구 왕복→stop), AC 4(미지원 감지), AC 1 규칙 4(거부 정지).
 
-use snap_core::agent::{AgentLoop, LoopConfig, LoopEnd, LoopError, LoopOutcome, LoopStartError};
+use snap_core::agent::{
+    AgentLoop, FallbackPoint, LoopConfig, LoopEnd, LoopError, LoopOutcome, LoopStartError,
+};
 
 use crate::common::mock_server::{MockResponseScript, MockServer};
 use crate::common::support::{client_at_with, test_http};
 use crate::support::{
     base_config, cancel_token, content_stream, empty_stream, registry_with_approval,
-    registry_with_fixed, registry_with_fixed_twice, tool_call_stream, tool_calls_stream,
+    registry_with_fixed, registry_with_fixed_twice, test_working_dir, tool_call_stream,
+    tool_calls_stream,
 };
 
 /// AC 1: 모의 서버가 도구 호출→stop으로 답하고, 등록한 도구가 결과로 왕복하는지 봅니다.
@@ -23,7 +26,7 @@ async fn tool_call_round_trip_ends_with_stop() {
         base_config(),
         "규범 앞머리",
         "과제 한 장",
-        "C:\\workspace\\agent-snap",
+        test_working_dir(),
     );
     let outcome = AgentLoop::new(
         client_at_with(server.base_url(), None, test_http()),
@@ -72,7 +75,7 @@ async fn empty_answer_fails_with_unsupported_reason() {
         base_config(),
         "규범 앞머리",
         "과제 한 장",
-        "C:\\workspace\\agent-snap",
+        test_working_dir(),
     );
     let outcome = AgentLoop::new(
         client_at_with(server.base_url(), None, test_http()),
@@ -80,10 +83,15 @@ async fn empty_answer_fails_with_unsupported_reason() {
     )
     .run(&config)
     .await;
-    let LoopOutcome::Failed(LoopError::Unsupported { fallback }) = outcome else {
+    let LoopOutcome::Failed(LoopError::Unsupported { fallback, point }) = outcome else {
         panic!("미지원 오류로 끝나야 합니다: {outcome:?}");
     };
-    assert!(fallback.contains("03-4"), "폴백 지점을 밝혀야 합니다");
+    // 상태 단정: 표기 글자 상수의 상수 값을 폴백 지점 타입으로 봅니다(할 일 4, T2).
+    assert_eq!(
+        format!("{fallback}"),
+        snap_core::agent::FallbackConnector::FALLBACK_CONNECTOR
+    );
+    assert_eq!(point, FallbackPoint::NoToolCallText);
 }
 
 /// AC 1 규칙 4: 승인이 필요한 도구는 즉시 거부로 알고 멈추며, 같은 호출을 되풀이하지 않습니다.
@@ -101,7 +109,7 @@ async fn approval_request_stops_loop_after_one_rejection() {
         base_config(),
         "규범 앞머리",
         "과제 한 장",
-        "C:\\workspace\\agent-snap",
+        test_working_dir(),
     );
     let outcome = AgentLoop::new(
         client_at_with(server.base_url(), None, test_http()),
@@ -140,7 +148,7 @@ async fn duplicate_tool_name_stops_before_first_request() {
         base_config(),
         "규범 앞머리",
         "과제 한 장",
-        "C:\\workspace\\agent-snap",
+        test_working_dir(),
     );
     let outcome = AgentLoop::new(
         client_at_with(server.base_url(), None, test_http()),

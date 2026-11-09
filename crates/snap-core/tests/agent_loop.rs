@@ -4,6 +4,8 @@
 
 pub mod common;
 
+#[path = "agent_loop/fallback.rs"]
+mod fallback;
 #[path = "agent_loop/profile.rs"]
 mod profile;
 #[path = "agent_loop/prompt_extra.rs"]

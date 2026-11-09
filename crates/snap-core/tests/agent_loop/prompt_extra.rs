@@ -3,14 +3,15 @@
 use snap_core::agent::{
     AgentLoop, LoopEnd, LoopOutcome, ToolCallProfile, ToolRegistry, assemble_messages,
 };
-use snap_core::config::{ExtraValue, Sampling};
-use snap_core::llm::ChatRequest;
+use snap_core::config::ExtraValue;
 
 use std::collections::BTreeMap;
 
 use crate::common::mock_server::{MockResponseScript, MockServer};
 use crate::common::support::{client_at_with, test_http};
-use crate::support::{cancel_token, content_stream, registry_with_fixed};
+use crate::support::{
+    base_config_with, cancel_token, content_stream, registry_with_fixed, test_working_dir,
+};
 
 /// AC 6: 프롬프트 앞머리가 messages 맨자리에 오고, AGENTS.md 합치기 자리가 그 뒤에 붙는지 봅니다.
 #[test]
@@ -60,24 +61,19 @@ async fn profile_temperature_and_extra_reach_request_body() {
     assert_eq!(body["num_ctx"], 8192);
 }
 
+/// AC 7 시험용 설정 골격입니다. `extra` 값은 지원부의 `base_config_with`로 채우고,
+/// 작업 폴더는 지원부의 `test_working_dir`(현재 위치 상대 표기)로 받아 절대경로 중복을 없앱니다(리뷰 3차 N8).
 fn snap_tool_call_config(registry: ToolRegistry) -> snap_core::agent::LoopConfig {
-    let base = ChatRequest {
-        model: "loop-test-model".into(),
-        messages: Vec::new(),
-        tools: Vec::new(),
-        sampling: Sampling::default(),
-        reasoning: None,
-        extra: BTreeMap::from([
-            ("keep_alive".to_owned(), ExtraValue::Number("0".to_owned())),
-            ("num_ctx".to_owned(), ExtraValue::Number("8192".to_owned())),
-        ]),
-    };
+    let extra = BTreeMap::from([
+        ("keep_alive".to_owned(), ExtraValue::Number("0".to_owned())),
+        ("num_ctx".to_owned(), ExtraValue::Number("8192".to_owned())),
+    ]);
     let mut config = snap_core::agent::LoopConfig::new(
         registry,
-        base,
+        base_config_with(extra),
         "규범 앞머리",
         "과제 한 장",
-        "C:\\workspace\\agent-snap",
+        test_working_dir(),
     );
     config.max_turns = 4;
     config.profile = Some(ToolCallProfile::new(0.1).expect("0.1은 프로파일 값"));
