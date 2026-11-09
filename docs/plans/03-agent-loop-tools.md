@@ -87,7 +87,7 @@ AC 충족, 검증 통과, 리뷰 PASS.
 - 공통 DoD: 그 세부 작업의 AC를 충족한다. 검증 명령이 통과한다. `docs/RESEARCH.md` 적용 위치를 갱신했다. 코드 품질 리뷰(review-harness 체크리스트와 dev-principles 2~11절(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`), 테스트 코드 포함)가 PASS했고 기록이 `docs/reviews/03/`에 있다.
 
 ## 세부 작업
-세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝나는 기능 하나다(DECISIONS D11). 자동화 단계 L2·L3는 본 작업 비범위(D22)이다. 아래 순서대로 하나씩 진행한다. 세부 작업마다 plan.md, spec.md, tasks.md를 둔다. (2026-11-08 번호 재정렬: 작업 순서대로 03-1부터 03-10까지. 착수 전 상태는 각 문서 상단에 `planned`로 둔다.)
+세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝나는 기능 하나다(DECISIONS D11). 자동화 단계 L2·L3는 본 작업 비범위(D22)이다. 아래 순서대로 하나씩 진행한다. 세부 작업마다 plan.md, spec.md, tasks.md를 둔다. (2026-11-08 번호 재정렬: 03-1부터 03-10. 2026-11-09 (a)(b) 이관으로 03-11~13 추가, 스모크 03-10은 표의 마지막 자리 순서 14번. 착수 전 상태는 각 문서 상단에 `planned`로 둔다.)
 
 | 순서 | 번호 | 이름 | 선행 | 문서 |
 |---|---|---|---|---|
@@ -100,15 +100,18 @@ AC 충족, 검증 통과, 리뷰 PASS.
 | 7 | 03-7 | 프로세스 트리 종료(Job Object 등) | 03-6 | [03-07-process-tree](03-agent-loop-tools/03-07-process-tree/plan.md) |
 | 8 | 03-8 | 호출 형식 3안 execute 브리지(읽기 전용 도구부터) | 03-3, 03-6 | [03-08-execute-bridge](03-agent-loop-tools/03-08-execute-bridge/plan.md) |
 | 9 | 03-9 | (후보) timeout→백그라운드·주기 wake | 03-7 | [03-09-timeout-background](03-agent-loop-tools/03-09-timeout-background/plan.md) |
-| 10 | 03-10 | 단발 run·작업 명세·검증 명령·스모크 | 03-4, 03-8, 03-6 | [03-10-run-once-smoke](03-agent-loop-tools/03-10-run-once-smoke/plan.md) |
+| 11 | 03-11 | (a)(b) 배치 이관 1차(계획 모드·3단계 승인 규칙·ask_user) | 03-2, 03-6 | [03-11-a-b-tools](03-agent-loop-tools/03-11-a-b-tools/plan.md) |
+| 12 | 03-12 | (a)(b) 배치 이관 2차(웹 도구·체크포인트) | 03-11 | [03-12-a-b-tools-2](03-agent-loop-tools/03-12-a-b-tools-2/plan.md) |
+| 13 | 03-13 | (a)(b) 배치 이관 3차(심볼 도구·훅·MCP) | 03-12 | [03-13-a-b-tools-3](03-agent-loop-tools/03-13-a-b-tools-3/plan.md) |
+| 14 | 03-10 | 단발 run·작업 명세·검증 명령·스모크(3형식·이관 골격 최종 검증) | 03-4, 03-8, 03-6, 03-11~13 | [03-10-run-once-smoke](03-agent-loop-tools/03-10-run-once-smoke/plan.md) |
 
 순서 정정 근거(2026-11-08):
 - 03-1(트레이트 설계)이 루프·파일도구·execute의 재료이므로 맨 앞에 둔다.
 - 03-4(로컬 AI 폴백)는 스냅 메인 사용처가 로컬 모델이므로 스모크(03-10)보다 앞서 만든다.
 - 03-8(execute)은 도구 7개가 갖춰진 뒤(03-3·03-6) 같은 게이트를 지나는 브리지로 붙인다.
-- 03-10(스모크)는 3형식(1안·2안·3안)을 다 갖춘 뒤 최종 검증으로 맨 마지막에 둔다.
+- 03-10(스모크)는 3형식(1안·2안·3안)과 (a)(b) 이관 골격(03-11~13)을 다 갖춘 뒤 최종 검증으로 맨 마지막에 둔다.
 
 배치 확정 메모(2026-11-08 기획 재검토):
 - ① 병렬 호출(parallel_tool_calls, 한 응답의 여러 호출)은 03-2가 dict 저장으로 순차 실행만 처리하고, 한 응답의 여러 호출 파라미터는 06에서 측정한 뒤 판단한다(후보 D48). 2안 이상의 여러 호출 파싱은 03-4가 정한다.
 - ② `tool_call_format` 필드(auto·openai·text)와 검증 규칙은 03-4 모델 프로필이 만든다. 03-2 T2는 미지원 감지 인터페이스와 4xx 판별만 만든다.
-- ③ MCP 확장은 04 기획 배치 확정 항목(MCP 연결)에 이미 있으며, 03은 범위 밖이다(중복 확인, 2026-11-08).
+- ③ MCP 확장은 2026-11-09 2차 개정으로 03-13에 배치한다(04 배치 항목에서 03으로 이관).
