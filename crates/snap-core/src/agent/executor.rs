@@ -10,6 +10,7 @@ use crate::llm::ToolCall;
 use crate::tools::tool::{ToolContext, ToolOutcome};
 
 use super::args::recover_arguments;
+use super::fallback::ToolCallFormat;
 use super::registry::ToolRegistry;
 use super::truncate::truncate_tool_result;
 use super::types::ToolCallRecord;
@@ -116,6 +117,8 @@ fn record(call: &ToolCall, result: String, executed_at: u64) -> ToolCallRecord {
         arguments: call.arguments.clone(),
         result,
         executed_at_unix_secs: executed_at,
+        // 03-2 루프는 1안으로만 보내므로 기록의 호출 형식은 항상 1안입니다(2안 기록은 03-4가 채움).
+        format: ToolCallFormat::OpenAi,
     }
 }
 

@@ -46,15 +46,16 @@ impl MockServer {
     /// 대기열 채우기 규칙은 `super::queue`에 있습니다(서버 수명 책임과 스크립트 대기열 책임 분리).
     pub async fn spawn_queue(scripts: Vec<MockResponseScript>) -> Self {
         let (tail, remaining) = queue::split(scripts);
-        let server = Self::spawn_with(tail, |shared| {
+        // 서버가 요청받기 전에 대기열을 채운다. 띄운 뒤 채우면 첫 요청이 뒤 스크립트로 답할 수 있다(queue 경쟁 방지).
+        let shared = Arc::new(Shared::new(tail));
+        queue::fill(&shared, remaining).await;
+        Self::spawn_shared(shared, |shared| {
             Router::new()
                 .route("/chat/completions", post(handle_chat_completions))
                 .route("/models", get(handle_models))
                 .with_state(shared)
         })
-        .await;
-        queue::fill(&server.shared, remaining).await;
-        server
+        .await
     }
 
     /// 라우트를 직접 정해서 띄우는 기본 만들기입니다. 라우트 등록 쪽만 바뀌면 서버 수명 코드를
@@ -63,8 +64,12 @@ impl MockServer {
         script: MockResponseScript,
         routes: impl FnOnce(Arc<Shared>) -> Router,
     ) -> Self {
-        let shared = Arc::new(Shared::new(script));
+        Self::spawn_shared(Arc::new(Shared::new(script)), routes).await
+    }
 
+    /// 공유 상태를 받아 라우트를 붙이고 포트에 뜨는 실제 만들기입니다. 대기열을 미리 채운
+    /// 상태를 넘길 수 있게 나눈 것입니다(`spawn_queue`의 경쟁 방지).
+    async fn spawn_shared(shared: Arc<Shared>, routes: impl FnOnce(Arc<Shared>) -> Router) -> Self {
         let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0)))
             .await
             .expect("모의 서버 포트 바인딩");

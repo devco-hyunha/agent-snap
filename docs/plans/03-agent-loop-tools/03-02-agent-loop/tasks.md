@@ -29,4 +29,4 @@
 ## 작업 파일
 | 파일 | 작업 | 상태 |
 | `docs/tasks/03/03-02-agent-loop/T1-agent-loop.md` | T1 루프 골격 | 완료 |
-| `docs/tasks/03/03-02-agent-loop/T2-fallback-point.md` | T2 폴백 지점 | 계획 |
+| `docs/tasks/03/03-02-agent-loop/T2-fallback-point.md` | T2 폴백 지점 | 완료 |

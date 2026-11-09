@@ -5,6 +5,7 @@
 #![allow(dead_code, unreachable_pub)]
 
 use std::collections::BTreeMap;
+use std::path::PathBuf;
 
 use snap_core::agent::{LoopConfig, ToolCallProfile, ToolRegistry};
 use snap_core::config::{ExtraValue, Sampling};
@@ -155,6 +156,13 @@ pub fn cancel_token() -> CancellationToken {
     CancellationToken::new()
 }
 
+/// 시험이 쓰는 작업 폴더 위치 표기입니다. 도구가 파일을 쓰지 않는 시험은
+/// 현재 위치를 가리키는 상대 표기면 충분합니다. 절대경로를 시험마다 중복하지 않으려고 한 곳에 모읍니다.
+#[must_use]
+pub fn test_working_dir() -> PathBuf {
+    PathBuf::from(".")
+}
+
 /// 루프가 쓸 요청 골격입니다. 모델 `extra` 값은 비어 있고 루프가 채웁니다.
 #[must_use]
 pub fn base_config() -> ChatRequest {
@@ -189,7 +197,7 @@ pub fn loop_config(
         base_config(),
         "규범 앞머리",
         "과제 한 장",
-        "C:\\workspace\\agent-snap",
+        test_working_dir(),
     );
     config.max_turns = max_turns;
     config.profile = profile;

@@ -6,6 +6,8 @@
 
 use crate::llm::TransportError;
 
+use super::fallback::{FallbackConnector, FallbackPoint, ToolCallFormat};
+
 /// 왕복을 시작하기 전에 확인해야 하는 문제가 있습니다.
 #[derive(thiserror::Error, Debug)]
 pub enum LoopStartError {
@@ -33,9 +35,17 @@ pub struct ToolCallRecord {
     pub result: String,
     /// 실행한 순간의 유닉스 시각(초)입니다. 검증은 하한·상한으로만 봅니다.
     pub executed_at_unix_secs: u64,
+    /// 호출이 어느 형식 경로에서 나왔는지 밝히는 호출 형식 칸입니다.
+    ///
+    /// 03-2 루프는 1안으로만 보내므로 `ToolCallFormat::OpenAi`로 채웁니다. 2안 기록은 03-4가
+    /// 만드시고, 03-4 AC 5의 전환 기록 소비 대상입니다(할 일 4).
+    pub format: ToolCallFormat,
 }
 
 /// 루프가 끝난 뒤 돌려주는 결과입니다.
+///
+/// 03-2는 1안 경로만 담당하고 03-4로 넘길 판단을 남기지므로, 판정 결과를 이 결과에 담습니다.
+/// 03-4는 필드 순서를 그대로 읽고 03-4 AC 5 전환 기록 입력으로 소비합니다(할 일 6, 리뷰 1차 N2).
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LoopResult {
     /// `stop`으로 끝난 최종 답 텍스트입니다.
@@ -44,6 +54,9 @@ pub struct LoopResult {
     pub tool_calls: Vec<ToolCallRecord>,
     /// 모델 왕복 횟수입니다.
     pub turns: u32,
+    /// 03-4 폴백 전환 판단 값입니다. 호출 없는 텍스트 1회로 종료한 첫 왕복이면 `Some`,
+    /// 도구 호출이 있거나 여러 번째 왕복이면 `None`입니다. `runner`가 판정 함수로 채웁니다.
+    pub fallback_point: Option<FallbackPoint>,
 }
 
 /// 왕복을 끝내는 사정 4갈래입니다(spec 동작 규칙 1~4, AC 2·AC 1).
@@ -79,12 +92,18 @@ pub enum LoopError {
     Transport {
         /// 가리기를 거친 전송 오류 문구입니다.
         reason: String,
+        /// 서버가 준 HTTP 상태 코드입니다. 상태 코드 응답이 아니면 `None`입니다.
+        ///
+        /// 03-4가 판단에 쓰도록 코드를 보존하는 창구입니다(할 일 1). 본문 글자는 담지 않습니다(D28).
+        status: Option<u16>,
     },
-    /// 응답에 내용도 도구 호출도 없습니다. 03-4 폴백 연결 지점으로 넘깁니다(AC 4 자리).
-    #[error("모델이 도구 호출을 처리하지 못했습니다. 폴백 연결 지점: {fallback}")]
+    /// 모델이 1안 호출 형식을 처리하지 못했습니다. 03-4 폴백 연결 지점으로 넘깁니다(AC 4 자리).
+    #[error("모델이 도구 호출을 처리하지 못했습니다. 폴백 연결 지점: {fallback}({point})")]
     Unsupported {
-        /// 폴백 연결 지점 표기입니다. 03-4가 채울 자리만 남깁니다.
-        fallback: String,
+        /// 폴백 연결 지점 표기입니다. 03-4가 소비하는 자리이고, 판정 결과가 고르는 상수를 씁니다.
+        fallback: FallbackConnector,
+        /// 왜 폴백으로 넘기는지 밝힌 판단 값입니다. 2안 조립은 03-4가 합니다.
+        point: FallbackPoint,
     },
     /// 왕복 전에 확인한 문제가 있습니다.
     #[error(transparent)]
@@ -93,17 +112,26 @@ pub enum LoopError {
 
 impl LoopError {
     /// 전송 오류를 루프 오류로 바꿉니다. 주소·키는 02-5 가리기를 이미 거친 값입니다.
+    ///
+    /// 서버가 준 상태 코드가 있으면 그대로 옮깁니다. 4x 판별은 `fallback`의 `is_unsupported_status`가
+    /// 하고, 여기서는 코드 보존만 합니다(할 일 1). 본문 글자는 옮기지 않습니다(D28).
     pub fn transport(error: &TransportError) -> Self {
+        let status = match error {
+            TransportError::ServerStatus { status, .. } => Some(*status),
+            _ => None,
+        };
         Self::Transport {
             reason: error.to_string(),
+            status,
         }
     }
 
-    /// 내용도 도구 호출도 없는 응답을 미지원 오류로 만듭니다(AC 4, 03-4 자리).
+    /// 03-4가 소비하는 폴백 연결 지점 표기를 고르는 상수로 채운 미지원 오류를 만듭니다(AC 4, 03-4 자리).
     #[must_use]
-    pub fn unsupported() -> Self {
+    pub fn unsupported(point: FallbackPoint) -> Self {
         Self::Unsupported {
-            fallback: "03-4 폴백".to_owned(),
+            fallback: FallbackConnector,
+            point,
         }
     }
 }

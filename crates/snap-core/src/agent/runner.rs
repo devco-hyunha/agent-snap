@@ -6,11 +6,13 @@
 
 use crate::llm::{
     AssembledResponse, CancellationToken, ChatRequest, ChatStream, LlmClient, ToolCall,
+    TransportError,
 };
 
 use super::config::LoopConfig;
 use super::definitions::registry_to_definitions;
 use super::executor::run_tool_calls;
+use super::fallback::{FallbackPoint, first_turn_fallback_point, is_unsupported_status};
 use super::prompt::{
     EMPTY_AGENTS_MD, assemble_messages, assistant_turn_message, tool_result_messages,
 };
@@ -74,7 +76,7 @@ impl<C: LlmClient> AgentLoop<C> {
                 .await
             {
                 Ok(stream) => stream,
-                Err(error) => return LoopOutcome::Failed(LoopError::transport(&error)),
+                Err(error) => return LoopOutcome::Failed(transport_failure(&error)),
             };
             turns += 1;
             let assembled = drain_stream(stream).await;
@@ -82,10 +84,17 @@ impl<C: LlmClient> AgentLoop<C> {
             let calls: Vec<ToolCall> = assembled.tool_calls.values().cloned().collect();
             if calls.is_empty() {
                 if content.is_empty() {
-                    return LoopOutcome::Failed(LoopError::unsupported());
+                    // 내용도 호출도 없는 응답만 미지원 판단으로 넘깁니다(AC 4).
+                    return LoopOutcome::Failed(LoopError::unsupported(
+                        FallbackPoint::NoToolCallText,
+                    ));
                 }
+                // 호출 없는 텍스트 한 번은 AC 1의 정상 종료입니다. 종료 전에 첫 턴 판정 함수로
+                // 판단 값을 만들고 결과에 담아 03-4가 소비하게 연결합니다(할 일 6, 리뷰 1차 N2).
+                // 4x 상태 판별은 `transport_failure`이 같은 `FallbackPoint`로 연결합니다.
+                let fallback_point = first_turn_fallback_point(true, turns, !records.is_empty());
                 return LoopOutcome::Finished(LoopEnd::Stop {
-                    result: loop_result(content, records, turns),
+                    result: loop_result(content, records, turns, fallback_point),
                 });
             }
             let run = run_tool_calls(&config.registry, &config.context, &calls).await;
@@ -95,7 +104,7 @@ impl<C: LlmClient> AgentLoop<C> {
             let Some(stopped_record) = rejection else {
                 if turns >= config.max_turns {
                     return LoopOutcome::Finished(LoopEnd::TurnLimit {
-                        partial: loop_result(content, records, turns),
+                        partial: loop_result(content, records, turns, None),
                     });
                 }
                 request.messages = request
@@ -109,7 +118,7 @@ impl<C: LlmClient> AgentLoop<C> {
             };
             return LoopOutcome::Finished(LoopEnd::ApprovalRejected {
                 stopped_record,
-                partial: loop_result(content, records, turns),
+                partial: loop_result(content, records, turns, None),
             });
         }
     }
@@ -126,10 +135,39 @@ async fn drain_stream(mut stream: ChatStream) -> AssembledResponse {
 }
 
 /// 왕복 한 바퀴의 결과를 채우는 한 곳입니다(같은 조립을 다시 적지 않습니다, DRY).
-fn loop_result(final_text: String, tool_calls: Vec<ToolCallRecord>, turns: u32) -> LoopResult {
+///
+/// 폴백 판단 값은 첫 턴 판정 경로에서만 채우고, 그 밖의 종료 자리(반복 상한·거부)는 `None`입니다.
+fn loop_result(
+    final_text: String,
+    tool_calls: Vec<ToolCallRecord>,
+    turns: u32,
+    fallback_point: Option<FallbackPoint>,
+) -> LoopResult {
     LoopResult {
         final_text,
         tool_calls,
         turns,
+        fallback_point,
     }
+}
+
+/// 전송 실패를 루프 오류로 바꿉니다. 4x 미지원 코드는 폴백 연결 지점 판단으로 채우고(AC 4),
+/// 그 밖의 전송 실패는 코드를 보존해 그대로 넘깁니다(재전송은 02-6 한 층만 함, D13).
+fn transport_failure(error: &TransportError) -> LoopError {
+    let transport = LoopError::transport(error);
+    // 상태 코드 응답에서만 4x 표를 봅니다. 상태 코드가 없는 실패는 문구만 보존해 그대로 넘깁니다.
+    let LoopError::Transport {
+        reason,
+        status: Some(status),
+    } = transport
+    else {
+        return transport;
+    };
+    if !is_unsupported_status(status) {
+        return LoopError::Transport {
+            reason,
+            status: Some(status),
+        };
+    }
+    LoopError::unsupported(FallbackPoint::UnsupportedStatus { status })
 }

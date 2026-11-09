@@ -24,6 +24,9 @@ pub(super) fn split(
 }
 
 /// 서버 공유 상태의 대기열에 남은 스크립트를 채웁니다.
+///
+/// 서버가 요청받기 전에 채워야 합니다. 띄운 뒤에 채우면 첫 요청이 대기열이 빈 기본 스크립트로
+/// 답하는 짧은 경쟁이 생깁니다(`server.rs`의 `spawn_queue`가 이 순서를 지킵니다).
 pub(super) async fn fill(shared: &Arc<Shared>, queue: VecDeque<MockResponseScript>) {
     *shared.script_queue.lock().await = queue;
 }

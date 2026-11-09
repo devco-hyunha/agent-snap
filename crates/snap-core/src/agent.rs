@@ -2,12 +2,13 @@
 //!
 //! 루프(`runner`)·등록 목록(`registry`)·OpenAI 변환(`definitions`)·도구 실행(`executor`)·잘림(`truncate`)·
 //! messages 조립(`prompt`)·인자 JSON 복구(`args`)·프로파일(`profile`)·설정 값(`config`)·
-//! 결과 타입(`types`)이 각 파일의 책임입니다(dev-principles 2절 SRP).
+//! 폴백 연결 지점 판단(`fallback`)·결과 타입(`types`)이 각 파일의 책임입니다(dev-principles 2절 SRP).
 
 pub mod args;
 pub mod config;
 pub mod definitions;
 pub mod executor;
+pub mod fallback;
 pub mod profile;
 pub mod prompt;
 pub mod registry;
@@ -19,6 +20,10 @@ pub use args::recover_arguments;
 pub use config::{DEFAULT_MAX_TURNS, DEFAULT_TOOL_RESULT_MAX_CHARS, LoopConfig};
 pub use definitions::registry_to_definitions;
 pub use executor::{ToolRun, run_tool_calls};
+pub use fallback::{
+    FallbackConnector, FallbackPoint, ToolCallFormat, UNSUPPORTED_STATUS_CANDIDATES,
+    first_turn_fallback_point, is_unsupported_status,
+};
 pub use profile::ToolCallProfile;
 pub use prompt::{EMPTY_AGENTS_MD, assemble_messages};
 pub use registry::ToolRegistry;
