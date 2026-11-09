@@ -81,7 +81,7 @@ AC 충족, 검증 통과, 리뷰 PASS.
 ### 세부 작업 공통 기준
 각 세부 작업의 tasks.md는 이 절을 따른다.
 - 문서 규격(2026-11-08, PROJECT_RULES 문서 규격 절): 각 세부 plan.md에 `## 작업계획` 표를 두고 열은 `| 작업 | 범위 | 금지 | 산출물 | 검증 명령 |`로 한다(행 이름은 `T<번호> <작업명>`). plan.md·tasks.md에는 `## 작업 파일` 표를 두고 열은 `| 파일 | 작업 | 상태 |`로 한다. 상태는 계획 / 진행 / 완료 / 막힘 중 하나이고, 상세 작업 파일(T-파일)의 상태가 바뀔 때마다 plan.md와 tasks.md의 표를 함께 고친다. 상세 작업 파일은 T1부터 순번을 붙인 `T<번호>-<짧은 이름>.md` 파일 하나이며, 절은 목표·근거·읽을 파일·할 일·검증·완료 조건·상태·라운드 보고로 한다. 상세 작업 파일에는 결정 문서 본문을 복제하지 않고 절 번호와 포인터만 적는다.
-- 하네스 전달(2026-11-08): 상세 작업 파일의 `읽을 파일`에는 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 경로(`.agents/skills/dev-principles/SKILL.md`, Claude Code·Cursor는 `.claude/skills/dev-principles/SKILL.md`)를 반드시 넣는다. `할 일`에 "dev-principles 2~11절 준수(SRP에 따라 책임을 파일별로 분리, DRY 재사용 사다리로 기존 함수 먼저 검색)" 단계를 넣고, `완료 조건`에 "dev-principles 2~11절 준수 확인"을 넣는다. 위임 프롬프트는 delegation-brief의 포인터 샌드위치(가드레일 6줄 → 작업 포인터 → 자기점검 4줄, 500자 이하)로 보내고, 가드레일 3번에 위 4개 문서 선독이 들어 있다.
+- 하네스 전달(2026-11-08, 2026-11-09 문구 정합): 상세 작업 파일의 `읽을 파일`에는 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md` 개발 규칙 절, dev-principles 경로(`.agents/skills/dev-principles/SKILL.md`, Claude Code·Cursor는 `.claude/skills/dev-principles/SKILL.md`)를 반드시 넣는다. `할 일`에는 PROJECT_RULES 64절의 두 단계를 그대로 넣는다: ① "dev-principles 2~11절(SRP 파일·함수 분리, DRY 재사용 사다리) 준수" ② "서로 다른 책임을 한 파일에 몰아넣지 않고 역할별 파일로 분리". `완료 조건`에는 "dev-principles 2~11절 준수 확인과 파일 분기 구조"를 넣는다. 검증 절의 SRP·DRY 확인은 한 기준으로 통일한다: "중복 정의 없음을 grep으로 확인하고 재사용 정본 파일:라인을 보고에 적는다". 위임 프롬프트는 delegation-brief의 포인터 샌드위치(가드레일 6줄 → 작업 포인터 → 자기점검 4줄, 500자 이하)로 보내고, 가드레일 3번에 위 4개 문서 선독이 들어 있다.
 - 작업 방식: 한 번 위임하고 한 번 코드 리뷰로 끝낸다(D11).
 - 검증 명령: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`.
 - 공통 DoD: 그 세부 작업의 AC를 충족한다. 검증 명령이 통과한다. `docs/RESEARCH.md` 적용 위치를 갱신했다. 코드 품질 리뷰(review-harness 체크리스트와 dev-principles 2~11절(`.agents/skills/dev-principles/SKILL.md`, Claude Code와 Cursor는 `.claude/skills/dev-principles/SKILL.md`), 테스트 코드 포함)가 PASS했고 기록이 `docs/reviews/03/`에 있다.
@@ -96,7 +96,7 @@ AC 충족, 검증 통과, 리뷰 PASS.
 | 3 | 03-3 | 파일 도구·grep·glob·list_dir·비밀 파일 차단 | 03-1, 03-2 | [03-03-file-tools](03-agent-loop-tools/03-03-file-tools/plan.md) |
 | 4 | 03-4 | 호출 형식 2안 텍스트 프로토콜 폴백(로컬 미지원 모델) | 03-2 | [03-04-form-protocol](03-agent-loop-tools/03-04-form-protocol/plan.md) |
 | 5 | 03-5 | AGENTS.md 읽기 조립 | 03-2 | [03-05-agents-md](03-agent-loop-tools/03-05-agents-md/plan.md) |
-| 6 | 03-6 | run_command·승인자 주입·승인/실행 deadline | 03-2 | [03-06-run-command](03-agent-loop-tools/03-06-run-command/plan.md) |
+| 6 | 03-6 | run_command·승인자 주입·승인/실행 deadline | 03-2, 03-3 | [03-06-run-command](03-agent-loop-tools/03-06-run-command/plan.md) |
 | 7 | 03-7 | 프로세스 트리 종료(Job Object 등) | 03-6 | [03-07-process-tree](03-agent-loop-tools/03-07-process-tree/plan.md) |
 | 8 | 03-8 | 호출 형식 3안 execute 브리지(읽기 전용 도구부터) | 03-3, 03-6 | [03-08-execute-bridge](03-agent-loop-tools/03-08-execute-bridge/plan.md) |
 | 9 | 03-9 | (후보) timeout→백그라운드·주기 wake | 03-7 | [03-09-timeout-background](03-agent-loop-tools/03-09-timeout-background/plan.md) |

@@ -16,8 +16,8 @@
 - JS 엔진을 고르면 `boa`(순수 Rust)·`rquickjs`(QuickJS C 바인딩, 저용량)·`deno_core`(V8, 무거움) 중 하나를 확정하고, 라이선스·의존성 크기를 메모에 남긴다. 모두 Rust 크레이프로 들어가 새 외부 런타임은 없다.
 - 엔진 없이 JSON 호출 체인으로 가면 새 의존성 0개로 03-4 JSON 복원 경로를 재사용한다. 표현력은 순서·결과 전달만(분기·반복은 03-2 다중 호출로).
 - wasm은 모델 생성 언어로 부적합(생성 난이도). Rust 스크립트는 eval 크레이트가 사실상 없어 컴파일 시간 부담이 커 후보에서 제외. 세부 근거는 엔진 선택 메모에 적는다.
-- 스크립트에서 부르는 함수는 03-3·03-6의 `Tool` 구현 그대로다: `read_file(args)`, `grep(args)`, `glob(args)`, `listDir(args)`, `writeFile(args)`, `editFile(args)`, `runCommand(args)`. 매개·게이트·잘림 규칙은 같은 자리를 쓴다(재사용, 중복 구현 금지).
-- 1차 허용 목록: `read_file`, `grep`, `glob`, `list_dir`. 쓰기·명령(`write_file`, `edit_file`, `run_command`)은 승인 게이트를 지난 뒤 개방한다(개방 순서는 03-4 안정화 후 결정, plan Out).
+- 스크립트에서 부르는 함수는 03-3·03-6의 `Tool` 구현 그대로다: `read_file(args)`, `grep(args)`, `glob(args)`, `list_dir(args)`, `write_file(args)`, `edit_file(args)`, `run_command(args)`. 등록 이름은 03-1 spec 정본(소문자·언어 연결)을 따르고 매개·게이트·잘림 규칙은 같은 자리를 쓴다(재사용, 중복 구현 금지).
+- 1차 허용 목록: `read_file`, `grep`, `glob`, `list_dir`. 쓰기·명령(`write_file`, `edit_file`, `run_command`)은 승인 게이트를 지난 뒤 개방한다(개방 순서는 03-4 안정화 후 결정, plan Out). D49(2026-11-09)에 따라 `write_file`·`edit_file`은 작업 폴더 안에서 L1 승인 대상이 아니고 표시로 알린다. L1 승인은 `run_command`에만 걸린다. `execute` 스크립트 전체 확인 1승인은 그대로 둔다.
 
 ## 승인 게이트 (AC 2, AC 5)
 - `execute` 도구 호출 자체는 승인 1회다(스크립트 전체에 대한 확인 1개).
