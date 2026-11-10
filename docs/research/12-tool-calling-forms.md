@@ -99,3 +99,37 @@
 - https://cursor.com/docs/agent/tools
 - https://learn.chatgpt.com/docs/agent-approvals-security
 - https://github.com/ggml-org/llama.cpp/blob/master/docs/function-calling.md (03-agent-loop-tools.md에서 확인 기록)
+
+## 8. 2026-11-10 추가 조사 (2안 설계 보정 근거, D50)
+
+쉬운 말: 다른 에이전트들은 "이 모델은 도구 호출이 된다"를 미리 적어두는 쪽을 기본으로 씁니다. 감지는 미리 적을 수 없는 로컬 서버에서만 씁니다.
+
+- 업계 관례 — 사전 선언형이 기본
+  - OpenCode: models.dev 카탈로그와 설정의 `capabilities:{tools:true}` 선언으로 형식을 고르고, 카탈로그에 없는 모델은 사용자가 선언하게 둔다. 아무것도 없으면 "도구 지원" 가정치를 깔되 그 가정의 정확도를 검증할 수 없다고 문서에 적는다. Ollama·LM Studio처럼 서버 caps를 런타임으로 읽는 곳만 예외.
+  - LiteLLM: `supports_function_calling(model)`·`supports_parallel_function_calling(model)` 조회로 요청 전에 참·거짓을 정한다.
+  - Vercel AI SDK: 모델별 `Tool Usage`·`Tool Streaming` 표와 프로바이더 옵션(수동 지정).
+  - 4xx 뒤에 `tools`를 빼고 재시도하는 공개 문서는 확인하지 못했고, 형식 고정 재시도(OpenCode `compatibility.requireAssistantAfterTool`·`requireFinishReason`, AI SDK 호출 복구)만 확인했다.
+  - 근거: https://opencode.ai/docs/models/ , https://models.dev/ , https://docs.litellm.ai/docs/completion/function_call , https://ai-sdk.dev/docs/ai-sdk-core/providers-and-models
+- 스키마 표기 절감(TSCG): JSON 스키마를 절감한 구조화 텍스트로 바꾸면 Phi-4 14B 20도구 0→84.4, 50도구 90.3, 토큰 52~57% 절감. 10B 미만은 절감 연산자만 쓰는 보수형을 권한다. 읽는 쪽(시스템 프롬프트)에만 압축을 검토하고 답은 JSON 유지. 근거: https://arxiv.org/html/2605.04107v1
+- 제약 생성: 스키마 적합률은 100%로 올리지만 의미 정확도는 모델 크기에 따라 간격이 남는다("이유 없는 제약은 늦게 걸어라"). 2안 파서·저온 유지와 제약 생성 서버 연동 범위 밖 유지의 근거. 근거: https://arxiv.org/html/2609.23742v1 , https://arxiv.org/html/2605.26128 (둘 다 초록·인용 수준만 확인)
+- 2609.07370 인용 주의: 4.4절의 "실패 658개"가 표 2 성공 합계(1,000−732)와 어긋난다는 외부 감사가 있다. 준수율 인용은 표 2·표 3만 쓴다. 근거: https://www.sunny34.com/research/posts/arxiv-2609-07370-slm-mcp-reliability.en
+- llama.cpp·vLLM 실무 함정
+  - `--jinja`는 기본 활성화, `/props`의 `chat_template`·`chat_template_tool_use`로 도구 대응 확인, 미식별 시 Generic으로 빠져 토큰 증가. 과도한 KV 양자화(`-ctk q4_0`)는 도구 호출 성능을 크게 깎는다는 경고.
+  - 에러 본문에 `code`(400)와 `type`(`invalid_request_error`)을 담는 서버(llama.cpp)가 있는가 하면 mlx-lm은 404로 낸다 → 서버마다 코드·본문 모양이 제각각이라 본문 글자 판별 금지(D28) 유지 근거.
+  - 서버가 준 `tool_call_id`를 다음 턴에 그대로 넣으면 템플릿 검증에 걸려 400(llama.cpp 이슈 #26359, Ministral 9자리 규칙, fix 미합병), mlx-lm은 36자리 UUID id로 404(이슈 #1375).
+  - vLLM: `tools`만 보내면 `tool_choice="auto"`로 취급하고, `--enable-auto-tool-choice`·`--tool-call-parser`가 없으면 400으로 거절. 422도 4xx 계통.
+  - 근거: https://github.com/ggml-org/llama.cpp/blob/HEAD/tools/server/README.md , https://raw.githubusercontent.com/ggml-org/llama.cpp/master/docs/function-calling.md , https://github.com/ggml-org/llama.cpp/issues/26359 , https://github.com/ml-explore/mlx-lm/issues/1375 , https://docs.vllm.ai/en/stable/features/tool_calling/
+- 재사용 가능한 로컬 파서 규칙: 복원 순서(Markdown 둘레 제거 → 중괄호 추출 → 파싱 → 스키마 검증 → 모호 시 거부), 답 생성은 JSON·저온(0.2 이하) 고정, 병렬 요구는 2안에서 금지(D48 정합), 토큰 절감은 읽는 쪽만(vLLM 파서·smolagents `ToolCallingAgent`·Outlines 백엔드 참고). 근거: https://docs.vllm.ai/en/latest/api/vllm/parser/ , https://huggingface.co/docs/smolagents/en/reference/agents , https://dottxt-ai.github.io/outlines/latest/guide/architecture/
+- 설계 결론(D50): 선언(`openai`·`text`) 우선 → `auto`만 4x 코드 표로 감지 → 본문 글자·`type` 판별 금지 → `/props` 사전 점검은 llama.cpp 안내 문서만.
+
+## 9. 2026-11-10 보정 조사 (리서치 서브 직접 확인, D50 재확인)
+
+쉬운 말: 03-4 설계(D50)를 2026년 공개 문헌과 견주어 맞는지 다시 봤습니다. 설계는 그대로이고, 새 근거 다섯만 더습니다.
+
+- (a) 준수율·복원 파서 기준 재확인: [2609.07370 원문](https://arxiv.org/html/2609.07370v1)의 표 2 수치는 계획과 같습니다(Qwen2.5-1.5B sampling 79%, greedy 75%, Qwen2.5-0.5B greedy 72%→sampling 32%, 나머지 0~7%). 파서 기준도 펜 제거 → 첫 중괄호~마지막 중괄호 추출 → 파싱 → 도구 이름·필수 인자 대조로 우리 래더 ①~⑤와 같은 순서입니다. 표 3은 Qwen2.5-1.5B greedy에서 복원된 75개가 전부 완전정답이라, 파서 부담이 복원 실패 25개에 몰립니다 → 복원 실패 시 짧은 오류로 되알리는 권고(AC 4와 별개)가 정당합니다.
+- (b) 읽는 쪽 스키마 절감(TSCG): 수치는 확인(Phi-4 14B 20도구 0→84.4, 50도구 90.3, 52~57% 절감). 새 근거로 E4 분해(R² 0.88→0.03)가 있어 소형 모델 이득은 "압축"이 아니라 "JSON→글자 형식 변환"에서 나고, 순수 압축 이득은 0에 가깝습니다. 10B 미만은 군더더기 제거만 하는 보수형, Qwen은 JSON 선호라는 배포 지침이 있습니다. 같은 저자의 [2605.26165](https://arxiv.org/abs/2605.26165)(직접 확인)는 8K에서 JSON 스키마가 창을 넘쳐 EM 2.6% → 절감 시 +20.5pp로 프롬프트 길이 리스크를 뒷받침합니다. 읽기 쪽 절감은 06 후보 유지로 채택.
+- (c) 여러 호출 파싱 관례: [OpenAI 가이드](https://developers.openai.com/api/docs/guides/function-calling)는 0·1·여러 개를 전제로 호출마다 id 1:1 결과 메시지, 하나 빠지면 400이라 합니다. [vLLM](https://docs.vllm.ai/en/stable/features/tool_calling/)은 `hermes`·`pythonic`(`[fn(a=1), fn(b=2)]`)으로 여러 호출을 한 번에 파싱하고, [smolagents PR #1906](https://github.com/huggingface/smolagents/pull/1906)도 여러 호출 전체 뽑기로 이행 중입니다. → 2안은 1개부터, 2개 이상은 06 판단이 관례에 맞습니다. 여러 객체를 뽑는 구조로 두고 실행은 1개만 받는 방식이 관례와 가장 잘 맞습니다.
+- (d) `tool_call_id` 함정 최신 정보: [llama.cpp 이슈 #26359](https://github.com/ggml-org/llama.cpp/issues/26359)는 2026-09-14로 오래된 처리로 닫힘·미합병이고, 서버는 32자 알파뉴머릭 id를 계속 만듭니다. [mlx-lm PR #1399](https://github.com/ml-explore/mlx-lm/pull/1399)(9자리로 줄이는 패)는 2026-08-21 "비필요"로 닫혀 합쳐지지 않았습니다. vLLM의 Mistral용 템플릿은 id를 마지막 9자리로 잘라 넣습니다. 새 함정 둘: [hermes-agent PR #99254](https://github.com/NousResearch/hermes-agent/pull/99254)는 툴 역할 메시지에 레거시 `name`을 넣으면 엄격한 호환 프록시가 400으로 거절, [openclaw 이슈 #27406](https://github.com/openclaw/openclaw/issues/27406)은 GGUF 템플릿이 `tool` 역할을 못 읽으면 예외가 납니다 → D50 결정 5(`role: user` 글자 전달)가 로컬 관례에 맞습니다. 우리 요청 타입에는 `name` 칸이 없어(`llm/client/request.rs`의 `ChatMessage`) 이 함정은 해당하지 않습니다.
+- (e) 선언형 캐퍼빌리티 관례: [OpenCode 모델 문서](https://opencode.ai/docs/models/)는 `capabilities:{tools:true}` 직접 선언이 기본이고 커스텀 모델은 감지 불가·기본값 가정은 검증 불가로 명시. [LiteLLM](https://docs.litellm.ai/docs/completion/function_call)은 `supports_function_calling` 조회, [LiteLLM PR #30032](https://github.com/BerriAI/litellm/pull/30032)는 `supports_*` 기본값을 전부 False로 옮기는 중 → 선언 우선 → `auto`만 4x 감지가 관례에 맞습니다.
+
+- 채택·기각: (a)(c)(e)는 D50 설계 유지로 채택. (b)는 06 후보 유지 채택(읽기 쪽만, 답은 JSON). (d)는 `role: user` 전달 유지 채택, `tool_call_id` 생성 규칙(9자리 충돌)은 03-4 구현에서 정하고 06에서 실측.
