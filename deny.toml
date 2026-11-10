@@ -1,0 +1,52 @@
+# cargo-deny 설정(agent-snap). 라이선스·취약점·복사 금지·전송 경유를 CI(cargo deny check)에서 쓴다.
+# 라이선스 허용 목록은 OSI·FSF 승인 관례 라이선스만 둔다.
+# LGPL-2.1-or-later는 넣지 않는다: r-efi는 MIT OR Apache-2.0 OR LGPL 삼중 라이선스라 MIT 쪽으로 통과한다.
+# CDLA-Permissive-2.0은 허용 목록에서 제외하고, webpki-root-certs 예외 한 건만 승인한다.
+# 이 예외는 CDLA 라이선스가 의존성에 새로 등장하면 CI가 거부하게 막아 두는 방어 장치다.
+# 현재 잠긴 파일에는 CDLA 라이선스가 없어 예외 항목은 미발생 경고로 남는다(경고는 통과를 막지 않는다).
+
+[graph]
+targets = [
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "x86_64-pc-windows-msvc" },
+    { triple = "aarch64-apple-darwin" },
+]
+
+[advisories]
+unmaintained = "workspace"
+yanked = "deny"
+ignore = []
+
+[licenses]
+# OSI·FSF 승인 관례 라이선스만 허용한다. copyleft(LGPL·GPL)와 미승인(CDLA)은 기본 거부.
+# LLVM 예외 항목은 결정에 따라 열어 둔 것이며, 현재 잠긴 파일에서 쓰이지 않아 미발생 경고만 난다(통과는 막지 않는다).
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-3-Clause",
+    "MIT-0",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "Zlib",
+    "Unlicense",
+]
+confidence-threshold = 1.0
+
+# CDLA-Permissive-2.0은 허용 목록에 두지 않는다.
+# 루트 인증서 데이터 한 크레이트만 단일 라이선스 예외로 승인한다(대상: webpki-root-certs, 근거: rustls 플랫폼 검증 체재의 데이터 파일).
+[[licenses.exceptions]]
+name = "webpki-root-certs"
+allow = ["CDLA-Permissive-2.0"]
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []
