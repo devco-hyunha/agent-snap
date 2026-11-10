@@ -130,6 +130,8 @@ async fn path_guard_refusals_reach_tool_error_line() {
     for raw in [
         r#"{"path":"../out.txt"}"#,
         r#"{"path":"credentials.jsonc"}"#,
+        r#"{"path":".env"}"#,
+        r#"{"path":".env.local"}"#,
     ] {
         let outcome = ReadFileTool.call(raw, &ctx).await;
         let line = outcome.text();

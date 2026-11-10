@@ -49,13 +49,18 @@ pub(crate) fn search_with_ripgrep(
         command.arg("--glob").arg(format!("*.{ext}"));
     }
     // 비밀 파일은 rg가 읽지도 않게 인자 단계에서 막습니다. ripgrep는 `--glob` 규칙을
-    // 마지막에 맞는 것으로 판단하므로, 거르기 두 줄을 확장자 필터 뒤에 반드시 둡니다.
+    // 마지막에 맞는 것으로 판단하므로, 거르기 줄을 확장자 필터 뒤에 반드시 둡니다.
+    // `.env` 계열(AC 8)은 이름이 `.env`로 시작하는 자리만 막습니다(과잉 차단 금지).
     // 결과-parser에도 같은 거르기를 두어 방어선을 겹치게 합니다(D17·spec AC 4).
     command
         .arg("--glob")
         .arg(format!("!{CREDENTIALS_FILE_NAME}"))
         .arg("--glob")
-        .arg(format!("!{CONFIG_FILE_NAME}"));
+        .arg(format!("!{CONFIG_FILE_NAME}"))
+        .arg("--glob")
+        .arg("!.env")
+        .arg("--glob")
+        .arg("!.env*");
     command.arg("-e").arg(pattern).arg("--").arg(start);
     let output = command.current_dir(working_dir).output().ok()?;
     if !output.status.success() && output.status.code() != Some(1) {

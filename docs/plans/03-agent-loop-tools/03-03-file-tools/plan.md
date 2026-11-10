@@ -1,6 +1,6 @@
 # 03-3 파일 도구·glob·grep·list_dir: 상세 기획
 
-- 상태: 완료(T1~T3) / T4 기획 추가·구현 대기(2026-11-10)
+- 상태: 완료(T1~T3) / T4 구현 완료·독립 리뷰 5차 PASS(2026-11-10) / SRP 분할 완료·분할 리뷰 4차 PASS(2026-11-10)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md)
 - 순서 정정(2026-11-08): 트레이트 설계는 [03-1](../03-01-tool-trait/plan.md)로 분리됐고, 이 문서는 파일 도구 구현(03-3)만 다룬다. 순서는 03-1 → 03-2(루프) → 03-3(이 문서).
 ## 범위(In)
@@ -46,3 +46,4 @@
 | `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | 읽기·쓰기·편집 | 완료 |
 | `docs/tasks/03/03-03-file-tools/T2-list-search-tools.md` | 목록·검색 | 완료 |
 | `docs/tasks/03/03-03-file-tools/T3-path-guard.md` | 경로 경계·비밀 차단 | 완료 |
+| `docs/tasks/03/03-03-file-tools/T4-env-block.md` | `.env` 계열 차단 | 완료(리뷰 5차 PASS)·SRP 분할 완료(분할 리뷰 4차 PASS) |

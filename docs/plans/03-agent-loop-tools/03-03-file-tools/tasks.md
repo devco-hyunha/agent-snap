@@ -12,7 +12,7 @@
 - [x] 6. (T2) `grep`을 만든다. ripgrep 경로 우선·없으면 내장 검색·결과 200줄(3형식 공통)·잘림·비밀 파일 차단. 확인: 단위 테스트(spec AC 5·6).
 - [x] 7. (T3) `path_guard` 확장: 심볼릭 링크 검사 추가와 검사 순서 고정(경로 정규화 → 경계 → 링크 → 비밀 목록). 확인: 링크 포함 경계·비밀 차단 단위 테스트(spec AC 2). 완료 메모(2026-11-10, Windows): `path_guard.rs` 한 자리로 순서 확정, 링크는 "작업 폴더 안에서 생성된 링크만 허용"(OS별 `#[cfg]` 게이트), `walk`·ripgrep 순회 기준 통일, 게이트 `gate03_t3_t3_cargo` fmt=0·clippy=0·test=0.
 - [x] 8. `docs/RESEARCH.md` 작업 03 절 적용 위치 갱신.
-- [ ] 9. (T4) `is_secret_name` 확장: `.env` 계열(`.env`, `.env`로 시작하는 파일)을 읽기·쓰기·목록·검색 차단 목록에 추가한다. 확인: `.env`·`.env.local` 읽기·쓰기 거부와 목록·검색 결과 제외 단위 테스트(spec AC 8).
+- [x] 9. (T4) `is_secret_name` 확장: `.env` 계열(`.env`, `.env`로 시작하는 파일)을 읽기·쓰기·목록·검색 차단 목록에 추가한다. 확인: `.env`·`.env.local` 읽기·쓰기 거부와 목록·검색 결과 제외 단위 테스트(spec AC 8). 완료 메모(2026-11-10): `is_env_family` 한 곳 정본(Windows 대소문자 무시), grep 인자 거르기 `!.env`·`!.env*` 2줄, 리뷰 5차 PASS(`docs/reviews/03/03-03-file-tools/T4-review-5.md`, 지적 0건, 게이트 fmt=0·clippy=0·test=0).
 
 ## 테스트 계획
 - 임시 폴더에 파일·링크·비밀 파일을 만들고, 읽기·쓰기·검색을 확인한다.
@@ -34,3 +34,4 @@
 | `docs/tasks/03/03-03-file-tools/T1-file-write-tools.md` | T1 읽기·쓰기·편집 | 완료 |
 | `docs/tasks/03/03-03-file-tools/T2-list-search-tools.md` | T2 목록·검색 | 완료 |
 | `docs/tasks/03/03-03-file-tools/T3-path-guard.md` | T3 경계·비밀 차단 | 완료 |
+| `docs/tasks/03/03-03-file-tools/T4-env-block.md` | T4 `.env` 계열 차단 | 완료(리뷰 5차 PASS)·SRP 분할 완료(분할 리뷰 4차 PASS) |
