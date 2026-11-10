@@ -2,6 +2,7 @@
 name = "snap-core"
 version.workspace = true
 edition.workspace = true
+license.workspace = true
 
 [dependencies]
 jsonc-parser = { version = "0.34.0", features = ["cst"] } # 설정·자격 파일 주석 보존 편집(D40). 새 의존 추가 없음.

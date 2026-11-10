@@ -44,3 +44,17 @@ jobs:
 
       - name: 테스트 실행
         run: cargo test --all
+
+      # RustSec 취약점 데이터베이스와 잠긴 의존성을 대조한다. 취약점 발견 시 CI가 실패한다.
+      # 본체 프로그램은 최신인데 함께 설치된 패키지에서 취약점이 터진 사례(Plex2Shell)의 교훈을 반영한다.
+      # NAS처럼 본체와 별도 패키지가 같이 쓰이는 환경에서의 의존성 점검과 같은 성격이다.
+      - name: RustSec 취약점 확인
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
+      # 의존성 라이선스·취약점·복사 금지·전송 경유를 함께 점검한다. 설정 파일이 없으면 기본 규칙으로 돌린다.
+      - name: 라이선스·의존성 점검
+        run: |
+          cargo install cargo-deny --locked
+          cargo deny check
