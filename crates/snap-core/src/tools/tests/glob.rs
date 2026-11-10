@@ -60,10 +60,31 @@ async fn hidden_and_secret_entries() {
     folder.write_file(".hidden.txt", "x");
     folder.write_file("shown.txt", "x");
     folder.write_file("agent-snap.jsonc", "{}");
+    // T4(AC 8): `.env` 계열도 숨김 opt를 켠 glob 결과에 나오지 않습니다.
+    folder.write_file(".env", "value=1");
+    folder.write_file(".env.local", "value=1");
     let text = glob_out(&folder, r#"{"pattern":"**","hidden":true}"#).await;
     assert!(text.contains("shown.txt"), "{text}");
     assert!(text.contains(".hidden.txt"), "opt 포함: {text}");
-    assert!(!text.contains("agent-snap.jsonc"), "{text}");
+    // 거르기 검증은 결과 줄 기준(부분 검사 금지)으로 통일합니다.
+    assert!(
+        !text
+            .lines()
+            .any(|line| line.trim().ends_with("agent-snap.jsonc")),
+        "비밀 파일이 결과 줄에 없습니다: {text}"
+    );
+    // T4: `.env` 계열은 결과 줄로 안 나온다. 부분 검사(contains)는 `.env.local` 안에
+    // `.env`가 부분 문자열로 잡히므로, 결과 줄 자체를 비교하는 `lines`로 확인한다.
+    for secret in [".env", ".env.local"] {
+        assert!(
+            !text.lines().any(|line| line.trim() == secret),
+            "{secret}이 결과 줄로 새지 않았습니다: {text}"
+        );
+    }
+    assert!(
+        !text.lines().any(|line| line.trim().starts_with(".env")),
+        ".env 계열 결과 줄이 없습니다: {text}"
+    );
 }
 
 /// 작업 폴더 밖 경로는 거부합니다(AC 2).

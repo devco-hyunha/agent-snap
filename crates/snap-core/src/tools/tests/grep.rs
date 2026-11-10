@@ -78,7 +78,7 @@ async fn over_200_lines_truncates_with_mark() {
     assert!(lines[0].starts_with("many.txt:1:hit 0"), "{text}");
 }
 
-/// 비밀 파일은 경로도 내용도 그 결과에 없어야 합니다(AC 4).
+/// 비밀 파일은 경로도 내용도 그 결과에 없어야 합니다(AC 4·AC 8).
 #[tokio::test]
 async fn secret_files_are_not_searched() {
     let folder = TempFolder::new("grep-secret");
@@ -87,12 +87,26 @@ async fn secret_files_are_not_searched() {
         "{\"api_keys\":{\"k\":\"secret-value\"}}",
     );
     folder.write_file("agent-snap.jsonc", "{\"endpoints\":[]}");
+    // T4(AC 8): `.env` 계열도 숨김 opt를 켠 검색에 결과·경로가 남지 않습니다.
+    folder.write_file(".env", "TOPSECRET=1");
+    folder.write_file(".env.local", "TOPSECRET_LOCAL=1");
     let text = grep_out(&folder, r#"{"pattern":"secret-value"}"#).await;
     assert!(text.is_empty(), "{text}");
     let text = grep_out(&folder, r#"{"pattern":"api_keys"}"#).await;
     assert!(text.is_empty(), "{text}");
     let text = grep_out(&folder, r#"{"pattern":"endpoints"}"#).await;
     assert!(text.is_empty(), "{text}");
+    let text = grep_out(&folder, r#"{"pattern":"TOPSECRET","hidden":true}"#).await;
+    assert!(
+        text.is_empty(),
+        "`.env` 내용과 경로가 새지 않습니다: {text}"
+    );
+    let text = grep_out(
+        &folder,
+        r#"{"pattern":"TOPSECRET","format":"files","hidden":true}"#,
+    )
+    .await;
+    assert!(text.is_empty(), "files 형식에도 새지 않습니다: {text}");
 }
 
 /// 숨김 자리는 기본 제외, opt로 포함됩니다.

@@ -14,6 +14,15 @@ async fn list_out(folder: &TempFolder, args: &str) -> String {
     ListDirTool.call(args, &ctx).await.text().to_owned()
 }
 
+/// 결과 줄을 줄별로 잘라 이름 목록으로 만듭니다.
+/// `list_dir` 출력은 장식 없이 상대 경로 한 줄씩이므로 trim만 적용합니다(3차 보정 후속: 장식 가공 금지).
+fn listed_names(text: &str) -> Vec<String> {
+    text.lines()
+        .map(|line| line.trim().to_owned())
+        .filter(|name| !name.is_empty())
+        .collect()
+}
+
 /// 기본은 비재귀: 하위 폴더는 이름만, 그 안 파일은 나오지 않습니다.
 #[tokio::test]
 async fn default_listing_is_non_recursive_and_relative() {
@@ -58,9 +67,22 @@ async fn secret_files_are_never_listed() {
     folder.write_file("agent-snap.jsonc", "{}");
     folder.write_file("credentials.jsonc", "{}");
     folder.write_file("nested/credentials.jsonc", "{}");
-    let text = list_out(&folder, r#"{"recursive":true}"#).await;
-    for secret in ["agent-snap.jsonc", "credentials.jsonc"] {
-        assert!(!text.contains(secret), "{secret}이 새지 않았습니다: {text}");
+    // T4(AC 8): `.env` 계열은 숨김 opt를 켜도 목록에 나지 않습니다.
+    folder.write_file(".env", "value=1");
+    folder.write_file(".env.local", "value=1");
+    folder.write_file("nested/.env", "value=1");
+    let text = list_out(&folder, r#"{"recursive":true,"hidden":true}"#).await;
+    for secret in [
+        "agent-snap.jsonc",
+        "credentials.jsonc",
+        ".env",
+        ".env.local",
+        "nested/.env",
+    ] {
+        assert!(
+            !listed_names(&text).iter().any(|name| name == secret),
+            "{secret}이 새지 않았습니다: {text}"
+        );
     }
 }
 
