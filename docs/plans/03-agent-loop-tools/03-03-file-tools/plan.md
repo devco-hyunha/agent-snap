@@ -1,6 +1,6 @@
 # 03-3 파일 도구·glob·grep·list_dir: 상세 기획
 
-- 상태: 완료
+- 상태: 완료(T1~T3) / T4 기획 추가·구현 대기(2026-11-10)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md)
 - 순서 정정(2026-11-08): 트레이트 설계는 [03-1](../03-01-tool-trait/plan.md)로 분리됐고, 이 문서는 파일 도구 구현(03-3)만 다룬다. 순서는 03-1 → 03-2(루프) → 03-3(이 문서).
 ## 범위(In)
@@ -37,6 +37,7 @@
 | T1 읽기·쓰기·편집 도구 | read_file(줄·크기 제한·잘림·`offset`·`limit` 구간 읽기), write_file(덮어쓰기 표시, D49 승인 아님), edit_file(정확한 문자열 교체·다중 일치 실패), 경로 정규화·경계·비밀 검사 기본 자리(path_guard 1차) 포함 | run_command(03-6)·AGENTS.md(03-5)·바이너리 편집 | 파일 도구 3개·경계 검사 1차·단위 테스트 | cargo test(경계·다중 일치·잘림·구간), cargo clippy, cargo fmt | 03-1·03-2 |
 | T2 목록·검색 도구 | list_dir·glob·grep(ripgrep 우선·내장 대체), 결과에 비밀 파일·밖 경로 제외, list_dir·glob 숨김 기본 제외 | `.gitignore` 규칙 해석(미적용) | 검색 도구 3개·단위 테스트 | cargo test(고정 제외·비밀 제거·숨김), cargo fmt | T1 |
 | T3 경로 경계·비밀 차단 | 심볼릭 링크 거부, `path_guard` 헬퍼 공통 적용과 검사 순서 고정, 비밀 파일 차단 확장(D17) | 링크 기준 임의 확정, run_command 우회 확장(06 한계) | `path_guard` 완성·단위 테스트 | cargo test(경계·비밀 차단) | T1·T2 |
+| T4 비밀 파일 목록 확장(Claude Code 비밀 유출 교훈, 2026-11-10) | `is_secret_name`에 `.env` 계열(`.env`, `.env`로 시작하는 파일)을 추가하고 읽기·쓰기·목록·검색 차단에도 적용. `.ssh`·`.aws` 등 홈 폴더 비밀은 03-6·06 한계 기록으로 둔다(작업 폴더 밖이라 03-3 소관 아님) | `.gitignore` 규칙 해석(계속 미적용), 내용 기반 스캔 도구 신설 | `path_guard` 확장·단위 테스트·spec AC 갱신 | cargo test(`.env` 차단), cargo clippy, cargo fmt | T1·T2·T3 |
 
 ## 작업 파일
 
