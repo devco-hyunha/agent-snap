@@ -3,7 +3,13 @@
 //! OpenAI `tools` 배열 변환은 `agent/definitions.rs`가 맡습니다(책임 분리).
 //! 등록 이름 중복 검사는 이 파일 한 곳(`find_duplicate_name`)에 있습니다.
 
+use crate::tools::edit_file::EditFileTool;
+use crate::tools::glob::GlobTool;
+use crate::tools::grep::GrepTool;
+use crate::tools::list_dir::ListDirTool;
+use crate::tools::read_file::ReadFileTool;
 use crate::tools::tool::Tool;
+use crate::tools::write_file::WriteFileTool;
 
 /// 루프가 쓸 도구 등록 목록입니다. 등록한 순서대로 줄을 세우고 같은 구현 객체를 가리킵니다.
 #[derive(Default)]
@@ -16,6 +22,32 @@ impl ToolRegistry {
     #[must_use]
     pub const fn new() -> Self {
         Self { tools: Vec::new() }
+    }
+
+    /// 파일 읽기·쓰기·편집·목록·검색 도구를 등록한 목록을 만듭니다(03-3).
+    ///
+    /// 파일 도구를 모으는 자리를 한 곳으로 정했습니다. 조립 코드를 여러 곳에 두면 이름과
+    /// 순서가 갈라지므로, 이 한 곳에서만 읽기 → 쓰기 → 편집 → 목록 → glob → grep 순서를
+    /// 만듭니다(DRY, dev-principles 3절).
+    /// 등록 순서는 읽기 → 쓰기 → 편집 → 목록 → glob → grep이며, `find_duplicate_name` 검사로
+    /// 막혀 있습니다.
+    ///
+    /// ```
+    /// use snap_core::agent::ToolRegistry;
+    /// let registry = ToolRegistry::with_file_tools();
+    /// assert!(registry.contains("read_file"));
+    /// assert!(registry.contains("list_dir"));
+    /// ```
+    #[must_use]
+    pub fn with_file_tools() -> Self {
+        let mut registry = Self::new();
+        registry.register(Box::new(ReadFileTool));
+        registry.register(Box::new(WriteFileTool));
+        registry.register(Box::new(EditFileTool));
+        registry.register(Box::new(ListDirTool));
+        registry.register(Box::new(GlobTool));
+        registry.register(Box::new(GrepTool));
+        registry
     }
 
     /// 도구를 한 개 추가합니다.

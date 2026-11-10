@@ -8,4 +8,5 @@ logs/
 .local/
 docs/reviews/
 docs/tasks/
+docs/notes/
 __pycache__/
