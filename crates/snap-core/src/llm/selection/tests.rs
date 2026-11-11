@@ -5,7 +5,7 @@ use std::collections::BTreeMap;
 use super::SelectError;
 use crate::config::{
     Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning,
-    Sampling,
+    Sampling, ToolCallForm,
 };
 use crate::credentials::Credentials;
 use crate::secrets::SecretValue;
@@ -26,6 +26,8 @@ fn config_with_two_endpoints() -> Config {
         extra: BTreeMap::from([("keep_alive".into(), ExtraValue::Number("0".into()))]),
         // 선택 경로 시험이라 맥락 창 값은 기본값을 그대로 둔다(생략할 때의 값과 같은 65536).
         context_window: 65536,
+        // 호출 형식 선언도 선택 경로 시험에서는 기본 선언을 그대로 쓴다(생략할 때의 값과 같음).
+        tool_call_form: ToolCallForm::default(),
     };
     let model_second = ModelConfig {
         name: "fast".into(),
@@ -38,6 +40,7 @@ fn config_with_two_endpoints() -> Config {
         reasoning: None,
         extra: BTreeMap::new(),
         context_window: 65536,
+        tool_call_form: ToolCallForm::default(),
     };
     Config {
         target_language: "ko".into(),

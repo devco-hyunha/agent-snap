@@ -1,6 +1,6 @@
 # 03-4 호출 형식 2안 텍스트 프로토콜 폴백: 상세 기획
 
-- 상태: planned
+- 상태: 완료 (T1 2안 폴백 경로, 독립 리뷰 2차 PASS 2026-11-11)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-2](../03-02-agent-loop/plan.md)
 - 근거: [12번 문서](../../../research/12-tool-calling-forms.md) 2절 2갈래, 5절 llama.cpp 기록, 8절(2026-11-10 추가 조사: 업계 관례·TSCG·감사 주의). 2026-11-08 사용자 결정(3형식 조합)의 2안. 설계 확정: D46·[D50 정본](../../../decisions/D50-form-switch-detection.md).
 
@@ -51,4 +51,4 @@ AC 충족, 검증 명령 통과(`cargo fmt --check`, `cargo clippy --all-targets
 
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-04-form-protocol/T1-text-protocol-fallback.md` | 2안 폴백 경로 | 계획 |
+| `docs/tasks/03/03-04-form-protocol/T1-text-protocol-fallback.md` | 2안 폴백 경로 | 완료 |

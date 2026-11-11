@@ -1,24 +1,19 @@
-//! JSONC 텍스트를 [`Config`]로 읽는 최상위 조립 모듈입니다. 칸 단위 검증 규칙은 `validate`
-//! 모듈을, 샘플링과 http 읽기는 `sampling`·`http` 모듈을 씁니다. 오류 생성은 `error` 모듈이
-//! 맡습니다.
+//! JSONC 텍스트를 [`Config`]로 읽는 최상위 조립 골격입니다. 칸 읽기는 주제 파일(`model`·
+//! `sampling`·`http`·`target_language`)이 맡고, 칸 단위 검증 규칙은 `validate` 모듈, 오류 생성은
+//! `error` 모듈이 맡습니다.
 //!
 //! 오류에는 이름과 칸 이름만 담고 입력 값은 담지 않습니다. 거부하는 키 칸은 값을 읽지 않고
 //! 칸이 있는지만 봅니다.
-
-use std::collections::{BTreeMap, HashSet};
 
 use jsonc_parser::{JsonArray, JsonObject, JsonValue};
 
 use super::super::error::{ConfigError, ValidationError};
 use super::http::read_http;
-use super::sampling::{read_root_sampling, read_sampling};
-use super::types::{
-    Config, DEFAULT_CONTEXT_WINDOW, DEFAULT_TARGET_LANGUAGE, EndpointConfig, EndpointKind,
-    ExtraValue, ModelConfig, Reasoning,
-};
-use super::validate::{self, NameRejection};
-use crate::jsonc::{self, WrongType, parse_number, pick_array, pick_object, take_optional};
-use crate::secrets::SecretValue;
+use super::model::read_endpoints;
+use super::sampling::read_root_sampling;
+use super::target_language::read_target_language;
+use super::types::Config;
+use crate::jsonc::{self, WrongType, pick_array, take_optional};
 
 impl Config {
     /// 설정 파일 텍스트를 JSONC로 읽어 검증합니다.
@@ -44,19 +39,11 @@ impl Config {
     }
 }
 
-fn read_target_language(root: &mut JsonObject<'_>) -> Result<String, ConfigError> {
-    match root.take("target_language") {
-        None => Ok(DEFAULT_TARGET_LANGUAGE.to_owned()),
-        Some(JsonValue::String(language)) => Ok(language.into_owned()),
-        Some(_) => Err(ConfigError::invalid_field("target_language")),
-    }
-}
-
 /// 객체의 배열 칸을 꺼내 항목마다 `read_item`으로 읽고, trim한 이름이 겹치면 거부합니다.
 ///
 /// 칸이 없으면 빈 목록입니다. `wrong_type`은 칸이 배열이 아닐 때, `duplicate_error`는 이름이
-/// 겹칠 때 오류를 만듭니다.
-fn read_unique_named<'a, T>(
+/// 겹칠 때 오류를 만듭니다. 엔드포인트·모델 목록 읽기가 같은 규칙을 한 자리에서 씁니다.
+pub(super) fn read_unique_named<'a, T>(
     owner: &mut JsonObject<'a>,
     field: &str,
     wrong_type: impl FnOnce() -> ConfigError,
@@ -68,7 +55,7 @@ fn read_unique_named<'a, T>(
         .map_err(|WrongType| wrong_type())?
         .map(JsonArray::take_inner)
         .unwrap_or_default();
-    let mut seen_names = HashSet::new();
+    let mut seen_names = std::collections::HashSet::new();
     let mut read_items = Vec::with_capacity(items.len());
     for (index, item) in items.into_iter().enumerate() {
         let read = read_item(index, item)?;
@@ -78,212 +65,4 @@ fn read_unique_named<'a, T>(
         read_items.push(read);
     }
     Ok(read_items)
-}
-
-fn read_endpoints(root: &mut JsonObject<'_>) -> Result<Vec<EndpointConfig>, ConfigError> {
-    read_unique_named(
-        root,
-        "endpoints",
-        || ConfigError::invalid_field("endpoints"),
-        read_endpoint,
-        |endpoint: &EndpointConfig| endpoint.name.as_str(),
-        |endpoint| ValidationError::DuplicateEndpoint { endpoint }.into(),
-    )
-}
-
-fn read_endpoint(index: usize, item: JsonValue<'_>) -> Result<EndpointConfig, ConfigError> {
-    let JsonValue::Object(mut object) = item else {
-        return Err(ConfigError::invalid_field(format!("endpoints[{index}]")));
-    };
-    let name = read_endpoint_name(index, &mut object)?;
-    if validate::first_present_key(&object, &validate::ENDPOINT_KEY_FIELDS).is_some() {
-        return Err(ValidationError::EndpointKeyField { endpoint: name }.into());
-    }
-    let base_url = object
-        .take_string("base_url")
-        .ok_or_else(|| ConfigError::invalid_endpoint_field(&name, "base_url"))?;
-    if !validate::is_valid_base_url(&base_url) {
-        return Err(ValidationError::InvalidBaseUrl { endpoint: name }.into());
-    }
-    let kind = object
-        .take_string("kind")
-        .ok_or_else(|| ConfigError::invalid_endpoint_field(&name, "kind"))?;
-    let kind = EndpointKind::parse(&kind).ok_or_else(|| ValidationError::InvalidKind {
-        endpoint: name.clone(),
-    })?;
-    let models = read_models(&name, &mut object)?;
-    Ok(EndpointConfig {
-        name,
-        base_url: SecretValue::new(base_url.into_owned()),
-        kind,
-        models,
-    })
-}
-
-fn read_endpoint_name(index: usize, object: &mut JsonObject<'_>) -> Result<String, ConfigError> {
-    let raw = object
-        .take_string("name")
-        .ok_or_else(|| ConfigError::invalid_field(format!("endpoints[{index}].name")))?;
-    validate::checked_name(&raw).map_err(|rejection| match rejection {
-        NameRejection::Empty => ValidationError::EmptyEndpointName.into(),
-        NameRejection::HasSlash { name } => {
-            ValidationError::EndpointNameHasSlash { endpoint: name }.into()
-        }
-    })
-}
-
-fn read_models(
-    endpoint: &str,
-    object: &mut JsonObject<'_>,
-) -> Result<Vec<ModelConfig>, ConfigError> {
-    read_unique_named(
-        object,
-        "models",
-        || ConfigError::invalid_endpoint_field(endpoint, "models"),
-        |index, item| read_model(endpoint, index, item),
-        |model: &ModelConfig| model.name.as_str(),
-        |model| {
-            ValidationError::DuplicateModel {
-                endpoint: endpoint.to_owned(),
-                model,
-            }
-            .into()
-        },
-    )
-}
-
-fn read_model(
-    endpoint: &str,
-    index: usize,
-    item: JsonValue<'_>,
-) -> Result<ModelConfig, ConfigError> {
-    let JsonValue::Object(mut object) = item else {
-        return Err(ConfigError::invalid_endpoint_field(
-            endpoint,
-            format!("models[{index}]"),
-        ));
-    };
-    let name = read_model_name(endpoint, index, &mut object)?;
-    if object.get("endpoint").is_some() {
-        return Err(ValidationError::ModelEndpointField { model: name }.into());
-    }
-    let id = read_model_id(endpoint, &name, &mut object)?;
-    let reasoning = read_reasoning(&name, &mut object)?;
-    let sampling = take_optional(&mut object, "sampling", pick_object)
-        .map_err(|WrongType| ConfigError::invalid_model_field(endpoint, &name, "sampling"))?
-        .map(|sampling| read_sampling(sampling, &name))
-        .transpose()?
-        .unwrap_or_default();
-    let extra = read_extra(endpoint, &name, &mut object)?;
-    let context_window = read_context_window(&name, &mut object)?;
-    Ok(ModelConfig {
-        name,
-        id,
-        sampling,
-        reasoning,
-        extra,
-        context_window,
-    })
-}
-
-fn read_model_name(
-    endpoint: &str,
-    index: usize,
-    object: &mut JsonObject<'_>,
-) -> Result<String, ConfigError> {
-    let raw = object.take_string("name").ok_or_else(|| {
-        ConfigError::invalid_endpoint_field(endpoint, format!("models[{index}].name"))
-    })?;
-    validate::checked_name(&raw).map_err(|rejection| match rejection {
-        NameRejection::Empty => ValidationError::empty_model_name(endpoint).into(),
-        NameRejection::HasSlash { name } => ValidationError::ModelNameHasSlash {
-            endpoint: endpoint.to_owned(),
-            model: name,
-        }
-        .into(),
-    })
-}
-
-fn read_model_id(
-    endpoint: &str,
-    model: &str,
-    object: &mut JsonObject<'_>,
-) -> Result<String, ConfigError> {
-    let raw = object
-        .take_string("id")
-        .ok_or_else(|| ConfigError::invalid_model_field(endpoint, model, "id"))?;
-    validate::trimmed_non_empty(&raw).ok_or_else(|| ConfigError::empty_model_id(endpoint, model))
-}
-
-fn read_reasoning(
-    model: &str,
-    object: &mut JsonObject<'_>,
-) -> Result<Option<Reasoning>, ConfigError> {
-    let Some(value) = object.take("reasoning") else {
-        return Ok(None);
-    };
-    let reasoning = match value {
-        JsonValue::String(text) => Reasoning::parse(&text),
-        _ => None,
-    };
-    reasoning
-        .map(Some)
-        .ok_or_else(|| ValidationError::InvalidReasoning {
-            model: model.to_owned(),
-        })
-        .map_err(ConfigError::from)
-}
-
-/// 모델의 `context_window`를 읽습니다. 칸이 없으면 65536 기본값이고, 값이 있으면 1 이상 정수만
-/// 받아들이며 그 밖의 값은 모델 이름만 밝히고 거부합니다(D29).
-fn read_context_window(model: &str, object: &mut JsonObject<'_>) -> Result<u64, ConfigError> {
-    let Some(value) = object.take("context_window") else {
-        return Ok(DEFAULT_CONTEXT_WINDOW);
-    };
-    parse_number::<u64>(&value)
-        .filter(validate::is_valid_context_window)
-        .ok_or_else(|| ValidationError::InvalidContextWindow {
-            model: model.to_owned(),
-        })
-        .map_err(ConfigError::from)
-}
-
-fn read_extra(
-    endpoint: &str,
-    model: &str,
-    object: &mut JsonObject<'_>,
-) -> Result<BTreeMap<String, ExtraValue>, ConfigError> {
-    let Some(extra) = take_optional(object, "extra", pick_object)
-        .map_err(|WrongType| ConfigError::invalid_model_field(endpoint, model, "extra"))?
-    else {
-        return Ok(BTreeMap::new());
-    };
-    if let Some(key) = validate::first_present_key(&extra, &validate::RESERVED_EXTRA_KEYS) {
-        return Err(ValidationError::ExtraReservedKey {
-            model: model.to_owned(),
-            key: key.to_owned(),
-        }
-        .into());
-    }
-    Ok(to_extra_map(extra))
-}
-
-fn to_extra_map(object: JsonObject<'_>) -> BTreeMap<String, ExtraValue> {
-    object
-        .into_iter()
-        .map(|(key, value)| (key.into_owned(), to_extra_value(value)))
-        .collect()
-}
-
-fn to_extra_value(value: JsonValue<'_>) -> ExtraValue {
-    match value {
-        JsonValue::Null => ExtraValue::Null,
-        JsonValue::Boolean(flag) => ExtraValue::Bool(flag),
-        JsonValue::Number(text) => ExtraValue::Number(text.to_owned()),
-        JsonValue::String(text) => ExtraValue::String(text.into_owned()),
-        JsonValue::Array(array) => {
-            ExtraValue::Array(array.take_inner().into_iter().map(to_extra_value).collect())
-        }
-        JsonValue::Object(object) => ExtraValue::Object(to_extra_map(object)),
-    }
 }

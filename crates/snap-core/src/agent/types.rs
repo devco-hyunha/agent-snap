@@ -54,8 +54,11 @@ pub struct LoopResult {
     pub tool_calls: Vec<ToolCallRecord>,
     /// 모델 왕복 횟수입니다.
     pub turns: u32,
-    /// 03-4 폴백 전환 판단 값입니다. 호출 없는 텍스트 1회로 종료한 첫 왕복이면 `Some`,
-    /// 도구 호출이 있거나 여러 번째 왕복이면 `None`입니다. `runner`가 판정 함수로 채웁니다.
+    /// 03-4 전환 기록 값입니다. `runner`가 채우는 지금은 네 갈래입니다.
+    /// 4x 상태 코드 전환은 `Some(UnsupportedStatus)`, 텍스트 2회 연속 전환은 `Some(TextStreak)`,
+    /// `auto` 선언의 텍스트 1회 후보는 `Some(NoToolCallText)`이고 앞의 4x 기록이 있으면 그 값을 유지합니다.
+    /// 선언 값(`openai`·`text`)로 텍스트 1회에 종료한 첫 왕복도 `Some(NoToolCallText)`입니다.
+    /// 도구 호출이 있는 왕복·여러 번째 왕복(후보 없음)·반복 상한·거부 종료는 `None`입니다.
     pub fallback_point: Option<FallbackPoint>,
 }
 

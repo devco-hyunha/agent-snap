@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 
 use crate::config::{
     CONFIG_FILE_NAME, ConfigError, EndpointKind, EndpointSave, ExtraValue, ModelSave, Reasoning,
-    Sampling, ValidationError, save_endpoint,
+    Sampling, ToolCallForm, ValidationError, save_endpoint,
 };
 
 use super::super::support::{
@@ -72,6 +72,42 @@ fn omitted_context_window_roundtrips_to_default() {
     assert_eq!(parse_ok(&text).endpoints[0].models[0].context_window, 65536);
 }
 
+/// AC 1(D50 결정 7): 저장한 `tool_call_form`를 02-2 읽기로 다시 읽으면 같은 값이 읽힌다.
+#[test]
+fn saved_tool_call_form_roundtrips_to_same_value() {
+    let folder = TempDir::new("호출-형식-왕복");
+    folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
+
+    save_endpoint(folder.path(), &full_save("main", &base_url())).expect("저장이 성공해야 합니다");
+
+    let saved = parse_ok(&folder.read(CONFIG_FILE_NAME));
+    // `full_save`의 모델이 `auto`를 쓰므로, 읽기도 같은 값을 돌려줘 왕복이 성립한다.
+    assert_eq!(
+        saved.endpoints[0].models[0].tool_call_form,
+        ToolCallForm::Auto
+    );
+}
+
+/// AC 1(D50 결정 7): `tool_call_form`를 생략한 저장은 파일에 칸을 만들지 않고, 다시 읽으면 `openai`다.
+#[test]
+fn omitted_tool_call_form_roundtrips_to_default() {
+    let folder = TempDir::new("호출-형식-생략-왕복");
+    folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
+
+    // `reasoning`만 준 저장은 `tool_call_form`를 쓰지 않는다(D29 `context_window`와 같은 자리 규칙).
+    save_endpoint(folder.path(), &reasoning_only_save()).expect("저장이 성공해야 합니다");
+
+    let text = folder.read(CONFIG_FILE_NAME);
+    assert!(
+        !text.contains("\"tool_call_form\""),
+        "생략한 칸은 쓰면 안 됩니다: {text}"
+    );
+    assert_eq!(
+        parse_ok(&text).endpoints[0].models[0].tool_call_form,
+        ToolCallForm::OpenAi
+    );
+}
+
 /// AC 1: 저장한 파일을 02-2로 다시 읽으면 새 값이 읽히고, 주석과 손대지 않은 항목은 그대로입니다.
 #[test]
 fn added_endpoint_keeps_comments_and_untouched_entries() {
@@ -113,6 +149,8 @@ fn added_endpoint_keeps_comments_and_untouched_entries() {
     assert_eq!(model.name, "fast");
     assert_eq!(model.id, "id-1");
     assert_eq!(model.reasoning, Some(Reasoning::Low));
+    // D50 결정 7: `full_save`가 준 호출 형식 선언(`auto`)이 그대로 읽혀야 합니다.
+    assert_eq!(model.tool_call_form, ToolCallForm::Auto);
     assert_eq!(model.sampling.temperature, Some(0.2));
     assert_eq!(model.sampling.max_tokens, Some(1024));
     assert_eq!(model.extra, full_extra());
@@ -399,6 +437,8 @@ fn full_model_save() -> ModelSave {
         reasoning: Some(Reasoning::Low),
         extra: full_extra(),
         context_window: Some(32768),
+        // D50 결정 7: 호출 형식 선언도 옵션을 다 준 값에서 함께 채웁니다.
+        tool_call_form: Some(ToolCallForm::Auto),
         sampling: Sampling {
             temperature: Some(0.2),
             top_p: None,
