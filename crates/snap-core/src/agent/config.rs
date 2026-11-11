@@ -37,6 +37,8 @@ pub struct LoopConfig {
     pub profile: Option<ToolCallProfile>,
     /// 호출 형식 선언입니다. `openai`·`text`는 선언대로만 쓰고, `auto`일 때만 감지를 씁니다(D50 결정 3).
     pub tool_call_form: ToolCallForm,
+    /// `AGENTS.md` 지시 파일 상한(바이트)입니다. 넘으면 표시 한 줄만 붙이고 원문은 그대로 둡니다(spec AC 4).
+    pub agents_md_max_bytes: usize,
 }
 
 impl LoopConfig {
@@ -59,6 +61,7 @@ impl LoopConfig {
             max_turns: DEFAULT_MAX_TURNS,
             profile: None,
             tool_call_form: ToolCallForm::default(),
+            agents_md_max_bytes: crate::agent::agents_md::DEFAULT_AGENTS_MD_MAX_BYTES,
         }
     }
 
@@ -87,6 +90,13 @@ impl LoopConfig {
     #[must_use]
     pub const fn with_tool_call_form(mut self, form: ToolCallForm) -> Self {
         self.tool_call_form = form;
+        self
+    }
+
+    /// `AGENTS.md` 지시 파일 상한을 정합니다(spec AC 4, 설정으로 변경 가능).
+    #[must_use]
+    pub const fn with_agents_md_max_bytes(mut self, max_bytes: usize) -> Self {
+        self.agents_md_max_bytes = max_bytes;
         self
     }
 }
