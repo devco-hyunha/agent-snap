@@ -57,6 +57,9 @@ pub enum ValidationError {
     /// 어렵기 때문입니다.
     #[error("설정 오류: 모델 `{model}`의 `context_window` 값이 올바르지 않습니다")]
     InvalidContextWindow { model: String },
+    /// `tool_call_form` 값이 지원 목록(`openai`·`text`·`auto`)에 없습니다. 입력 값은 담지 않습니다(D50 결정 7).
+    #[error("설정 오류: 모델 `{model}`의 `tool_call_form` 값이 올바르지 않습니다")]
+    InvalidToolCallForm { model: String },
     /// `extra`에 클라이언트가 채우는 예약 키가 있습니다.
     #[error("설정 오류: 모델 `{model}`의 `extra`에 예약 키 `{key}`가 있습니다")]
     ExtraReservedKey { model: String, key: String },

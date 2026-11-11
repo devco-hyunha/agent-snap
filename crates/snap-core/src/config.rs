@@ -11,7 +11,7 @@ pub use load::{CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, load_config, load_creden
 pub use location::{ConfigEnv, HostOs, resolve_config_dir};
 pub use read::{
     Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning,
-    Sampling, SelectionError,
+    Sampling, SelectionError, ToolCallForm,
 };
 pub use save::{
     EndpointSave, KeyRename, ModelSave, SaveIoKind, SaveIoTarget, remove_endpoint, remove_key,

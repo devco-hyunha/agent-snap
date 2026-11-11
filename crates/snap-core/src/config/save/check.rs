@@ -8,7 +8,7 @@
 use std::collections::BTreeMap;
 
 use super::super::error::{ConfigError, ValidationError};
-use super::super::read::types::{EndpointKind, ExtraValue, Reasoning, Sampling};
+use super::super::read::types::{EndpointKind, ExtraValue, Reasoning, Sampling, ToolCallForm};
 use super::super::read::validate::{self, is_valid_base_url};
 use super::names::{NameScope, checked_save_name};
 
@@ -82,6 +82,8 @@ pub struct ModelSave {
     pub extra: BTreeMap<String, ExtraValue>,
     /// 맥락 창 토큰 수입니다. `None`이면 파일에 쓰지 않습니다(읽을 때 65536, D29).
     pub context_window: Option<u64>,
+    /// 호출 형식 선언입니다. `None`이면 파일에 쓰지 않습니다(읽을 때 `openai`, D50 결정 7).
+    pub tool_call_form: Option<ToolCallForm>,
     /// 샘플링 값입니다. `None`으로 채운 항목은 파일에 쓰지 않습니다.
     pub sampling: Sampling,
 }

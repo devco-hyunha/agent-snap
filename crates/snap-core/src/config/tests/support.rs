@@ -389,6 +389,17 @@ pub(crate) fn rejection_cases() -> Vec<RejectionCase> {
             config_with_model_tail(r#","context_window":18446744073709551616"#),
             |e| matches!(e, ConfigError::Validation(ValidationError::InvalidContextWindow{ model }) if model == "fast"),
         ),
+        // D50 결정 7: `tool_call_form`은 `openai`·`text`·`auto`만 받아들입니다. 값은 오류에 밝히지 않습니다.
+        case(
+            "tool_call_form이 지원 값 아님",
+            config_with_model_tail(&format!(r#","tool_call_form":"{KEY_VALUE}""#)),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidToolCallForm{ model }) if model == "fast"),
+        ),
+        case(
+            "tool_call_form이 문자열 아님",
+            config_with_model_tail(r#","tool_call_form":true"#),
+            |e| matches!(e, ConfigError::Validation(ValidationError::InvalidToolCallForm{ model }) if model == "fast"),
+        ),
         sampling_case("temperature 범위 초과", "temperature", "2.5"),
         sampling_case("temperature 음수", "temperature", "-0.1"),
         sampling_case("top_p가 0", "top_p", "0"),

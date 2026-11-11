@@ -88,6 +88,10 @@ fn merge_models(
         if let Some(window) = save.context_window {
             set_number(&object, "context_window", &window.to_string());
         }
+        // 선언 값도 주지 않은 항목은 쓰지 않는 규칙을 따릅니다(D50 결정 7, `context_window`와 같은 자리 규칙).
+        if let Some(form) = save.tool_call_form {
+            set_string(&object, "tool_call_form", form.to_name());
+        }
         // 주지 않은 항목은 칸을 만들지 않는 규칙을 이 한 곳으로 모읍니다(D14·D29).
         set_optional(&object, "sampling", sampling_value(save.sampling));
         set_optional(&object, "extra", extra_value(&save.extra));

@@ -9,7 +9,7 @@ use super::support::{
 };
 use crate::config::{
     CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, EndpointKind, ExtraValue, HttpSettings,
-    ReadingError, Reasoning, Sampling, load_config, load_credentials,
+    ReadingError, Reasoning, Sampling, ToolCallForm, load_config, load_credentials,
 };
 
 const FULL_CONFIG: &str = r#"
@@ -29,6 +29,7 @@ const FULL_CONFIG: &str = r#"
           "reasoning": "medium",
           "sampling": { "temperature": 0.2, "top_p": 0.95, "max_tokens": 4096, },
           "context_window": 8192,
+          "tool_call_form": "text",
           "extra": { "keep_alive": 0, "options": { "num_ctx": 8192, "stop": ["a", null] } },
         },
         { "name": "plain", "id": "plain-id" },
@@ -66,6 +67,8 @@ fn parse_full_config_with_comments_reads_every_value() {
     assert_eq!(fast.id, "path/to/model.gguf");
     assert_eq!(fast.reasoning, Some(Reasoning::Medium));
     assert_eq!(fast.context_window, 8192);
+    // D50 결정 7: 선언 값(`text`)을 그대로 읽습니다.
+    assert_eq!(fast.tool_call_form, ToolCallForm::Text);
     assert_eq!(
         fast.sampling,
         Sampling {
@@ -95,6 +98,8 @@ fn parse_full_config_with_comments_reads_every_value() {
     assert!(plain.extra.is_empty());
     // D29: `context_window`를 생략하면 기본 65536이 읽힌다.
     assert_eq!(plain.context_window, 65536);
+    // D50 결정 7: `tool_call_form`를 생략하면 기본 `openai`가 읽힌다.
+    assert_eq!(plain.tool_call_form, ToolCallForm::OpenAi);
 
     assert_eq!(config.sampling.temperature, Some(1.0));
     assert_eq!(config.sampling.top_p, None);

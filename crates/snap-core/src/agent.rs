@@ -1,18 +1,24 @@
 //! 에이전트 루프 모듈: 책임별로 파일로 나누고 공개면을 한곳에서 내보냅니다.
 //!
-//! 루프(`runner`)·등록 목록(`registry`)·OpenAI 변환(`definitions`)·도구 실행(`executor`)·잘림(`truncate`)·
-//! messages 조립(`prompt`)·인자 JSON 복구(`args`)·프로파일(`profile`)·설정 값(`config`)·
-//! 폴백 연결 지점 판단(`fallback`)·결과 타입(`types`)이 각 파일의 책임입니다(dev-principles 2절 SRP).
+//! 루프 골격(`runner`)·왕복 상태(`loop_state`)·1안 왕복 판단(`openai_turn`)·스트림 드레인과
+//! 결과 채움(`loop_stream`)·등록 목록(`registry`)·OpenAI 변환(`definitions`)·도구 실행(`executor`)·
+//! 잘림(`truncate`)·messages 조립(`prompt`)·인자 JSON 복구(`args`)·프로파일(`profile`)·설정 값(`config`)·
+//! 폴백 연결 지점 판단(`fallback`)·결과 타입(`types`)이 각 파일의 책임이고,
+//! 2안 텍스트 프로토콜 파일들은 `text/` 폴더에 담았습니다(지시 조립·왕복·복원·검증·안내·기록·messages 줄).
 
 pub mod args;
 pub mod config;
 pub mod definitions;
 pub mod executor;
 pub mod fallback;
+pub mod loop_state;
+pub mod loop_stream;
+pub mod openai_turn;
 pub mod profile;
 pub mod prompt;
 pub mod registry;
 pub mod runner;
+pub mod text;
 pub mod truncate;
 pub mod types;
 
@@ -28,5 +34,6 @@ pub use profile::ToolCallProfile;
 pub use prompt::{EMPTY_AGENTS_MD, assemble_messages};
 pub use registry::ToolRegistry;
 pub use runner::AgentLoop;
+pub use text::*;
 pub use truncate::{TRUNCATION_MARK, truncate_tool_result};
 pub use types::{LoopEnd, LoopError, LoopOutcome, LoopResult, LoopStartError, ToolCallRecord};

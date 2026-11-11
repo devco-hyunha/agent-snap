@@ -123,7 +123,9 @@ fn record(call: &ToolCall, result: String, executed_at: u64) -> ToolCallRecord {
 }
 
 /// 지금 시각을 유닉스 초로 바꿉니다. 시험은 하한·상한으로만 비교합니다.
-fn now_unix_secs() -> u64 {
+///
+/// 2안 기록(text_record)도 같은 기준을 쓰게 `pub(crate)`로 열어 두 곳에서 함께 씁니다(DRY).
+pub(crate) fn now_unix_secs() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_secs())

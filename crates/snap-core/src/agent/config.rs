@@ -6,6 +6,7 @@
 
 use std::path::PathBuf;
 
+use crate::config::ToolCallForm;
 use crate::llm::ChatRequest;
 use crate::tools::tool::ToolContext;
 
@@ -34,6 +35,8 @@ pub struct LoopConfig {
     pub max_turns: u32,
     /// `tool_call` 낮은 온도 프로파일입니다. 없으면 합치지 않습니다.
     pub profile: Option<ToolCallProfile>,
+    /// 호출 형식 선언입니다. `openai`·`text`는 선언대로만 쓰고, `auto`일 때만 감지를 씁니다(D50 결정 3).
+    pub tool_call_form: ToolCallForm,
 }
 
 impl LoopConfig {
@@ -55,6 +58,7 @@ impl LoopConfig {
             user_message: user_message.into(),
             max_turns: DEFAULT_MAX_TURNS,
             profile: None,
+            tool_call_form: ToolCallForm::default(),
         }
     }
 
@@ -76,6 +80,13 @@ impl LoopConfig {
     #[must_use]
     pub const fn with_profile(mut self, profile: ToolCallProfile) -> Self {
         self.profile = Some(profile);
+        self
+    }
+
+    /// 호출 형식 선언을 정합니다(선언 우선 → 감지, D50 결정 3).
+    #[must_use]
+    pub const fn with_tool_call_form(mut self, form: ToolCallForm) -> Self {
+        self.tool_call_form = form;
         self
     }
 }

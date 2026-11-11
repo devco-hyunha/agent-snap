@@ -84,8 +84,9 @@ fn config_debug_hides_base_url_host() {
 /// `ConfigError`에 걸린 변형의 수입니다. 변형 부분 열거형에 변형을 추가하면
 /// `variant_name`의 `match`가 컴파일을 멈춰 알려 주고, 이 값을 함께 올려야 합니다. 올린 뒤에도
 /// 견본이 새 변형을 만들지 않으면 아래 테스트가 실패합니다. 목록 하나로 세려면 매크로나 새
-/// 의존성이 필요해 이 값 하나만 남깁니다. D29의 `context_window` 값 오류가 견본 표에 늘어 31개입니다.
-pub(super) const VARIANT_COUNT: usize = 31;
+/// 의존성이 필요해 이 값 하나만 남깁니다. D29의 `context_window` 값 오류가 견본 표에 늘어 31개,
+/// D50 결정 7의 `tool_call_form` 값 오류가 견본 표에 늘어 32개입니다.
+pub(super) const VARIANT_COUNT: usize = 32;
 
 /// 오류 변형 이름입니다. `match`가 감싸는 변형을 부분 열거형까지 갈라 모든 변형을 다뤄야
 /// 하므로, 변형이 늘면 컴파일이 멈춥니다.
@@ -121,6 +122,7 @@ pub(super) fn variant_name(error: &ConfigError) -> &'static str {
             ValidationError::InvalidField { .. } => "InvalidField",
             ValidationError::InvalidEndpointField { .. } => "InvalidEndpointField",
             ValidationError::InvalidModelField { .. } => "InvalidModelField",
+            ValidationError::InvalidToolCallForm { .. } => "InvalidToolCallForm",
         },
         // 어긋난 상태를 밝히는 두 변형은 Display에 주소·키가 없는지 가리기 검사 대상으로만 씁니다.
         ConfigError::Save(error) => match error {
