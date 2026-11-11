@@ -149,6 +149,30 @@
 - 미적용: Prospero식 GUI·데스크톱 제어, Antigravity 블로그 기반 설계(공식 문서 아님). 03에는 반영하지 않습니다.
 - 관련 작업: 04(주), 03(단발 run 경계 확인)
 
+### AGENTS.md 규칙 파일 주입 조사 (03-5, 2026-11-11)
+
+확인 날짜는 2026-11-11이며 아래 링크를 모두 직접 열어 확인했습니다.
+
+- Codex AGENTS.md
+  - 링크: [agents-md 가이드](https://developers.openai.com/codex/guides/agents-md)
+  - 핵심: 매 실행마다 AGENTS.md를 읽고, 루트에서 현재 폴더로 내려가며 아래쪽 파일이 앞 지침을 덮어쓰도록 아래에서 위로 이어 붙인다. 빈 파일은 무시하고 `project_doc_max_bytes`(기본 32 KiB)에 닿으면 멈춘다.
+  - 적용 위치: 03-5 `agent/agents_md/`(읽기·표시) — 읽기 → 규범 뒤 원문 붙임, 상한 초과 시 길이 표시만(Codex와 잘 달리 잘라 넣지는 안 함). 계층 우선순위는 04 배치.
+- Claude Code memory
+  - 링크: [memory 문서](https://code.claude.com/docs/en/memory)
+  - 핵심: CLAUDE.md·AGENTS.md를 세션 시작에 컨텍스트로 읽고, 파일마다 200줄 이하를 권한다. 긴 파일은 컨텍스트를 더 소모해 순응도가 떨어진다. AGENTS.md가 있으면 CLAUDE.md는 읽지 않는다.
+  - 적용 위치: 03-5 길이 표시 근거(상한 권고). 단일 파일만 읽기는 03-5가 채택.
+- Cursor rules
+  - 링크: [rules 문서](https://cursor.com/docs/context/rules)
+  - 핵심: 규칙 내용(AGENTS.md 포함)이 모델 컨텍스트 앞머리에 들어간다. 참조 파일은 프롬프트에 인라인하지 않고 필요할 때 읽는다.
+  - 적용 위치: 03-5 조립 순서(규범 → AGENTS.md, 앞머리 유지)와 2307.03172 근거를 각주로 명시.
+- OpenCode rules
+  - 링크: [rules 문서](https://opencode.ai/docs/rules/)
+  - 핵심: AGENTS.md를 프로젝트·전역에서 읽고, AGENTS.md가 있으면 CLAUDE.md는 읽지 않는다(첫 번째로 맞는 파일만 사용).
+  - 적용 위치: 03-5는 루트 `AGENTS.md` 단일 파일만 읽는다.
+- 관련 확인: Lost in the Middle는 arXiv 2307.03172가 맞고, 2409.10372는 이 주제와 무관한 논문이라 어떤 문서에도 인용하지 않는다.
+- 미적용·04 배치로 넘김: 가장 가까운 AGENTS.md가 앞 지침을 덮어쓰는 계층 우선순위, 규칙 파일 색인·메모리(D43·D45).
+- 관련 작업: 03-5
+
 ### 자동화 단계·체크포인트·무인 옵션 검토
 - 확인 날짜: 2026-11-02
 - 링크: Prospero RESEARCH 절, opencode allow/ask/deny(RESEARCH 작업 03), 문 유형·자율성 단계(RESEARCH), D22

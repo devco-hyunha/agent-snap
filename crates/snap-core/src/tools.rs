@@ -30,4 +30,4 @@ pub use read_file::ReadFileTool;
 pub use write_file::WriteFileTool;
 
 #[cfg(test)]
-mod tests;
+pub(crate) mod tests;

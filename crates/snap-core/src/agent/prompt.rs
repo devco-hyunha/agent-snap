@@ -3,19 +3,16 @@
 //! 프롬프트 앞머리로 `system`·`user` 줄을 만들고, 왕복 도중에 생기는 `assistant`·`tool` 줄도
 //! 여기서 만듭니다. 루프는 조립된 줄을 messages에 붙이기만 합니다(dev-principles 2절 SRP).
 //! `agent/system_prompt.txt` 내용을 `system` 메시지 한 자리에 앞머리로 담고,
-//! AGENTS.md 합치기는 03-5(agents-md)가 채운 값을 이어 붙입니다(자리만 남김).
+//! 그 뒤에 03-5(`agents_md`)가 읽은 AGENTS.md 지시를 이어 붙입니다(spec AC 1).
 
 use crate::llm::{AssistantToolCall, ChatMessage, ToolCall};
 
 use super::types::ToolCallRecord;
 
-/// AGENTS.md 합치기 자리입니다. 03-5가 채울 때까지 빈 문자열로 둡니다(spec AC 6 연장).
-pub const EMPTY_AGENTS_MD: &str = "";
-
 /// 프롬프트 앞머리와 사용자 과제를 messages 순서대로 만듭니다.
 ///
 /// 순서는 `system`(프롬프트 앞머리) → `user`(사용자 과제)이며, 이 순서가 AC 6 테스트로 고정됩니다.
-/// AGENTS.md 합치기는 03-5 자리이므로 지금은 앞머리 뒤에 붙이는 창구만 제공합니다.
+/// `agents_md`는 03-5(`agents_md`)가 읽은 AGENTS.md 지시 원문이고, 빈 문자열이면 지시 없이 앞머리만 씁니다(spec AC 2·AC 3).
 #[must_use]
 pub fn assemble_messages(
     system_prompt: &str,

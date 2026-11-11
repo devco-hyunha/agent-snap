@@ -18,7 +18,7 @@ use super::fallback::{
 use super::loop_state::LoopState;
 use super::loop_stream::{drain_stream, loop_result};
 use super::openai_turn::{TextStep, append_openai_roundtrip, apply_text_only_turn};
-use super::prompt::{EMPTY_AGENTS_MD, assemble_messages, tool_result_messages};
+use super::prompt::{assemble_messages, tool_result_messages};
 use super::text::protocol::apply_text_assembly;
 use super::text::turn::{TextTurn, run_text_turn};
 use super::types::{LoopEnd, LoopError, LoopOutcome, LoopStartError};
@@ -60,8 +60,16 @@ impl<C: LlmClient> AgentLoop<C> {
             return Err(LoopError::Start(LoopStartError::DuplicateToolName { name }));
         }
         let mut request = config.base.clone();
-        request.messages =
-            assemble_messages(&config.system_prompt, EMPTY_AGENTS_MD, &config.user_message);
+        // AGENTS.md 지시는 03-5 읽기 책임(`agents_md`)이 작업 폴더에서 읽고, 조립은 03-2 그대로입니다.
+        let agents_md = super::agents_md::read_agents_md(
+            &config.context.working_dir,
+            config.agents_md_max_bytes,
+        );
+        request.messages = assemble_messages(
+            &config.system_prompt,
+            &agents_md.directives(),
+            &config.user_message,
+        );
         request.tools = registry_to_definitions(&config.registry);
         // `text` 선언은 감지 없이 2안 조립으로 나갑니다(spec AC 7, 선언 우선).
         if matches!(start_format(config.tool_call_form), ToolCallFormat::Text) {

@@ -7,9 +7,10 @@
 use std::collections::BTreeMap;
 use std::path::PathBuf;
 
-use snap_core::agent::{LoopConfig, ToolCallProfile, ToolRegistry};
+use snap_core::agent::{DEFAULT_TOOL_RESULT_MAX_CHARS, LoopConfig, ToolCallProfile, ToolRegistry};
 use snap_core::config::{ExtraValue, Sampling, ToolCallForm};
 use snap_core::llm::{CancellationToken, ChatRequest};
+use snap_core::tools::tool::ToolContext;
 
 /// 빈 취소 토큰입니다.
 #[must_use]
@@ -75,4 +76,20 @@ pub fn loop_config(
 #[must_use]
 pub fn form_config(registry: ToolRegistry, form: ToolCallForm) -> LoopConfig {
     loop_config_base(registry).with_tool_call_form(form)
+}
+
+/// 03-5 루프 시험 설정: 골격의 작업 폴더를 임시 폴더로 바꾸고 지시 파일 상한만 정합니다.
+///
+/// 03-2 골격(`loop_config_base`)을 그대로 고쳐 쓰고, 왕복 상한과 앞머리·과제 값은 골격 값대로 둈니다.
+/// 작업 폴더는 `workdir.rs`의 `LoopTempWorkdir`가 만든 임시 폴더를 받고, 상한만 지정해 넣습니다.
+#[must_use]
+pub fn agents_md_loop_config(
+    registry: ToolRegistry,
+    working_dir: PathBuf,
+    max_bytes: usize,
+) -> LoopConfig {
+    let mut config = loop_config_base(registry);
+    config.context = ToolContext::new(working_dir, DEFAULT_TOOL_RESULT_MAX_CHARS);
+    config.max_turns = 4;
+    config.with_agents_md_max_bytes(max_bytes)
 }
