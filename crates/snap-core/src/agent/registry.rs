@@ -8,6 +8,7 @@ use crate::tools::glob::GlobTool;
 use crate::tools::grep::GrepTool;
 use crate::tools::list_dir::ListDirTool;
 use crate::tools::read_file::ReadFileTool;
+use crate::tools::run_command::RunCommandTool;
 use crate::tools::tool::Tool;
 use crate::tools::write_file::WriteFileTool;
 
@@ -24,22 +25,23 @@ impl ToolRegistry {
         Self { tools: Vec::new() }
     }
 
-    /// 파일 읽기·쓰기·편집·목록·검색 도구를 등록한 목록을 만듭니다(03-3).
+    /// 파일 읽기·쓰기·편집·목록·검색 도구와 `run_command` 도구를 등록한 목록을 만듭니다(03-3·03-6).
     ///
-    /// 파일 도구를 모으는 자리를 한 곳으로 정했습니다. 조립 코드를 여러 곳에 두면 이름과
-    /// 순서가 갈라지므로, 이 한 곳에서만 읽기 → 쓰기 → 편집 → 목록 → glob → grep 순서를
+    /// 도구 조립 자리를 한 곳으로 정했습니다. 조립 코드를 여러 곳에 두면 이름과
+    /// 순서가 갈라지므로, 이 한 곳에서만 읽기 → 쓰기 → 편집 → 목록 → glob → grep → 명령 순서를
     /// 만듭니다(DRY, dev-principles 3절).
-    /// 등록 순서는 읽기 → 쓰기 → 편집 → 목록 → glob → grep이며, `find_duplicate_name` 검사로
+    /// 등록 순서는 읽기 → 쓰기 → 편집 → 목록 → glob → grep → 명령이며, `find_duplicate_name` 검사로
     /// 막혀 있습니다.
     ///
     /// ```
     /// use snap_core::agent::ToolRegistry;
-    /// let registry = ToolRegistry::with_file_tools();
+    /// let registry = ToolRegistry::with_agent_tools();
     /// assert!(registry.contains("read_file"));
     /// assert!(registry.contains("list_dir"));
+    /// assert!(registry.contains("run_command"));
     /// ```
     #[must_use]
-    pub fn with_file_tools() -> Self {
+    pub fn with_agent_tools() -> Self {
         let mut registry = Self::new();
         registry.register(Box::new(ReadFileTool));
         registry.register(Box::new(WriteFileTool));
@@ -47,6 +49,7 @@ impl ToolRegistry {
         registry.register(Box::new(ListDirTool));
         registry.register(Box::new(GlobTool));
         registry.register(Box::new(GrepTool));
+        registry.register(Box::new(RunCommandTool));
         registry
     }
 

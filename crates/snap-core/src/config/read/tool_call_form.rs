@@ -4,7 +4,7 @@
 
 use jsonc_parser::{JsonObject, JsonValue};
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, ModelIssue};
 use super::types::{DEFAULT_TOOL_CALL_FORM, ToolCallForm};
 
 /// 모델의 `tool_call_form`을 읽습니다. 칸이 없으면 기본값(`openai`)이고, 값은 설정에 적는
@@ -20,7 +20,7 @@ pub(super) fn read_tool_call_form(
         JsonValue::String(text) => ToolCallForm::parse(text),
         _ => None,
     };
-    form.ok_or_else(|| ValidationError::InvalidToolCallForm {
+    form.ok_or_else(|| ModelIssue::InvalidToolCallForm {
         model: model.to_owned(),
     })
     .map_err(ConfigError::from)

@@ -6,6 +6,7 @@ use std::collections::BTreeMap;
 
 use crate::secrets::SecretValue;
 
+use super::AgentSettings;
 use super::forms::{EndpointKind, Reasoning, ToolCallForm};
 use super::http::HttpSettings;
 use super::sampling::{ExtraValue, Sampling};
@@ -24,6 +25,8 @@ pub struct Config {
     pub sampling: Sampling,
     /// 시간·재시도 값입니다.
     pub http: HttpSettings,
+    /// 에이전트 루프가 쓰는 시간 값입니다(03-6, `agent` 섹션). 생략하면 기본값입니다(D22).
+    pub agent: AgentSettings,
 }
 
 impl Config {

@@ -6,7 +6,7 @@
 //! 담는 값과 오류 문구는 02-2가 정한 그대로이고, trim한 이름만 담습니다(입력 원문은 담지
 //! 않습니다).
 
-use super::super::error::ValidationError;
+use super::super::error::{EndpointIssue, ModelIssue, ValidationError};
 use super::super::read::validate::{self, NameRejection};
 
 /// 확인하려는 이름이 무엇인지 나타내는 정보입니다.
@@ -33,18 +33,20 @@ pub(super) fn checked_save_name(raw: &str, scope: NameScope) -> Result<String, V
 /// 이름 거부를 02-2 검증 오류로 바꿉니다.
 fn name_error(rejection: NameRejection, scope: NameScope) -> ValidationError {
     match (rejection, scope) {
-        (NameRejection::Empty, NameScope::Endpoint) => ValidationError::EmptyEndpointName,
+        (NameRejection::Empty, NameScope::Endpoint) => EndpointIssue::EmptyEndpointName.into(),
         (NameRejection::HasSlash { name }, NameScope::Endpoint) => {
-            ValidationError::EndpointNameHasSlash { endpoint: name }
+            EndpointIssue::EndpointNameHasSlash { endpoint: name }.into()
         }
-        (NameRejection::Empty, NameScope::Model { endpoint }) => ValidationError::EmptyModelName {
+        (NameRejection::Empty, NameScope::Model { endpoint }) => ModelIssue::EmptyModelName {
             endpoint: endpoint.clone(),
-        },
+        }
+        .into(),
         (NameRejection::HasSlash { name }, NameScope::Model { endpoint }) => {
-            ValidationError::ModelNameHasSlash {
+            ModelIssue::ModelNameHasSlash {
                 endpoint: endpoint.clone(),
                 model: name,
             }
+            .into()
         }
     }
 }

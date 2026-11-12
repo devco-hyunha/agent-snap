@@ -2,7 +2,7 @@
 
 use jsonc_parser::JsonObject;
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, ModelIssue};
 use super::types::DEFAULT_CONTEXT_WINDOW;
 use super::validate;
 use crate::jsonc::parse_number;
@@ -18,7 +18,7 @@ pub(super) fn read_context_window(
     };
     parse_number::<u64>(&value)
         .filter(validate::is_valid_context_window)
-        .ok_or_else(|| ValidationError::InvalidContextWindow {
+        .ok_or_else(|| ModelIssue::InvalidContextWindow {
             model: model.to_owned(),
         })
         .map_err(ConfigError::from)

@@ -1,5 +1,5 @@
 //! JSONC 텍스트를 [`Config`]로 읽는 최상위 조립 골격입니다. 칸 읽기는 주제 파일(`model`·
-//! `sampling`·`http`·`target_language`)이 맡고, 칸 단위 검증 규칙은 `validate` 모듈, 오류 생성은
+//! `sampling`·`http`·`agent`·`target_language`)이 맡고, 칸 단위 검증 규칙은 `validate` 모듈, 오류 생성은
 //! `error` 모듈이 맡습니다.
 //!
 //! 오류에는 이름과 칸 이름만 담고 입력 값은 담지 않습니다. 거부하는 키 칸은 값을 읽지 않고
@@ -7,7 +7,8 @@
 
 use jsonc_parser::{JsonArray, JsonObject, JsonValue};
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, EndpointIssue};
+use super::agent::read_agent;
 use super::http::read_http;
 use super::model::read_endpoints;
 use super::sampling::read_root_sampling;
@@ -28,13 +29,14 @@ impl Config {
     pub fn parse(text: &str) -> Result<Self, ConfigError> {
         let mut root = jsonc::parse_root_object(text)?;
         if root.get("models").is_some() {
-            return Err(ValidationError::LegacyTopLevelModels.into());
+            return Err(EndpointIssue::LegacyTopLevelModels.into());
         }
         Ok(Self {
             target_language: read_target_language(&mut root)?,
             endpoints: read_endpoints(&mut root)?,
             sampling: read_root_sampling(&mut root)?,
             http: read_http(&mut root)?,
+            agent: read_agent(&mut root)?,
         })
     }
 }

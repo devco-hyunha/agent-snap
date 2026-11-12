@@ -8,11 +8,11 @@ use crate::tools::tool::{ToolContext, ToolOutcome};
 
 use super::notice::unregistered_notice;
 use super::recover::RecoveredCall;
-use crate::agent::executor::now_unix_secs;
-use crate::agent::fallback::ToolCallFormat;
 use crate::agent::registry::ToolRegistry;
+use crate::agent::tool_call_form::ToolCallFormat;
 use crate::agent::truncate::truncate_tool_result;
 use crate::agent::types::ToolCallRecord;
+use crate::time::now_unix_secs;
 
 /// 2안 왕복에서 도구 호출 한 개를 실행해 03-2 기록 규칙으로 채우는 자리입니다(AC 5).
 ///

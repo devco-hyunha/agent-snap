@@ -47,5 +47,10 @@
     // "connect_seconds": 10,
     // "header_wait_seconds": 300,
     // "stream_idle_seconds": 120
-  }
+  },
+  // "agent": {
+  // 기본값: run_command_deadline 600, approval_deadline 300 (단위: 초). 0은 무한 대기라 허용하지 않습니다(D22).
+  // "run_command_deadline": 600, // run_command 실행 시간 상한. 넘기면 미완료로 알립니다.
+  // "approval_deadline": 300,    // 승인 응답을 기다리는 시간 상한. 넘기면 거부로 기록합니다.
+  // }
 }

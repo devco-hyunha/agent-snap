@@ -1,20 +1,21 @@
-//! 이름 바꾸기, 삭제 저장을 검증하는 테스트(02-9 작업 3: 책임을 파일로 옮김).
+//! 설정 파일 이름 바꾸기·삭제 저장 시험(02-9 작업 3의 설정 쪽 책임).
 //!
-//! 이동 전 `save_atomic.rs`와 `save_credentials.rs`에 있던 본문 그대로 옮겼습니다.
-//! 이름 바꾸기와 삭제는 두 파일을 한 번의 저장으로 처리합니다. 검증 거부가 두 파일을
-//! 모두 건드리지 않는지, 저장 순서가 D41(검증 후 자격 교체, 그다음 설정 교체)을 따르는지,
-//! 어긋난 상태를 오류가 밝히는지, 자격 파일 쪽 이름 바꾸기와 삭제 동작을 봅니다.
+//! 자격 파일만 다루는 이름 바꾸기·삭제 시험은 `credentials_rename.rs`로 나눕니다. 이 파일은
+//! 두 파일을 함께 고치는 저장 진입점과 설정 파일 쪽 동작을 봅니다. 파일 텍스트 견본은 저장을
+//! 보는 여러 시험이 함께 쓰므로 지원부(`save_samples.rs`)에서 가져옵니다.
 
-use crate::config::save::key_rename::{remove_key, rename_key};
+use crate::config::CONFIG_FILE_NAME;
+use crate::config::CREDENTIALS_FILE_NAME;
+use crate::config::remove_endpoint;
+use crate::config::rename_endpoint;
 use crate::config::save::store::{remove_endpoint_with, rename_endpoint_with};
 use crate::config::{
-    CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, KeyRename, SaveError, SaveIoKind,
-    SaveIoTarget, ValidationError, remove_endpoint, rename_endpoint,
+    ConfigError, EndpointIssue, KeyRename, SaveError, SaveIoKind, SaveIoTarget, ValidationError,
 };
 
 use super::super::support::{
-    TempDir, assert_error_hides_secrets, blocking_replacement, count_key_entries, key_value,
-    parse_credentials, parse_ok,
+    CONFIG_TEXT, CREDENTIALS_TEXT, TWO_ENDPOINTS_TEXT, TempDir, assert_error_hides_secrets,
+    blocking_replacement, parse_ok,
 };
 
 /// AC 1(설정 파일 쪽 교체 실패): 설정 파일 교체만 막으면 설정 파일은 그대로이고 임시 파일이
@@ -320,230 +321,12 @@ fn invalid_rename_leaves_both_files_untouched() {
     assert!(
         matches!(
             error,
-            ConfigError::Validation(ValidationError::EndpointNameHasSlash { .. })
+            ConfigError::Validation(ValidationError::Endpoint(
+                EndpointIssue::EndpointNameHasSlash { .. }
+            ))
         ),
         "02-2와 같은 이름 규칙 위반이어야 합니다: {error}"
     );
-}
-
-/// AC 3: 자격 파일의 이름을 바꾸면 키 이름이 새 이름으로 바뀌고 값은 그대로입니다.
-#[test]
-fn renaming_key_moves_the_key_name_and_keeps_the_value() {
-    let folder = TempDir::new("자격-이름-변경");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-    rename_key(
-        folder.path(),
-        &KeyRename {
-            from: " main ".to_owned(),
-            to: "메인-서버".to_owned(),
-        },
-    )
-    .expect("이름 바꾸기가 성공해야 합니다");
-
-    let text = folder.read(CREDENTIALS_FILE_NAME);
-    let credentials = parse_credentials(&text);
-    assert_eq!(
-        key_value(&credentials, "메인-서버").as_deref(),
-        Some(MAIN_KEY_VALUE),
-        "값은 그대로여야 합니다"
-    );
-    assert_eq!(
-        key_value(&credentials, "main"),
-        None,
-        "옛 이름 키는 남아 있으면 안 됩니다: {text}"
-    );
-    assert!(
-        text.contains(OTHER_KEY_TEXT) && text.contains(ROOT_EXTRA_TEXT),
-        "주석과 다른 키가 그대로여야 합니다: {text}"
-    );
-}
-
-/// AC 3: 새 이름 키가 이미 있으면 값을 옮기고 이름이 겹치는 칸을 남기지 않습니다.
-#[test]
-fn renaming_key_onto_existing_target_key_keeps_one_entry_with_moved_value() {
-    let folder = TempDir::new("자격-이름-변경-선두");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-    // `stage_ep` 칸이 이미 있는 자리로 `main` 키를 옮깁니다.
-    rename_key(
-        folder.path(),
-        &KeyRename {
-            from: "main".to_owned(),
-            to: "stage_ep".to_owned(),
-        },
-    )
-    .expect("새 이름 키가 있는 이름 바꾸기도 성공해야 합니다");
-
-    let text = folder.read(CREDENTIALS_FILE_NAME);
-    let credentials = parse_credentials(&text);
-    assert_eq!(
-        key_value(&credentials, "stage_ep").as_deref(),
-        Some(MAIN_KEY_VALUE),
-        "옮긴 값이 읽혀야 합니다"
-    );
-    assert_eq!(key_value(&credentials, "main"), None);
-    assert_eq!(
-        count_key_entries(&text, "stage_ep"),
-        1,
-        "같은 이름 키 칸이 둘 이상이면 안 됩니다: {text}"
-    );
-}
-
-/// AC 3의 경계: 이름이 겹치는 칸이 둘인 파일에서 이름을 바꾸면 칸 하나로 정리됩니다.
-#[test]
-fn renaming_key_over_duplicate_names_collapses_to_one_entry() {
-    let folder = TempDir::new("자격-이름-변경-중복");
-    folder.write(CREDENTIALS_FILE_NAME, DUPLICATE_KEY_FILE);
-
-    rename_key(
-        folder.path(),
-        &KeyRename {
-            from: "main".to_owned(),
-            to: "main-새-이름".to_owned(),
-        },
-    )
-    .expect("이름 중복이 있는 파일의 이름 바꾸기도 성공해야 합니다");
-
-    let text = folder.read(CREDENTIALS_FILE_NAME);
-    let credentials = parse_credentials(&text);
-    // 02-1 해석 규칙(같은 이름은 마지막 칸)과 같은 마지막 값이 왕복으로 읽혀야 합니다.
-    assert_eq!(
-        key_value(&credentials, "main-새-이름").as_deref(),
-        Some("last-value"),
-        "마지막 칸의 값이 그대로 읽혀야 합니다"
-    );
-    assert_eq!(key_value(&credentials, "main"), None);
-}
-
-/// AC 3의 경계: 자격 파일에 그 키가 없으면 이름을 바꾸지 않고 파일을 건드리지 않습니다.
-#[test]
-fn renaming_missing_key_leaves_file_untouched() {
-    let folder = TempDir::new("자격-이름-변경-없음");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-    rename_key(
-        folder.path(),
-        &KeyRename {
-            from: "없는-서버".to_owned(),
-            to: "메인-서버".to_owned(),
-        },
-    )
-    .expect("키가 없는 이름 바꾸기는 성공입니다");
-
-    assert_eq!(
-        folder.read(CREDENTIALS_FILE_NAME),
-        ANNOTATED_FILE,
-        "파일이 그대로여야 합니다"
-    );
-}
-
-/// AC 3의 경계: trim한 이름이 같으면 파일을 건드리지 않습니다.
-#[test]
-fn renaming_same_name_leaves_file_untouched() {
-    let folder = TempDir::new("자격-이름-변경-동일");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-    rename_key(
-        folder.path(),
-        &KeyRename {
-            from: " main ".to_owned(),
-            to: "main ".to_owned(),
-        },
-    )
-    .expect("같은 이름 바꾸기는 성공입니다");
-
-    assert_eq!(folder.read(CREDENTIALS_FILE_NAME), ANNOTATED_FILE);
-}
-
-/// AC 4: 엔드포인트를 삭제하면 자격 파일의 그 키가 지워집니다.
-#[test]
-fn removing_key_deletes_the_endpoint_key() {
-    let folder = TempDir::new("자격-키-삭제");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-    remove_key(folder.path(), " main ").expect("키 삭제가 성공해야 합니다");
-
-    let text = folder.read(CREDENTIALS_FILE_NAME);
-    let credentials = parse_credentials(&text);
-    assert_eq!(
-        key_value(&credentials, "main"),
-        None,
-        "키가 지워져야 합니다: {text}"
-    );
-    assert_eq!(
-        key_value(&credentials, "stage_ep").as_deref(),
-        Some(OTHER_KEY_VALUE),
-        "다른 키가 그대로여야 합니다"
-    );
-    assert!(
-        text.contains(ROOT_EXTRA_TEXT) && text.contains("// 사용자 주석입니다."),
-        "주석과 다른 항목이 그대로여야 합니다: {text}"
-    );
-}
-
-/// AC 4: 그 키가 없으면 자격 파일은 그대로입니다.
-#[test]
-fn removing_missing_key_leaves_file_untouched() {
-    let folder = TempDir::new("자격-키-삭제-없음");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-    remove_key(folder.path(), "없는-서버").expect("키가 없는 삭제는 성공입니다");
-
-    assert_eq!(
-        folder.read(CREDENTIALS_FILE_NAME),
-        ANNOTATED_FILE,
-        "파일이 그대로여야 합니다"
-    );
-}
-
-/// AC 4: 이름이 겹치는 칸이 둘인 파일에서 삭제하면 그 이름 칸을 함께 지웁니다.
-#[test]
-fn removing_key_over_duplicate_names_removes_all_entries() {
-    let folder = TempDir::new("자격-키-삭제-중복");
-    folder.write(CREDENTIALS_FILE_NAME, DUPLICATE_KEY_FILE);
-
-    remove_key(folder.path(), "main").expect("중복 키 삭제가 성공해야 합니다");
-
-    let text = folder.read(CREDENTIALS_FILE_NAME);
-    let credentials = parse_credentials(&text);
-    assert_eq!(key_value(&credentials, "main"), None);
-    assert_eq!(
-        key_value(&credentials, "stage_ep").as_deref(),
-        Some(OTHER_KEY_VALUE),
-        "다른 키가 그대로여야 합니다"
-    );
-}
-
-/// 02-2 이름 규칙에 맞지 않는 이름 바꾸기·삭제는 파일을 건드리지 않고 거부합니다.
-/// (이동 전 `invalid_endpoint_name_rejects_before_touching_file`의 이름 바꾸기·삭제 부분)
-#[test]
-fn invalid_endpoint_name_rejects_rename_and_remove_before_touching_file() {
-    for (label, endpoint) in [("빈 이름", "   "), ("슬래시 이름", "a/b")] {
-        let folder = TempDir::new("자격-거부");
-        folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
-
-        let rename = KeyRename {
-            from: endpoint.to_owned(),
-            to: "main".to_owned(),
-        };
-        let error = rename_key(folder.path(), &rename)
-            .expect_err(&format!("{label} 이름 바꾸기는 거부되어야 합니다"));
-        assert_eq!(
-            folder.read(CREDENTIALS_FILE_NAME),
-            ANNOTATED_FILE,
-            "{label}: 이름 바꾸기가 파일을 바꾸었습니다"
-        );
-        assert_error_hides_secrets(label, &error);
-        let error = remove_key(folder.path(), endpoint)
-            .expect_err(&format!("{label} 키 삭제가 거부되어야 합니다"));
-        assert_eq!(
-            folder.read(CREDENTIALS_FILE_NAME),
-            ANNOTATED_FILE,
-            "{label}: 키 삭제가 파일을 바꾸었습니다"
-        );
-        assert_error_hides_secrets(label, &error);
-    }
 }
 
 /// 이름 바꾸기 정보(`main`에서 `main2`로 바꿈)입니다.
@@ -553,49 +336,3 @@ fn rename_main_to_main2() -> KeyRename {
         to: "main2".to_owned(),
     }
 }
-
-/// `main` 엔드포인트 하나가 있고 사용자 주석이 있는 설정 파일 텍스트입니다.
-const CONFIG_TEXT: &str = r#"{
-  // 사용자 주석입니다.
-  "endpoints": [{"name": "main", "base_url": "http://local.invalid/v1", "kind": "ollama"}]
-}"#;
-/// 자격 파일 키 `main`이 있고 사용자 주석이 있는 자격 파일 텍스트입니다.
-const CREDENTIALS_TEXT: &str = r#"{
-  // 사용자 주석입니다.
-  "api_keys": { "main": "main-key-111" }
-}"#;
-/// `main2` 항목이 이미 있어 이름 바꾸기가 02-2 검증에서 거부되는 설정 파일 텍스트입니다.
-const TWO_ENDPOINTS_TEXT: &str = r#"{
-  "endpoints": [
-    {"name": "main", "base_url": "http://local.invalid/v1", "kind": "ollama"},
-    {"name": "main2", "base_url": "http://local.invalid/v1", "kind": "ollama"}
-  ]
-}"#;
-/// 자격 파일 쪽 이름 바꾸기, 삭제 검사가 쓰는 주석, 다른 항목이 있는 파일입니다.
-const ANNOTATED_FILE: &str = r#"// 사용자 주석입니다.
-{
-  /* api_keys 밖 항목은 무시합니다 */
-  "endpoint": [],
-  "other_root_key": 1,
-  "api_keys": {
-    // 메인 서버
-    "main": "main-key-111",
-    // 다른 서버 키
-    "stage_ep": "stage-key-222",
-  }
-}"#;
-/// 이름이 겹치는 칸이 둘 있고 02-1 해석이 마지막 칸의 값으로 정하는 상태의 파일입니다.
-const DUPLICATE_KEY_FILE: &str = r#"{
-  /* api_keys 밖 항목 */
-  "other_root_key": 1,
-  "api_keys": {
-    // 중복 설명 주석
-    "main": "first-value",
-    "main": "last-value",
-    "stage_ep": "stage-key-222",
-  }
-}"#;
-const MAIN_KEY_VALUE: &str = "main-key-111";
-const OTHER_KEY_VALUE: &str = "stage-key-222";
-const OTHER_KEY_TEXT: &str = r#""stage_ep": "stage-key-222""#;
-const ROOT_EXTRA_TEXT: &str = r#""other_root_key": 1"#;

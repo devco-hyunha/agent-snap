@@ -1,19 +1,21 @@
 //! 자격 파일 키 추가·수정 저장 테스트(02-8 작업 3 AC 1~5).
 //!
-//! 키 이름 바꾸기와 키 삭제 저장을 보는 테스트는 `config/tests/save/rename.rs`로 옮겼고,
+//! 키 이름 바꾸기와 키 삭제 저장을 보는 테스트는 `credentials_rename.rs`로 나눴습니다.
 //! 여기에는 키 추가·수정 저장을 보는 테스트가 남습니다. 저장 후 02-1 해석(`Credentials::parse`)으로
 //! 다시 읽은 값이 같은지, 주석과 다른 항목이 그대로인지, 오류와 파일에 키 값이 남지 않는지 봅니다.
+//! 자격 파일 텍스트 견본과 키 확인 도움은 지원부(`support/credentials.rs`)에서 가져옵니다.
 
 use crate::config::{
-    CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, ReadingError, SaveError, SaveIoKind,
-    SaveIoTarget, ValidationError, save_key,
+    CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, EndpointIssue, ReadingError, SaveError,
+    SaveIoKind, SaveIoTarget, ValidationError, save_key,
 };
 use crate::credentials::CredentialsError;
 use crate::secrets::SecretValue;
 
 use super::super::support::{
-    KEY_VALUE, TempDir, assert_error_hides, assert_error_hides_secrets, count_key_entries,
-    key_value, parse_credentials,
+    CONFIG_SIDE_TEXT, KEY_VALUE, KEYS_ANNOTATED_FILE, KEYS_DUPLICATE_FILE, KEYS_ROOT_EXTRA_TEXT,
+    MAIN_KEY_VALUE, OTHER_KEY_TEXT, OTHER_KEY_VALUE, TempDir, assert_error_hides_key_value,
+    assert_error_hides_secrets, count_key_entries, key_value, parse_credentials,
 };
 
 /// AC 1: 주석·다른 항목이 있는 자격 파일에 키를 저장하면 02-1 해석으로 같은 값이 읽히고,
@@ -21,7 +23,7 @@ use super::super::support::{
 #[test]
 fn saving_key_keeps_comments_and_untouched_entries_and_round_trips() {
     let folder = TempDir::new("자격-주석-보존");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
+    folder.write(CREDENTIALS_FILE_NAME, KEYS_ANNOTATED_FILE);
     folder.write(CONFIG_FILE_NAME, CONFIG_SIDE_TEXT);
 
     save_key(folder.path(), " main ", &SecretValue::new(KEY_VALUE))
@@ -33,7 +35,7 @@ fn saving_key_keeps_comments_and_untouched_entries_and_round_trips() {
         "/* api_keys 밖 항목은 무시합니다 */",
         "// 다른 서버 키",
         OTHER_KEY_TEXT,
-        ROOT_EXTRA_TEXT,
+        KEYS_ROOT_EXTRA_TEXT,
     ] {
         assert!(
             text.contains(marker),
@@ -73,11 +75,11 @@ fn saving_key_creates_missing_credentials_file() {
 #[test]
 fn endpoint_only_edit_keeps_existing_key_in_credentials_file() {
     let folder = TempDir::new("자격-기존-키-유지");
-    folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
+    folder.write(CREDENTIALS_FILE_NAME, KEYS_ANNOTATED_FILE);
 
     // 키를 주지 않는 수정은 save_key를 부르지 않습니다(저장 API 계약, D16).
     let text = folder.read(CREDENTIALS_FILE_NAME);
-    assert_eq!(text, ANNOTATED_FILE);
+    assert_eq!(text, KEYS_ANNOTATED_FILE);
     assert_eq!(
         key_value(&parse_credentials(&text), "main").as_deref(),
         Some(MAIN_KEY_VALUE),
@@ -90,20 +92,23 @@ fn endpoint_only_edit_keeps_existing_key_in_credentials_file() {
 fn invalid_endpoint_name_rejects_before_touching_file() {
     for (label, endpoint) in [("빈 이름", "   "), ("슬래시 이름", "a/b")] {
         let folder = TempDir::new("자격-거부");
-        folder.write(CREDENTIALS_FILE_NAME, ANNOTATED_FILE);
+        folder.write(CREDENTIALS_FILE_NAME, KEYS_ANNOTATED_FILE);
 
         let error = save_key(folder.path(), endpoint, &SecretValue::new(KEY_VALUE))
             .expect_err(&format!("{label}은 거부되어야 합니다"));
         assert_eq!(
             folder.read(CREDENTIALS_FILE_NAME),
-            ANNOTATED_FILE,
+            KEYS_ANNOTATED_FILE,
             "{label}: 파일이 바뀌었습니다"
         );
         assert!(
             matches!(
                 &error,
-                ConfigError::Validation(ValidationError::EmptyEndpointName)
-                    | ConfigError::Validation(ValidationError::EndpointNameHasSlash { .. })
+                ConfigError::Validation(ValidationError::Endpoint(
+                    EndpointIssue::EmptyEndpointName
+                )) | ConfigError::Validation(ValidationError::Endpoint(
+                    EndpointIssue::EndpointNameHasSlash { .. }
+                ))
             ),
             "오류가 이름 규칙 위반이어야 합니다: {error}"
         );
@@ -207,7 +212,7 @@ fn write_failure_reports_target_and_kind_only() {
 #[test]
 fn saving_key_preserves_untouched_lines_verbatim() {
     let folder = TempDir::new("자격-원문-보존");
-    folder.write(CREDENTIALS_FILE_NAME, DUPLICATE_KEY_FILE);
+    folder.write(CREDENTIALS_FILE_NAME, KEYS_DUPLICATE_FILE);
 
     save_key(folder.path(), "main", &SecretValue::new(KEY_VALUE))
         .expect("중복 칸 정리 저장이 성공해야 합니다");
@@ -217,7 +222,7 @@ fn saving_key_preserves_untouched_lines_verbatim() {
         "// 중복 설명 주석",
         "/* api_keys 밖 항목 */",
         OTHER_KEY_TEXT,
-        ROOT_EXTRA_TEXT,
+        KEYS_ROOT_EXTRA_TEXT,
         // 첫 칸이 새 값으로 바뀌고 그 칸 하나가 남습니다(들여쓰기 원형 유지 포함).
         "  \"main\": \"leak-key-value-9\",",
     ] {
@@ -232,44 +237,3 @@ fn saving_key_preserves_untouched_lines_verbatim() {
         Some(KEY_VALUE)
     );
 }
-
-/// 오류의 Display·Debug에 키 값이 없는지 확인합니다. 자격 파일 쪽 검사는 키 가리기만 봅니다
-/// (용도 분리: 호스트 가리기는 `assert_error_hides_secrets`가 맡습니다).
-fn assert_error_hides_key_value(label: &str, error: &ConfigError) {
-    assert_error_hides(label, error, &[KEY_VALUE]);
-}
-
-/// AC 1에 쓰는 파일: 주석 3종, 손대지 않은 키, 손대지 않은 최상위 칸이 있습니다.
-const ANNOTATED_FILE: &str = r#"// 사용자 주석입니다.
-{
-  /* api_keys 밖 항목은 무시합니다 */
-  "endpoint": [],
-  "other_root_key": 1,
-  "api_keys": {
-    // 메인 서버
-    "main": "main-key-111",
-    // 다른 서버 키
-    "stage_ep": "stage-key-222",
-  }
-}"#;
-/// 이름이 겹치는 칸이 둘 있고 02-1 해석이 마지막 칸의 값으로 정하는 상태의 파일입니다.
-const DUPLICATE_KEY_FILE: &str = r#"{
-  /* api_keys 밖 항목 */
-  "other_root_key": 1,
-  "api_keys": {
-    // 중복 설명 주석
-    "main": "first-value",
-    "main": "last-value",
-    "stage_ep": "stage-key-222",
-  }
-}"#;
-const MAIN_KEY_VALUE: &str = "main-key-111";
-const OTHER_KEY_VALUE: &str = "stage-key-222";
-const OTHER_KEY_TEXT: &str = r#""stage_ep": "stage-key-222""#;
-const ROOT_EXTRA_TEXT: &str = r#""other_root_key": 1"#;
-
-/// 자격 파일 쓰기가 설정 파일을 안 건드림을 확인하는 설정 쪽 텍스트입니다.
-const CONFIG_SIDE_TEXT: &str = r#"{
-  // 설정 쪽 주석
-  "endpoints": [{"name": "main", "base_url": "http://local.invalid/v1", "kind": "ollama"}]
-}"#;

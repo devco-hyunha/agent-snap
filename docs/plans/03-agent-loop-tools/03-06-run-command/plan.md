@@ -1,6 +1,6 @@
 # 03-6 run_command·승인자 주입·deadline: 상세 기획
 
-- 상태: planned
+- 상태: done (2026-11-12 T1 r4 리뷰 PASS·지적 0건, 검증 3종 통과)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-2](../03-02-agent-loop/plan.md)
 
 ## 목적
@@ -27,11 +27,18 @@
 - Prospero(RESEARCH Prospero 절): 셸·승인 deadline, 프로세스 트리 종료.
 - DECISIONS D22(실행 600초·승인 300초·L1 기본), D9(격리 보류), D17(비밀 파일 우회 한계).
 
+## 리서치 및 설계 근거 (2026-11-11 조사)
+- Prospero: 셸 timeout 후 백그라운드 이동(`job_timeout` 1800초), 미응답 승인은 timeout 후 거부(`ask_timeout` 60초). 03-6은 D22 값(실행 600초·승인 300초)을 그대로 두고, `0`(무한 대기)은 허용하지 않는다. timeout→백그라운드는 03-9 후보로 유지.
+- tokio::process: `Child::kill`은 SIGKILL+대기, `kill_on_drop` 기본 false라 드롭만으로는 프로세스가 산다. `wait()`은 cancel-safe, stdout·stderr는 별도 태스크로 읽어야 파이프 데드락을 피한다. → 채택: `tokio::select!`+`timeout`+`kill`, 출력은 파이프 태스크 분리.
+- Job Object: `TerminateJobObject`와 `KILL_ON_JOB_CLOSE`로 트리 종료, `BREAKAWAY_OK` 옵션은 트리를 깬다. → 03-7 배치로 유지, 03-6은 kill만.
+- Codex: 승인(`approval_policy`)과 샌드박스는 별개 레이어, 승인 대기 timeout 수치 없음, 비대화형은 승인 없이 실행하는 경로를 별도 플래트로만 허용. → 03-6의 승인자 인터페이스 교체 지점(Codex reviewer식)과 비대화형 즉시 거부 유지.
+- OpenCode: 규칙 미매칭 기본 `ask`, `once`/`always` 패턴 저장. → 3단계 패턴 허용은 03-11 배치로 유지, L1은 미매칭=거부(ask)로만.
+- 출처: https://raw.githubusercontent.com/skeeto/prospero/master/docs/usage.md, https://raw.githubusercontent.com/skeeto/prospero/master/docs/windows.md, https://docs.rs/tokio/latest/tokio/process/struct.Child.html, https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects, https://learn.chatgpt.com/docs/agent-approvals-security, https://opencode.ai/docs/permissions/
+
 ## 리스크
 - 승인 timeout과 「무인 계속」을 혼동하지 않는다.
-- `run_command`의 비밀 파일 읽기 우회는 이름 규칙으로 다 막지 못한다(스모크 보고에 한계 기록).
+- `run_command`의 비밀 파일 읽기 우회는 이름 규칙으로 다 막지 못한다(스모크 보고에 한계 기록). (위 한계는 한 번만 적는다 — 2026-11-11 문장 정리)
 
-- `run_command`의 비밀 파일 읽기 우회는 이름 규칙으로 다 막지 못한다(스모크 보고에 한계 기록).
 ## 작업계획
 
 | 작업 | 범위 | 금지 | 산출물 | 검증 명령 | 선행 작업 |
@@ -42,4 +49,9 @@
 
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-06-run-command/T1-run-command.md` | run_command·승인자 | 계획 |
+| `docs/tasks/03/03-06-run-command/T1-run-command.md` | run_command·승인자 | 완료 |
+| `docs/tasks/03/03-06-run-command/T2-srp-split.md` | SRP 파일 분할(리뷰 후속) | 완료 |
+| `docs/tasks/03/03-06-run-command/T3-srp-tests-split.md` | SRP 시험 지원·본문 분할(리뷰 후속) | 완료 |
+| `docs/tasks/03/03-06-run-command/T4-srp-full-audit.md` | SRP 전수 감사(읽기 전용) | 완료 |
+| `docs/tasks/03/03-06-run-command/T4-audit-results.md` | 전수 감사 결과 표 | 완료 |
+| `docs/tasks/03/03-06-run-command/T5-srp-splits.md` | SRP 분리 라운드(감사 major 반영) | 계획 |

@@ -7,7 +7,7 @@
 
 use std::collections::BTreeMap;
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, EndpointIssue, ModelIssue, ValidationError};
 use super::super::read::types::{EndpointKind, ExtraValue, Reasoning, Sampling, ToolCallForm};
 use super::super::read::validate::{self, is_valid_base_url};
 use super::names::{NameScope, checked_save_name};
@@ -34,10 +34,10 @@ impl EndpointSave {
     /// 판단은 02-2 읽기가 쓰는 규칙 목록(`validate::RESERVED_EXTRA_KEYS`)을 그대로 씁니다.
     ///
     /// # 오류
-    /// 이름 규칙 위반은 [`ValidationError::EmptyEndpointName`]·[`ValidationError::EndpointNameHasSlash`]
-    /// 또는 [`ValidationError::EmptyModelName`]·[`ValidationError::ModelNameHasSlash`], 모델 id 규칙
-    /// 위반은 [`ValidationError::EmptyModelId`], 주소 규칙 위반은 [`ValidationError::InvalidBaseUrl`],
-    /// `extra` 예약 키는 [`ValidationError::ExtraReservedKey`]입니다. 입력 값은 오류에 담지 않습니다.
+    /// 이름 규칙 위반은 [`EndpointIssue::EmptyEndpointName`]·[`EndpointIssue::EndpointNameHasSlash`]
+    /// 또는 [`ModelIssue::EmptyModelName`]·[`ModelIssue::ModelNameHasSlash`], 모델 id 규칙
+    /// 위반은 [`ModelIssue::EmptyModelId`], 주소 규칙 위반은 [`EndpointIssue::InvalidBaseUrl`],
+    /// `extra` 예약 키는 [`ModelIssue::ExtraReservedKey`]입니다. 입력 값은 오류에 담지 않습니다.
     pub fn validate(&self) -> Result<(), ConfigError> {
         self.check().map(|_| ())
     }
@@ -49,7 +49,7 @@ impl EndpointSave {
     pub(crate) fn check(&self) -> Result<CheckedEndpoint<'_>, ConfigError> {
         let name = checked_save_name(&self.name, NameScope::Endpoint)?;
         if !is_valid_base_url(&self.base_url) {
-            return Err(ValidationError::InvalidBaseUrl {
+            return Err(EndpointIssue::InvalidBaseUrl {
                 endpoint: name.clone(),
             }
             .into());
@@ -122,7 +122,7 @@ impl<'a> CheckedModel<'a> {
         let id = validate::trimmed_non_empty(&save.id)
             .ok_or_else(|| ValidationError::empty_model_id(endpoint, &name))?;
         if let Some(key) = Self::extra_reserved_key(&save.extra) {
-            return Err(ValidationError::ExtraReservedKey {
+            return Err(ModelIssue::ExtraReservedKey {
                 model: name.clone(),
                 key: key.to_owned(),
             }

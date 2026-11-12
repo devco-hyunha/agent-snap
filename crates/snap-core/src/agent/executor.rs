@@ -1,25 +1,27 @@
-//! 도구 호출 실행: `tool_calls`를 받아 결과를 만들고 결과를 잘라 모델에 넘길 한 줄로 바꿉니다.
+//! 도구 호출을 처리해 모델에 넘길 기록으로 바꿉니다(승인 흐름 포함).
 //!
 //! 이름 확인은 등록 목록(`registry.rs`)을, 인자 JSON 해석은 `args.rs`를, 잘림은
-//! `truncate.rs`를 재사용합니다(SRP·DRY). 03-2 골격은 승인자를 두지 않으므로 승인 요청은
-//! 즉시 거부로 보고하고, 상한·거부 판정(종료 4갈래)은 `runner.rs`의 판단에 넘깁니다.
-
-use std::time::{SystemTime, UNIX_EPOCH};
+//! `truncate.rs`를 재사용합니다(SRP·DRY). 03-6이 승인 흐름의 창구로 이 파일을 씁니다:
+//! 승인이 필요한 도구는 `ToolContext.approver`를 불러 승인·거부·만료를 정하고(D22),
+//! 승인자 미주입은 즉시 거부, 만료는 거부로 기록합니다. 상한·거부 판정(종료 4갈래)은
+//! `runner.rs`의 판단에 넘깁니다. 기록 필드 조립과 시각은 `record_fill.rs`의 책임입니다
+//! (03-6 리뷰 SRP 지적, dev-principles 2절).
 
 use crate::llm::ToolCall;
-use crate::tools::tool::{ToolContext, ToolOutcome};
+use crate::tools::approver::request_approval;
+use crate::tools::tool::{Tool, ToolContext, ToolOutcome};
 
 use super::args::recover_arguments;
-use super::fallback::ToolCallFormat;
+use super::record_fill::{RunOne, record, recorded};
 use super::registry::ToolRegistry;
-use super::truncate::truncate_tool_result;
 use super::types::ToolCallRecord;
+use crate::time::now_unix_secs;
 
-/// 도구 실행 한 바퀴가 만든 기록 목록입니다.
+/// 도구 호출 한 바퀴가 만든 기록 목록입니다.
 pub struct ToolRun {
     /// 모델에 넘긴 기록(결과 문자열은 잘림과 오류 한 줄을 함께 담습니다).
     pub records: Vec<ToolCallRecord>,
-    /// 승인이 필요해서 거부한 호출 기록입니다. 03-2 골격은 승인자가 없어 항상 거부로 봅니다.
+    /// 승인이 필요해서 거부한 호출 기록입니다. 03-6 승인자가 채워지기 전에는 항상 거부로 봅니다.
     pub rejection: Option<ToolCallRecord>,
 }
 
@@ -33,7 +35,7 @@ impl ToolRun {
     }
 }
 
-/// 모델이 부른 도구 호출 목록을 순서대로 실행해 기록으로 만듭니다(spec AC 1·AC 3).
+/// 모델이 부른 도구 호출 목록을 순서대로 처리해 기록으로 만듭니다(spec AC 1·AC 3).
 ///
 /// 등록에 없는 이름은 `도구 없음: 이름` 한 줄, 인자 JSON이 깨지면 복구 뒤에
 /// `오류: 인자 JSON 형식 오류` 한 줄을 결과로 남깁니다.
@@ -59,7 +61,10 @@ pub async fn run_tool_calls(
     ToolRun { records, rejection }
 }
 
-/// 호출 한 개를 실행해 기록과 승인 거부 표식으로 바꿉니다.
+/// 호출 한 개를 처리해 기록과 승인 거부 표식으로 바꿉니다.
+///
+/// 승인이 필요한 도구는 03-6 승인자(`CommandApprover`)를 불러 결과를 정합니다.
+/// 승인자 미주입은 기다리지 않고 즉시 거부하고, 응답 상한 만료는 거부로만 봅니다(D22: L3 무인 아님).
 async fn run_one(
     registry: &ToolRegistry,
     context: &ToolContext,
@@ -70,63 +75,52 @@ async fn run_one(
         let text = format!("도구 없음: {}", call.name);
         return RunOne::plain(record(call, text, executed_at));
     };
-    let outcome = match recover_arguments(&call.arguments) {
-        Ok(args_json) => tool.call(&args_json, context).await,
-        Err(reason) => ToolOutcome::error(&reason),
+    let args_json = match recover_arguments(&call.arguments) {
+        Ok(args_json) => args_json,
+        Err(reason) => {
+            let text = ToolOutcome::error(&reason).text().to_owned();
+            return RunOne::plain(record(call, text, executed_at));
+        }
     };
-    // 03-6에서 승인자가 채워질 때까지는 승인을 즉시 거부로 봅니다(D22 L1 기본).
+    let outcome = tool.call(&args_json, context).await;
     if matches!(outcome, ToolOutcome::ApprovalRequired { .. }) {
         let summary = outcome.text().to_owned();
-        return RunOne::rejected(record(
-            call,
-            format!("오류: 승인 거부 {summary}"),
-            executed_at,
-        ));
-    }
-    let text = truncate_tool_result(outcome.text(), context.tool_result_max_chars);
-    RunOne::plain(record(call, text, executed_at))
-}
-
-/// 호출 한 개의 실행 결과(기록과 승인 거부 표식)입니다.
-struct RunOne {
-    record: ToolCallRecord,
-    needs_approval: bool,
-}
-
-impl RunOne {
-    const fn plain(record: ToolCallRecord) -> Self {
-        Self {
-            record,
-            needs_approval: false,
+        let reply = request_approval(
+            context.approver.as_ref(),
+            &summary,
+            &context.run_command,
+            &context.cancel_token(),
+        )
+        .await;
+        if reply.is_approved() {
+            return RunOne::plain(recorded(
+                call,
+                &run_approved_call(tool, &args_json, context, &summary).await,
+                context,
+                executed_at,
+            ));
         }
+        return RunOne::rejected(record(call, reply.rejection_text(&summary), executed_at));
     }
-
-    const fn rejected(record: ToolCallRecord) -> Self {
-        Self {
-            record,
-            needs_approval: true,
-        }
-    }
+    RunOne::plain(recorded(call, &outcome, context, executed_at))
 }
 
-/// 기록 항목을 채우는 한 곳입니다(같은 필드 조립을 다시 적지 않습니다, DRY).
-fn record(call: &ToolCall, result: String, executed_at: u64) -> ToolCallRecord {
-    ToolCallRecord {
-        call_id: call.id.clone(),
-        tool_name: call.name.clone(),
-        arguments: call.arguments.clone(),
-        result,
-        executed_at_unix_secs: executed_at,
-        // 03-2 루프는 1안으로만 보내므로 기록의 호출 형식은 항상 1안입니다(2안 기록은 03-4가 채움).
-        format: ToolCallFormat::OpenAi,
-    }
-}
-
-/// 지금 시각을 유닉스 초로 바꿉니다. 시험은 하한·상한으로만 비교합니다.
+/// 승인자 응답이 승인한 호출만 셸·도구에 넘기고, 표식이 다음 호출으로 새지 않게 닫습니다.
 ///
-/// 2안 기록(text_record)도 같은 기준을 쓰게 `pub(crate)`로 열어 두 곳에서 함께 씁니다(DRY).
-pub(crate) fn now_unix_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |elapsed| elapsed.as_secs())
+/// 표식을 이 호출 한 개에 채우고 부른 뒤 반드시 지웁니다(D22 5.3절·spec AC 1: 명령마다 확인).
+/// 도구가 표식을 소비하지 않고 끝나도 다음 호출은 다시 승인자를 타야 합니다.
+async fn run_approved_call(
+    tool: &dyn Tool,
+    args_json: &str,
+    context: &ToolContext,
+    summary: &str,
+) -> ToolOutcome {
+    context.mark_approved();
+    let outcome = tool.call(args_json, context).await;
+    context.clear_approved();
+    if matches!(outcome, ToolOutcome::ApprovalRequired { .. }) {
+        // 승인을 채워 불렀는데 다시 승인 요청이 나오면 실행하지 않고 거부로 기록합니다.
+        return ToolOutcome::error(&format!("승인 거부(재승인 요청) {summary}"));
+    }
+    outcome
 }

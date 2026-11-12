@@ -4,8 +4,16 @@
 
 #![allow(dead_code, unreachable_pub)]
 
-use snap_core::agent::ToolRegistry;
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+use std::sync::Arc;
+
+use snap_core::agent::{DEFAULT_TOOL_RESULT_MAX_CHARS, LoopConfig, ToolRegistry};
+use snap_core::tools::approver::{ApprovalFuture, ApprovalReply, ApproverBox, CommandApprover};
 use snap_core::tools::tool::{ToolCallFuture, ToolContext, ToolOutcome};
+
+use super::setup::loop_config_base;
 
 /// 정해진 문자열을 그대로 도구 결과로 돌려주는 가짜 도구입니다.
 /// 이름·결과를 `String`으로 받긴 결과를 필요한 시험(잘림 상한 확인)에서도 씁니다.
@@ -62,6 +70,50 @@ impl snap_core::tools::tool::Tool for ApprovalTool {
             }
         })
     }
+}
+
+/// 승인 표식이 호출마다 열리는지 확인하는 시험의 승인자입니다(03-6 T1 critical 보정 격자).
+///
+/// 승인자가 불린 횟수를 세고, 정해 둔 응답을 불린 순번대로 돌려줍니다. 순번 목록이 끝나면 승인으로 봅니다.
+pub struct CountingApprover {
+    calls: Arc<AtomicUsize>,
+    replies: Vec<ApprovalReply>,
+}
+
+/// 승인자를 실행 판에 넣을 상자로 만들고, 세는 수는 바깥에서 볼 복사본으로 줍니다.
+#[must_use]
+pub fn counting_approver(replies: &[ApprovalReply]) -> (ApproverBox, Arc<AtomicUsize>) {
+    let calls = Arc::new(AtomicUsize::new(0));
+    let boxed = Box::new(CountingApprover {
+        calls: calls.clone(),
+        replies: replies.to_vec(),
+    }) as ApproverBox;
+    (boxed, calls)
+}
+
+impl CommandApprover for CountingApprover {
+    fn approve<'a>(&'a self, _summary: &'a str) -> ApprovalFuture<'a> {
+        let call_index = self.calls.fetch_add(1, Ordering::Relaxed);
+        let reply = self
+            .replies
+            .get(call_index)
+            .copied()
+            .unwrap_or(ApprovalReply::Approved);
+        Box::pin(async move { reply })
+    }
+}
+
+/// 골격 설정(`loop_config_base`)에 승인자와 작업 폴더만 채운 설정입니다(03-6 승인 주입 확인용).
+#[must_use]
+pub fn loop_config_with_approver(
+    registry: ToolRegistry,
+    working_dir: PathBuf,
+    approver: ApproverBox,
+) -> LoopConfig {
+    let mut config = loop_config_base(registry);
+    config.context = ToolContext::new(working_dir, DEFAULT_TOOL_RESULT_MAX_CHARS);
+    config.max_turns = 4;
+    config.with_approver(approver)
 }
 
 /// 가짜 도구를 한 개 등록한 목록을 만듭니다.

@@ -3,9 +3,10 @@
 use crate::config::ToolCallForm;
 use crate::llm::ChatRequest;
 
-use super::fallback::{FallbackPoint, ToolCallFormat, start_format};
+use super::fallback::FallbackPoint;
 use super::registry::ToolRegistry;
 use super::text::protocol::apply_text_assembly;
+use super::tool_call_form::{ToolCallFormat, start_format};
 use super::types::ToolCallRecord;
 
 /// 1안 왕복의 진행 상태를 묶는 자리입니다(함수 인자 10개 넘김을 피하려는 구조, clippy `too_many_arguments` 대응).

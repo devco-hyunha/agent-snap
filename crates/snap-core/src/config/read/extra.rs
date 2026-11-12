@@ -7,7 +7,7 @@ use std::collections::BTreeMap;
 
 use jsonc_parser::{JsonObject, JsonValue};
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, ModelIssue};
 use super::types::ExtraValue;
 use super::validate;
 use crate::jsonc::{WrongType, pick_object, take_optional};
@@ -25,7 +25,7 @@ pub(super) fn read_extra(
         return Ok(BTreeMap::new());
     };
     if let Some(key) = validate::first_present_key(&extra, &validate::RESERVED_EXTRA_KEYS) {
-        return Err(ValidationError::ExtraReservedKey {
+        return Err(ModelIssue::ExtraReservedKey {
             model: model.to_owned(),
             key: key.to_owned(),
         }

@@ -34,7 +34,7 @@ pub struct KeyRename {
 ///
 /// # 오류
 /// 파일 읽기·쓰기 실패는 대상 파일 종류(자격)와 오류 종류만 밝히는 [`SaveError::SaveIo`],
-/// 이름 규칙 위반은 [`ValidationError::EmptyEndpointName`]·[`ValidationError::EndpointNameHasSlash`],
+/// 이름 규칙 위반은 [`EndpointIssue::EmptyEndpointName`]·[`EndpointIssue::EndpointNameHasSlash`],
 /// 02-1 해석이 거부하는 파일은 [`ReadingError::Credentials`]입니다. 기존 키가 없는 경우를
 /// 빼면 파일을 건드리기 전에 막습니다.
 pub fn rename_key(folder: &Path, rename: &KeyRename) -> Result<(), ConfigError> {
@@ -81,7 +81,7 @@ pub(crate) fn rename_key_with(
 ///
 /// # 오류
 /// 파일 읽기 실패는 대상 파일 종류(자격)와 오류 종류만 밝히는 [`SaveError::SaveIo`], 이름 규칙
-/// 위반은 [`ValidationError::EmptyEndpointName`]·[`ValidationError::EndpointNameHasSlash`], 02-1 해석이
+/// 위반은 [`EndpointIssue::EmptyEndpointName`]·[`EndpointIssue::EndpointNameHasSlash`], 02-1 해석이
 /// 거부하는 파일은 [`ReadingError::Credentials`]입니다. 파일을 건드리기 전에 막습니다.
 pub fn remove_key(folder: &Path, endpoint: &str) -> Result<(), ConfigError> {
     remove_key_with(folder, endpoint, &replace_file)

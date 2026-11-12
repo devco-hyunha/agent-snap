@@ -4,7 +4,7 @@
 //! `stream`·`tools`)를 덮으려는 항목이 있으면 설정 오류로 냅니다. 값 넣기는 요청 본문
 //! 조립(`llm/request_body.rs`)이 이미 하므로 여기서는 검증과 합치기만 맡습니다.
 
-use crate::config::ValidationError;
+use crate::config::{ModelIssue, SectionIssue, ValidationError};
 use crate::config::{RESERVED_EXTRA_KEYS, is_valid_temperature};
 use crate::llm::ChatRequest;
 
@@ -26,10 +26,11 @@ impl ToolCallProfile {
         if is_valid_temperature(&temperature) {
             Ok(Self { temperature })
         } else {
-            Err(ValidationError::SamplingOutOfRange {
+            Err(SectionIssue::SamplingOutOfRange {
                 item: "temperature".to_owned(),
                 model: "tool_call".to_owned(),
-            })
+            }
+            .into())
         }
     }
 
@@ -49,10 +50,11 @@ impl ToolCallProfile {
     pub fn apply(&self, request: &mut ChatRequest) -> Result<(), ProfileError> {
         for key in Self::reserved_keys() {
             if request.extra.contains_key(key) {
-                return Err(ValidationError::ExtraReservedKey {
+                return Err(ModelIssue::ExtraReservedKey {
                     model: "tool_call".to_owned(),
                     key: (*key).to_owned(),
-                });
+                }
+                .into());
             }
         }
         request.sampling.temperature = Some(self.temperature);

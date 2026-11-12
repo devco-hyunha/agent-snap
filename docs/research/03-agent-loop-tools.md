@@ -52,12 +52,12 @@
 - opencode
   - 링크: [Tools](https://opencode.ai/docs/tools/), [Permissions](https://opencode.ai/docs/permissions/)
   - 핵심: 편집 도구는 정확한 텍스트 일치를 바꾸는 방식이라고만 적혀 있고, 인자와 다중 일치 처리는 문서에 없습니다. grep과 glob은 ripgrep을 쓰고 `.gitignore`를 존중하며 glob은 수정 시각순으로 돌려줍니다. 권한은 allow, ask, deny 세 가지이고 bash는 명령 패턴(와일드카드, 마지막으로 맞는 규칙 우선)별로 정할 수 있으며 편집·쓰기·패치는 하나의 edit 권한으로 묶입니다. 승인 창에서는 한 번 허용, 세션 동안 허용, 거부를 고릅니다.
-  - 적용 위치: 명령 실행 전 사용자 확인(허용·거부 두 갈래)은 `tools/run_command.rs`와 `tools/approval.rs`, 콘솔 구현은 `snap-cli/src/console.rs`. `.gitignore` 존중은 적용하지 않았습니다(미적용 이유: 목록·검색은 `.git`, `target` 등 고정 제외만 하고 규칙 해석은 범위 밖).
+  - 적용 위치: 명령 실행 전 사용자 확인(허용·거부 두 갈래)은 03-6에서 `tools/run_command.rs`와 `tools/approver.rs`로 구현했고, 콘솔 구현은 `snap-cli/src/console.rs`(04 배치). `.gitignore` 존중은 적용하지 않았습니다(미적용 이유: 목록·검색은 `.git`, `target` 등 고정 제외만 하고 규칙 해석은 범위 밖).
   - 미적용: 패턴별 자동 허용 규칙과 세션 동안 허용(범위 밖, 필요해지면 별도 작업).
 - Codex CLI
   - 링크: [저장소 README](https://github.com/openai/codex), [승인과 보안](https://learn.chatgpt.com/docs/agent-approvals-security)
   - 핵심: 샌드박스 모드(read-only, workspace-write, danger-full-access)와 승인 정책(on-request, never, granular)을 따로 둡니다. 샌드박스 안 명령은 묻지 않고 실행하며, 밖으로 나가거나 네트워크가 필요하면 승인을 요청합니다. 승인 검토자가 기본은 사용자입니다. 검색-치환 편집 도구와 다중 일치 처리는 열어 본 문서에 없어 확인하지 못했습니다.
-  - 적용 위치: `tools/approval.rs`(`CommandApprover`, `NoApproval`), `snap-cli/src/select.rs`의 `ask_approval`이 비대화형이면 거부합니다.
+  - 적용 위치: 03-6에서 `tools/approver.rs`가 `CommandApprover`을 두고, 승인자 미주입은 `request_approval`이 기다리지 않고 거부합니다. 콘솔(사람 확인 창)은 `snap-cli/src/console.rs`로 04 배치.
   - 미적용: 샌드박스 격리(운영체제별 구현이 크고 범위 밖).
 - Pi 코딩 에이전트
   - 링크: [coding-agent README](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent), [사용법](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/usage.md), [동작 방식](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/how-pi-works.md)
@@ -118,7 +118,7 @@
   - 링크: [nullprogram (2026-10-31)](https://nullprogram.com/blog/2026-10-31/), [skeeto/prospero](https://github.com/skeeto/prospero)(README·`docs/windows.md` 요약), [GeekNews](https://news.hada.io/topic?id=36346)
   - 핵심: 모든 작업에 deadline을 두고(Plan·`ask_user`만 무기한), 권한 미응답은 timeout으로 거부하며, 네트워크·watchdog·mailbox bound·셸 timeout 후 비동기 백그라운드와 주기 wake를 씁니다. 자식 프로세스는 트리와 함께 수명을 맞추고 Windows에서는 Job Object를 씁니다. 모델 제공자는 비내장(OpenAI Chat Completions·Anthropic Messages, INI·`env:KEY`)이며, 권한은 완전한 보안 경계가 아니라 실수·범위 상기용입니다(실격리는 하네스 격리). 서브에이전트·원격 헤드리스·데스크톱 제어·패시브 렌더링·스킬/자기문서가 제품 차별점입니다.
   - snap 대조: 엔드포인트·키 비내장(D10/D20, PLAN), HTTP connect/header/stream_idle(D20, config), `run_command` 승인(03)은 이미 가깝거나 기획됨. Job Object는 D9 후보. 03에 아직 없는 것은 셸·도구 deadline, timeout→백그라운드 폴링, 프로세스 트리 종료, 권한 응답 timeout입니다. GUI·ImGui, 원격 엔진, 데스크톱 제어, 런타임 서브에이전트, CE/Pro 모델은 범위 밖·보류입니다.
-  - 적용 위치: 작업 03 또는 D9 재검토 시 Never wait forever의 셸·승인 timeout, Job Object/프로세스 트리 정리를 우선 참고. timeout→백그라운드 전환과 에이전트 폴링은 자율 빌드 루프의 부분 적용 후보.
+  - 적용 위치: 03-6 T1에서 D22 값(실행 600초·승인 300초)을 `tools/run_command.rs`의 `select!`과 `tools/approver.rs`의 `request_approval`에 적용했고, 값은 `config/read/agent.rs`의 `agent` 섹션(`run_command_deadline`·`approval_deadline`)으로 받는다. 미응답 승인은 timeout 뒤 거부로만 본다(Prospero `ask_timeout`과 같은 결, 값은 D22의 300초). Job Object/프로세스 트리 정리는 03-7 배치, timeout→백그라운드 전환은 03-9 후보로 두었다.
   - 본 절은 **조사 기록**이며 **규범 정본이 아니다**. 적용·금지·단계 정의의 정본은 `docs/decisions/D22-execution-reliability-autonomy.md` (요약은 DECISIONS D22).
   - 미적용: 네이티브 GUI·패시브 렌더(PLAN은 Tauri+Solid, 범위 밖). 원격 헤드리스·데스크톱 제어(경량·D9/Flue 미적용과 충돌). 권한 timeout 거부는 snap의 'run_command는 확인 후 실행'과 긴장 관계 — 비대화형·미응답 시 Codex식 거부와 맞춰 문서화 필요.
   - 이미 정렬: 제공자 비내장, 권한≠완전 보안 경계(D9 경량).

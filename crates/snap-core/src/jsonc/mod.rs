@@ -9,18 +9,9 @@ use std::str::FromStr;
 
 use jsonc_parser::{JsonArray, JsonObject, JsonValue, ParseOptions};
 
-/// JSONC 텍스트를 객체로 읽지 못했을 때의 오류입니다. 입력 값은 담지 않습니다.
-#[derive(Debug)]
-pub(crate) enum JsoncError {
-    /// 문법 오류입니다. 줄 번호만 담고 줄 내용과 값은 담지 않습니다.
-    Syntax { line: usize },
-    /// 최상위가 객체가 아닙니다(빈 텍스트 포함).
-    RootNotObject,
-}
+pub(crate) use error::{JsoncError, WrongType};
 
-/// 칸이 있지만 기대한 JSON 타입이 아닙니다.
-#[derive(Debug)]
-pub(crate) struct WrongType;
+mod error;
 
 /// JSONC 텍스트를 해석해 최상위 객체를 돌려줍니다.
 ///

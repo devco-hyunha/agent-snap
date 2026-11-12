@@ -4,7 +4,7 @@
 
 use jsonc_parser::{JsonObject, JsonValue};
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, ModelIssue};
 use super::types::Reasoning;
 
 /// 모델의 `reasoning`을 읽습니다. 칸이 없으면 요청에 더하지 않는 `None`이고, 값은 설정에 적는
@@ -22,7 +22,7 @@ pub(super) fn read_reasoning(
     };
     reasoning
         .map(Some)
-        .ok_or_else(|| ValidationError::InvalidReasoning {
+        .ok_or_else(|| ModelIssue::InvalidReasoning {
             model: model.to_owned(),
         })
         .map_err(ConfigError::from)

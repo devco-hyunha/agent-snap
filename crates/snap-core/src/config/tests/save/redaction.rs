@@ -5,24 +5,23 @@
 //! - 검증 실패: 02-2와 같은 이름만 담는다(base_url·키는 담지 않는다).
 //! - 파일 쓰기·교체 실패: 대상 파일 종류(설정, 자격)와 오류 종류. 경로 전체·키 값·base_url 없음.
 //! - 수정·삭제할 엔드포인트 없음: 이름만 담는다.
+//!
+//! 저장 경로가 내는 오류를 모는 견본과 저장 경로 조립은 지원부(`support/save_failures.rs`)로
+//! 옮겨, 설정 오류 가리기 시험과 같은 견본을 함께 쓰게 합니다.
 
 use std::path::Path;
 
 use super::super::support::{
-    HOST, KEY_VALUE, TempDir, assert_error_hides_secrets, base_url, blocking_replacement,
-    endpoint_save, side_effect_errors, standard_replacement,
+    ANNOTATED_CREDENTIALS, HOST, HOST_CONFIG, KEY_VALUE, TempDir, assert_error_hides_secrets,
+    bad_base_url_save, base_url, config_replace_failure, config_write_failure,
+    every_save_path_error, key_replace_failure, replace_file_ok, side_effect_errors,
 };
 use crate::config::save::config::save_endpoint_with;
-use crate::config::save::credentials::save_key_with;
 use crate::config::save::store::{remove_endpoint_with, rename_endpoint_with};
 use crate::config::{
-    CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, EndpointSave, KeyRename, SaveError,
+    CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, EndpointIssue, KeyRename, SaveError,
     SaveIoKind, SaveIoTarget, ValidationError,
 };
-use crate::secrets::SecretValue;
-
-// 검증 거부 입력에 쓰는 주소입니다. `HOST`와 같은 호스트가 들어 있어 Display에 나오면 안 됩니다.
-const BAD_URL: &str = "ftp://leak-check-host.invalid/v1";
 
 /// 쓰기·교체 실패를 만드는 저장 경로를 가리키는 타입 이름입니다(clippy의 type_complexity 대응).
 type SaveFailure = fn(&Path) -> Result<(), ConfigError>;
@@ -110,7 +109,7 @@ fn validation_failure_carries_names_without_values() {
         .expect_err("주소 규칙 위반은 거부되어야 합니다");
 
     assert!(
-        matches!(&error, ConfigError::Validation(ValidationError::InvalidBaseUrl{ endpoint }) if endpoint == "main"),
+        matches!(&error, ConfigError::Validation(ValidationError::Endpoint(EndpointIssue::InvalidBaseUrl{ endpoint })) if endpoint == "main"),
         "02-2와 같은 검증 실패여야 합니다: {error}"
     );
     // Display에 주소가 없고 엔드포인트 이름만 있습니다.
@@ -172,7 +171,7 @@ fn every_config_error_variant_hides_key_and_host() {
         .map(|case| (case.label, super::super::support::parse_err(&case.text)))
         .collect();
     errors.extend(
-        super::super::redaction::errors_outside_rejection_table()
+        super::super::support::errors_outside_rejection_table()
             .into_iter()
             .map(|error| ("표 밖 오류", error)),
     );
@@ -194,11 +193,11 @@ fn every_config_error_variant_hides_key_and_host() {
     }
     let covered: std::collections::HashSet<&str> = errors
         .iter()
-        .map(|(_, error)| super::super::redaction::variant_name(error))
+        .map(|(_, error)| super::super::support::variant_name(error))
         .collect();
     assert_eq!(
         covered.len(),
-        super::super::redaction::VARIANT_COUNT,
+        super::super::support::VARIANT_COUNT,
         "견본 오류가 모든 변형을 만들어야 합니다: {covered:?}"
     );
 }
@@ -215,7 +214,9 @@ fn spec_table_rows_match_redaction_shape() {
         .expect_err("주소 규칙 위반");
     assert!(matches!(
         &validation,
-        ConfigError::Validation(ValidationError::InvalidBaseUrl { .. })
+        ConfigError::Validation(ValidationError::Endpoint(
+            EndpointIssue::InvalidBaseUrl { .. }
+        ))
     ));
 
     // 표 2번째 줄: 대상 파일 종류와 오류 종류만 담습니다.
@@ -233,110 +234,3 @@ fn spec_table_rows_match_redaction_shape() {
         matches!(&missing, ConfigError::Save(SaveError::MissingEndpoint{ endpoint }) if endpoint == "없는-서버")
     );
 }
-
-/// 저장 경로(설정 저장·자격 저장·두 파일 저장)가 내는 오류를 모습니다.
-fn every_save_path_error(folder: &Path) -> Vec<(&'static str, Result<(), ConfigError>)> {
-    vec![
-        (
-            "설정 검증 거부",
-            save_endpoint_with(folder, &bad_base_url_save(), &replace_file_ok()),
-        ),
-        (
-            "자격 이름 규칙 거부",
-            save_key_with(
-                folder,
-                "a/b",
-                &SecretValue::new(KEY_VALUE),
-                &replace_file_ok(),
-            ),
-        ),
-        ("설정 교체 실패", config_replace_failure(folder)),
-        ("자격 교체 실패", key_replace_failure(folder)),
-        (
-            "두 파일 이름 바꾸기 교체 실패",
-            rename_endpoint_with(
-                folder,
-                &KeyRename {
-                    from: "main".to_owned(),
-                    to: "main2".to_owned(),
-                },
-                &blocking_replacement(CONFIG_FILE_NAME),
-            ),
-        ),
-        (
-            "두 파일 삭제 교체 실패",
-            remove_endpoint_with(folder, "main", &blocking_replacement(CONFIG_FILE_NAME)),
-        ),
-        ("설정 쓰기 실패", config_write_failure(folder)),
-        (
-            "이름 바꾸기 대상 없음",
-            rename_endpoint_with(
-                folder,
-                &KeyRename {
-                    from: "없는-서버".to_owned(),
-                    to: "새-서버".to_owned(),
-                },
-                &replace_file_ok(),
-            ),
-        ),
-        (
-            "삭제 대상 없음",
-            remove_endpoint_with(folder, "없는-서버", &replace_file_ok()),
-        ),
-    ]
-}
-
-/// 규칙에 맞지 않는 주소의 설정 저장 입력입니다. 검증 거부 견본입니다.
-fn bad_base_url_save() -> EndpointSave {
-    endpoint_save("main", BAD_URL)
-}
-
-/// 설정 파일 교체를 막아 교체 실패를 만듭니다.
-fn config_replace_failure(folder: &Path) -> Result<(), ConfigError> {
-    save_endpoint_with(
-        folder,
-        &main_save(),
-        &blocking_replacement(CONFIG_FILE_NAME),
-    )
-}
-
-/// 자격 파일 교체를 막아 교체 실패를 만듭니다.
-fn key_replace_failure(folder: &Path) -> Result<(), ConfigError> {
-    save_key_with(
-        folder,
-        "main",
-        &SecretValue::new(KEY_VALUE),
-        &blocking_replacement(CREDENTIALS_FILE_NAME),
-    )
-}
-
-/// 설정 파일 저장을 없는 하위 폴더에 시도해 임시 파일 쓰기 실패를 만듭니다.
-fn config_write_failure(folder: &Path) -> Result<(), ConfigError> {
-    save_endpoint_with(
-        &folder.join("없는-하위-폴더"),
-        &main_save(),
-        &replace_file_ok(),
-    )
-}
-
-/// 검증·대상 없음 경로를 거치게 하는 교체 지점입니다.
-fn replace_file_ok() -> impl Fn(&Path, &Path) -> std::io::Result<()> {
-    standard_replacement
-}
-
-/// 검증·저장 견본으로 쓰는 기본 엔드포인트 저장입니다.
-fn main_save() -> EndpointSave {
-    endpoint_save("main", &base_url())
-}
-
-/// 사용자 주석과 다른 키가 있는 자격 파일 텍스트입니다.
-const ANNOTATED_CREDENTIALS: &str = r#"{
-  // 사용자 주석입니다.
-  "api_keys": { "main": "main-key-111", "stage_ep": "stage-key-222" }
-}"#;
-
-/// 가리기 대상 호스트가 든 엔드포인트가 있는 설정 파일 텍스트입니다.
-const HOST_CONFIG: &str = r#"{
-  // 사용자 주석입니다.
-  "endpoints": [{"name": "main", "base_url": "https://leak-check-host.invalid/v1", "kind": "ollama"}]
-}"#;

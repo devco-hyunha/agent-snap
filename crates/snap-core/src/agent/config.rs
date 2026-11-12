@@ -99,4 +99,21 @@ impl LoopConfig {
         self.agents_md_max_bytes = max_bytes;
         self
     }
+
+    /// `run_command`의 승인 대기·실행 시간 상한을 설정 값(`agent` 섹션)에서 받아 채웁니다(D22, spec AC 3).
+    ///
+    /// 설정 읽기 자리(`config::AgentSettings`)를 그대로 재사용하고, 도구 실행 판 한 곳에만 넣습니다.
+    #[must_use]
+    pub fn with_run_command_deadline(mut self, settings: &crate::config::AgentSettings) -> Self {
+        self.context.run_command =
+            crate::tools::run_command_settings::RunCommandSettings::from_settings(settings);
+        self
+    }
+
+    /// 03-6이 CLI에서 주입하는 승인자를 도구 실행 판에 채웁니다(D22 5.3절).
+    #[must_use]
+    pub fn with_approver(mut self, approver: crate::tools::approver::ApproverBox) -> Self {
+        self.context.approver = Some(approver);
+        self
+    }
 }

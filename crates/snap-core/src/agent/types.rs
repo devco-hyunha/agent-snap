@@ -6,7 +6,8 @@
 
 use crate::llm::TransportError;
 
-use super::fallback::{FallbackConnector, FallbackPoint, ToolCallFormat};
+use super::fallback::{FallbackConnector, FallbackPoint};
+use super::tool_call_form::ToolCallFormat;
 
 /// 왕복을 시작하기 전에 확인해야 하는 문제가 있습니다.
 #[derive(thiserror::Error, Debug)]
@@ -116,7 +117,7 @@ pub enum LoopError {
 impl LoopError {
     /// 전송 오류를 루프 오류로 바꿉니다. 주소·키는 02-5 가리기를 이미 거친 값입니다.
     ///
-    /// 서버가 준 상태 코드가 있으면 그대로 옮깁니다. 4x 판별은 `fallback`의 `is_unsupported_status`가
+    /// 서버가 준 상태 코드가 있으면 그대로 옮깁니다. 4x 판별은 `tool_call_form`의 `is_unsupported_status`가
     /// 하고, 여기서는 코드 보존만 합니다(할 일 1). 본문 글자는 옮기지 않습니다(D28).
     pub fn transport(error: &TransportError) -> Self {
         let status = match error {

@@ -10,7 +10,7 @@ mod validation;
 
 pub use reading::ReadingError;
 pub use save::SaveError;
-pub use validation::ValidationError;
+pub use validation::{EndpointIssue, FieldIssue, ModelIssue, SectionIssue, ValidationError};
 
 use std::fmt;
 
