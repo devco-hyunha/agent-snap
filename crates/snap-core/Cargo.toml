@@ -10,7 +10,7 @@ fastrand = "2.3" # Full Jitter 대기 시간의 균등 난수 한 값만 만든�
 reqwest = { version = "0.13", features = ["json", "stream"] }
 serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = "2.0.21"
-tokio = { version = "1", features = ["macros", "time"] }
+tokio = { version = "1", features = ["macros", "time", "process", "rt"] } # run_command는 자식 프로세스 실행과 kill에 process가, 출력 파이프 태스크에 rt가 필요합니다.
 tokio-util = { version = "0.7", default-features = false }
 
 [dev-dependencies]

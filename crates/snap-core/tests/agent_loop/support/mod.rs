@@ -16,7 +16,8 @@ pub use setup::{
 };
 pub use streams::{content_stream, empty_stream, tool_call_stream, tool_calls_stream};
 pub use tools::{
-    ApprovalTool, FixedTool, registry_with_approval, registry_with_fixed,
-    registry_with_fixed_twice, registry_with_list_dir, registry_with_named_fixed,
+    ApprovalTool, CountingApprover, FixedTool, counting_approver, loop_config_with_approver,
+    registry_with_approval, registry_with_fixed, registry_with_fixed_twice, registry_with_list_dir,
+    registry_with_named_fixed,
 };
 pub use workdir::LoopTempWorkdir;

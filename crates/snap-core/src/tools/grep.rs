@@ -2,14 +2,14 @@
 //!
 //! 결과 형식 3종(content·files·count) 모두 최대 200줄, 넘으면 잘림 표식을 붙입니다.
 //! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외합니다.
-//! 실제 찾기 두 갈래(ripgrep 연동·내장 검색)는 각각 `ripgrep`·`search` 파일에 있습니다.
+//! 실제 찾기 두 갈래(ripgrep 연동·내장 검색)는 각각 `ripgrep.rs`·`search/builtin.rs`에 있습니다.
 
 use serde_json::{Value, json};
 
 use super::args::{bool_arg, opt_str, parse_tool_args, str_arg};
 use super::display::cap_lines;
 use super::ripgrep::search_with_ripgrep;
-use super::search::search_builtin;
+use super::search::builtin::search_builtin;
 use super::tool::{Tool, ToolCallFuture, ToolContext, ToolOutcome};
 use super::walk::resolve_dir;
 

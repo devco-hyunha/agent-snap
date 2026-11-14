@@ -1,33 +1,48 @@
 //! `Tool` 트레이트 골격입니다. 03-1 spec.md가 서명 정본이고, 필드·메서드 이름을 바꾸지 않습니다.
 //!
-//! 등록 목록과 변환은 `agent/registry.rs` 한 곳에만 있고(DRY, 03-1 등록 규칙),
+//! 등록 목록과 변환은 `agent/record/registry.rs`와 `agent/schema/definitions.rs` 한 곳에 있고(DRY, 03-1 등록 규칙),
 //! 이 파일은 03-3·03-6이 만들 도구 구현의 골격인 트레이트와 실행 판만 둡니다.
+//! 승인 표식·취소 토큰을 다루는 메서드는 `approval/approval_state.rs`에 따로 있습니다(03-6 R1 감사 분리).
 
 use std::path::PathBuf;
+use std::sync::Mutex;
+use std::sync::atomic::AtomicBool;
 
-/// 03-6·03-8이 CLI에서 주입하는 승인자 자리입니다(D22). 타입만 고정하고 구현은 두지 않습니다.
-pub type ApproverBox = Box<dyn Send + Sync>;
+use tokio_util::sync::CancellationToken;
+
+use super::approver::ApproverBox;
+use super::run_command_settings::RunCommandSettings;
 
 /// 도구가 열어야 하는 실행 판입니다.
 ///
 /// 작업 폴더는 도구 경로 검사의 기준이고, `tool_result_max_chars`는 결과를 잘리는 상한이며,
-/// `approver`는 03-6이 채우는 승인자이고 없으면 즉시 거부입니다.
+/// `approver`는 03-6이 채우는 승인자이고 없으면 즉시 거부이고, `run_command`는 03-6이 쓰는
+/// 승인 대기·실행 시간 상한입니다. 02 취소 토큰은 루프가 도구 실행 창구로 넘깁니다.
 pub struct ToolContext {
     /// 도구 경로 검사가 허용할 기준 폴더입니다.
     pub working_dir: PathBuf,
-    /// 도구 결과를 잘라 모델에 보낼 최대 글자 수입니다(잘림 정본은 03-2 `truncate.rs`).
+    /// 도구 결과를 잘라 모델에 보낼 최대 글자 수입니다(잘림 정본은 03-2 `agent/record/truncate.rs`).
     pub tool_result_max_chars: usize,
     /// 쓰기·명령 도구가 넘기는 승인자 자리입니다. 03-6이 채우고 없으면 즉시 거부입니다.
     pub approver: Option<ApproverBox>,
+    /// 03-6가 쓰는 승인 대기·실행 시간 상한입니다. 설정 값(`agent` 섹션)으로 채웁니다.
+    pub run_command: RunCommandSettings,
+    /// 02가 만든 취소 토큰입니다. 03-6이 승인 대기·명령 중단(cancel) 자리에서 듣습니다.
+    pub(super) cancel: Mutex<CancellationToken>,
+    /// 승인 표식입니다. 승인자 응답이 승인한 호출 한 개에서만 참이 되고, 그 호출이 끝나면 거짓으로 돌아옵니다.
+    pub(super) approved: AtomicBool,
 }
 
 impl ToolContext {
-    /// 승인자가 없고 쓰기 도구도 없는 기본 실행 판을 만듭니다.
+    /// 승인자·시간 상한을 기본값으로 채운 실행 판을 만듭니다.
     pub fn new(working_dir: impl Into<PathBuf>, tool_result_max_chars: usize) -> Self {
         Self {
             working_dir: working_dir.into(),
             tool_result_max_chars,
             approver: None,
+            run_command: RunCommandSettings::with_defaults(),
+            cancel: Mutex::new(CancellationToken::new()),
+            approved: AtomicBool::new(false),
         }
     }
 }
@@ -72,7 +87,8 @@ pub trait Tool {
     /// 인자 JSON Schema 객체입니다.
     fn parameters_schema(&self) -> serde_json::Value;
 
-    /// 쓰기·명령을 하는 도구인지 알립니다. 03-8의 승인 구분 기준입니다.
+    /// 쓰기·명령을 하는 도구인지 알립니다. 03-8의 승인 구분 기준이고, 03-6의 승인 대상은
+    /// `run_command` 한 개입니다(D22 5.3절·D49).
     fn executes_writes(&self) -> bool {
         false
     }

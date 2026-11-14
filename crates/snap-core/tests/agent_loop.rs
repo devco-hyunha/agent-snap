@@ -7,6 +7,8 @@ pub mod common;
 
 #[path = "agent_loop/agents_md.rs"]
 mod agents_md;
+#[path = "agent_loop/approval.rs"]
+mod approval;
 #[path = "agent_loop/fallback.rs"]
 mod fallback;
 #[path = "agent_loop/form_protocol/mod.rs"]

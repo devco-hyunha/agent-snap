@@ -4,7 +4,7 @@
 
 use jsonc_parser::{JsonObject, JsonValue};
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, EndpointIssue, ModelIssue, ValidationError};
 use super::parse::read_unique_named;
 use super::tool_call_form::read_tool_call_form;
 use super::types::{EndpointConfig, EndpointKind, ModelConfig};
@@ -22,7 +22,7 @@ pub(super) fn read_endpoints(
         || ConfigError::invalid_field("endpoints"),
         read_endpoint,
         |endpoint: &EndpointConfig| endpoint.name.as_str(),
-        |endpoint| ValidationError::DuplicateEndpoint { endpoint }.into(),
+        |endpoint| EndpointIssue::DuplicateEndpoint { endpoint }.into(),
     )
 }
 
@@ -32,18 +32,18 @@ fn read_endpoint(index: usize, item: JsonValue<'_>) -> Result<EndpointConfig, Co
     };
     let name = read_endpoint_name(index, &mut object)?;
     if validate::first_present_key(&object, &validate::ENDPOINT_KEY_FIELDS).is_some() {
-        return Err(ValidationError::EndpointKeyField { endpoint: name }.into());
+        return Err(EndpointIssue::EndpointKeyField { endpoint: name }.into());
     }
     let base_url = object
         .take_string("base_url")
         .ok_or_else(|| ConfigError::invalid_endpoint_field(&name, "base_url"))?;
     if !validate::is_valid_base_url(&base_url) {
-        return Err(ValidationError::InvalidBaseUrl { endpoint: name }.into());
+        return Err(EndpointIssue::InvalidBaseUrl { endpoint: name }.into());
     }
     let kind = object
         .take_string("kind")
         .ok_or_else(|| ConfigError::invalid_endpoint_field(&name, "kind"))?;
-    let kind = EndpointKind::parse(&kind).ok_or_else(|| ValidationError::InvalidKind {
+    let kind = EndpointKind::parse(&kind).ok_or_else(|| EndpointIssue::InvalidKind {
         endpoint: name.clone(),
     })?;
     let models = read_models(&name, &mut object)?;
@@ -60,9 +60,9 @@ fn read_endpoint_name(index: usize, object: &mut JsonObject<'_>) -> Result<Strin
         .take_string("name")
         .ok_or_else(|| ConfigError::invalid_field(format!("endpoints[{index}].name")))?;
     validate::checked_name(&raw).map_err(|rejection| match rejection {
-        validate::NameRejection::Empty => ValidationError::EmptyEndpointName.into(),
+        validate::NameRejection::Empty => EndpointIssue::EmptyEndpointName.into(),
         validate::NameRejection::HasSlash { name } => {
-            ValidationError::EndpointNameHasSlash { endpoint: name }.into()
+            EndpointIssue::EndpointNameHasSlash { endpoint: name }.into()
         }
     })
 }
@@ -78,7 +78,7 @@ fn read_models(
         |index, item| read_model(endpoint, index, item),
         |model: &ModelConfig| model.name.as_str(),
         |model| {
-            ValidationError::DuplicateModel {
+            ModelIssue::DuplicateModel {
                 endpoint: endpoint.to_owned(),
                 model,
             }
@@ -100,7 +100,7 @@ fn read_model(
     };
     let name = read_model_name(endpoint, index, &mut object)?;
     if object.get("endpoint").is_some() {
-        return Err(ValidationError::ModelEndpointField { model: name }.into());
+        return Err(ModelIssue::ModelEndpointField { model: name }.into());
     }
     let id = read_model_id(endpoint, &name, &mut object)?;
     let reasoning = reasoning::read_reasoning(&name, &mut object)?;
@@ -133,7 +133,7 @@ fn read_model_name(
     })?;
     validate::checked_name(&raw).map_err(|rejection| match rejection {
         validate::NameRejection::Empty => ValidationError::empty_model_name(endpoint).into(),
-        validate::NameRejection::HasSlash { name } => ValidationError::ModelNameHasSlash {
+        validate::NameRejection::HasSlash { name } => ModelIssue::ModelNameHasSlash {
             endpoint: endpoint.to_owned(),
             model: name,
         }

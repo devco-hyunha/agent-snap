@@ -42,3 +42,12 @@ fn parse_number_text(text: &str) -> Value {
         _ => Value::String(text.to_owned()),
     }
 }
+
+/// 설정의 추가 값을 요청 본문 맵에 합칩니다(03-6 R2 감사 분리: `llm/request_body.rs`에서 옮김).
+///
+/// ExtraValue→JSON 지식은 이 파일의 [`extra_to_json`]만 쓰고, 합치기 자리도 한 곳으로 모읍니다(DRY).
+pub(crate) fn merge_extra(map: &mut Map<String, Value>, extra: &BTreeMap<String, ExtraValue>) {
+    for (key, value) in extra {
+        map.insert(key.clone(), extra_to_json(value));
+    }
+}

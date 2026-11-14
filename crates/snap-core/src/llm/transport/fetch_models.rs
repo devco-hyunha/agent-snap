@@ -3,13 +3,13 @@
 //! 채팅 전송과 같은 base_url에 경로만 바꿔 붙인다(새 prefix를 잇지 않는다 — `.../v1/v1` 금지, spec).
 //! 인증은 02-5와 같고(키가 있으면 Bearer, 없으면 헤더 없음), 재시도 고리는 쓰지 않는다(D14).
 //! 시간 값은 02-5 설정을 그대로 쓰고(연결은 HTTP 클라이언트, 헤더 대기는 `header_wait`,
-//! 본문 읽기는 `stream_idle`), 목록 JSON 해석과 형식 오류 종류는 `codec::models_list`가 맡는다(SRP).
+//! 본문 읽기는 `stream_idle`), 목록 JSON 해석과 형식 오류 종류는 `llm::selection::models_list`가 맡는다(SRP).
 
 use crate::llm::client::CancellationToken;
 use crate::llm::client::TimeoutSegment;
 use crate::llm::client::TransportError;
-use crate::llm::codec::models_list::ModelsListIds;
-use crate::llm::codec::models_list::{new_empty_body_error, parse_models_ids};
+use crate::llm::selection::models_list::ModelsListIds;
+use crate::llm::selection::models_list::{new_empty_body_error, parse_models_ids};
 
 use super::OpenAiCompatClient;
 

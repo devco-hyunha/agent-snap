@@ -6,14 +6,18 @@
 use std::collections::BTreeMap;
 
 use crate::config::{
-    Config, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning, Sampling,
-    SelectionError,
+    Config, EndpointKind, ExtraValue, HttpSettings, Reasoning, Sampling, SelectionError,
 };
 use crate::credentials::Credentials;
 use crate::secrets::SecretValue;
 
+pub(in crate::llm) mod models_list;
+pub(in crate::llm) mod sampling_merge;
+
 mod apply;
 mod client_build;
+
+use sampling_merge::merged_sampling;
 
 pub use client_build::SelectedClient;
 
@@ -100,16 +104,5 @@ impl Config {
     ) -> Result<SelectedClient, SelectError> {
         let selected = self.select_model(selection_key, credentials)?;
         SelectedClient::from_selected(&selected)
-    }
-}
-
-/// 모델별 값이 루트 기본값보다 앞서는 샘플링으로 잇습니다(D14).
-///
-/// 모델에 없는 항목만 루트 기본을 따라 가고, 루트에도 없으면 본문에서 빼 서버 기본을 따릅니다.
-fn merged_sampling(model: &ModelConfig, root: &Sampling) -> Sampling {
-    Sampling {
-        temperature: model.sampling.temperature.or(root.temperature),
-        top_p: model.sampling.top_p.or(root.top_p),
-        max_tokens: model.sampling.max_tokens.or(root.max_tokens),
     }
 }

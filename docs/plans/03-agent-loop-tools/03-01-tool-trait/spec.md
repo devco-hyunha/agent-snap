@@ -31,7 +31,7 @@ pub enum ToolOutcome {
 - 필드·메서드 이름 위가 서명의 정본이다. 매개체·라이브타임·비대화형 async 여부는 03-2 착수 시 확정하되, 이름은 바꾸지 않는다.
 
 - 서명 구성 항목: `name`·`description`·`parameters_schema`·`executes_writes`·`call`, `ToolContext`, `ToolOutcome`(`Done`·`ApprovalRequired`·`Error`) — 위 코드가 정본이고 AC 1의 근거다.
-- 도구 구현은 파일 하나당 하나(PROJECT_RULES 개발 규칙). 트레이트 정의는 `tools/tool.rs`, 경로 검사는 `tools/path_guard.rs`처럼 트레이트·구현·헬퍼를 책임별 파일로 나눈다(SRP).
+- 도구 구현은 파일 하나당 하나(PROJECT_RULES 개발 규칙). 트레이트 정의는 `tools/tool.rs`, 경로 검사는 `tools/path/path_guard.rs`처럼 트레이트·구현·헬퍼를 책임별 파일로 나눈다(SRP).
 
 ## 등록 규칙 (AC 2)
 - 트레이트 객체 목록 → `tools` 배열 변환은 03-2 한 곳에서만 한다(DRY: 변환기는 `agent/runner`에 두고, 03-8·03-3·03-6은 등록만 한다).

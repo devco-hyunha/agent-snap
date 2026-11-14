@@ -6,7 +6,7 @@
 
 use std::time::{Duration, SystemTime};
 
-use crate::llm::codec::http_date::{parse_imf_fixdate, wait_until};
+use super::http_date::parse_imf_fixdate;
 
 /// `Retry-After` 해석·상한 비교 결과입니다.
 ///
@@ -67,6 +67,11 @@ fn parse_retry_after_wait(value: &str, now: SystemTime) -> Option<Duration> {
     }
     let when = parse_imf_fixdate(value)?;
     Some(wait_until(when, now))
+}
+
+/// 목표 시각까지 남은 대기입니다. 과거이면 0초입니다.
+pub(crate) fn wait_until(when: SystemTime, now: SystemTime) -> Duration {
+    when.duration_since(now).unwrap_or(Duration::ZERO)
 }
 
 /// RFC 9110 delay-seconds(비음수 정수)를 읽습니다. 음수·비숫자는 `None`입니다.

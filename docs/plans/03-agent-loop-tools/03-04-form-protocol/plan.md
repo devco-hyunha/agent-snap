@@ -5,12 +5,12 @@
 - 근거: [12번 문서](../../../research/12-tool-calling-forms.md) 2절 2갈래, 5절 llama.cpp 기록, 8절(2026-11-10 추가 조사: 업계 관례·TSCG·감사 주의). 2026-11-08 사용자 결정(3형식 조합)의 2안. 설계 확정: D46·[D50 정본](../../../decisions/D50-form-switch-detection.md).
 
 ## 목적
-OpenAI `tools`/`tool_calls`를 쓰지 못하는 로컬 모델(llama.cpp 템플릿 미지원, 4xx로 떨어지는 서버)에서 도구 호출이 계속 이어지게 한다. 03-2가 남긴 폴백 연결 지점(`agent/fallback.rs`의 `FallbackPoint`·`LoopError::Unsupported`, 2026-11-10 정정: 문서의 옛 `ToolsUnsupported`라는 이름은 코드에 없다)을 2안 경로로 잇는다.
+OpenAI `tools`/`tool_calls`를 쓰지 못하는 로컬 모델(llama.cpp 템플릿 미지원, 4xx로 떨어지는 서버)에서 도구 호출이 계속 이어지게 한다. 03-2가 남긴 폴백 연결 지점(`agent/fallback/connector.rs`의 `FallbackPoint`·`LoopError::Unsupported`, 2026-11-10 정정: 문서의 옛 `ToolsUnsupported`라는 이름은 코드에 없다)을 2안 경로로 잇는다.
 
 ## 범위(In)
 - 폴백 트리: 03-2 루프가 1안으로 요청을 보냈을 때 4xx나 도구 호출 없는 일반 텍스트가 오면 2안 경로로 전환한다. 텍스트 1회는 전환 후보로만 남기고 2회 연속에서 전환을 확정한다(03-2이 남긴 `FallbackPoint`·`ToolCallFormat`을 03-4가 소비하고, 형식 전환은 루프 안의 상태로 둔다 — D50).
 - 2안 조립: 시스템 프롬프트에 도구 이름·인자 JSON 형식을 글자로 적어 넣는다(스키마를 프롬프트에 박는다).
-- 응답 회수: 모델 답에서 JSON 객체를 복원한다. 복원 순서는 Markdown 둘레 제거 → 중괄호 추출 → 파싱 → `agent/args.rs`의 `recover_arguments`(닫힘 기호 1회 복구) 재사용 → 스키마 검증 → 모호 시 거부(spec 응답 복원 절, D50). 복원 실패·스키마 불일치는 짧은 오류로 모델에 알린다.
+- 응답 회수: 모델 답에서 JSON 객체를 복원한다. 복원 순서는 Markdown 둘레 제거 → 중괄호 추출 → 파싱 → `agent/fallback/args.rs`의 `recover_arguments`(닫힘 기호 1회 복구) 재사용 → 스키마 검증 → 모호 시 거부(spec 응답 복원 절, D50). 복원 실패·스키마 불일치는 짧은 오류로 모델에 알린다.
 - 결과 전달: 도구 결과를 2안 규격(모델이 읽는 글자 형식)으로 messages에 덧붙인다.
 - 전환·복귀 기록: 어떤 턴에서 2안으로 갔고 언제 1안으로 돌아갔는지 03-2 도구 호출 기록 자리(`ToolCallRecord.format`·`LoopResult.fallback_point`)에 남긴다. 파일 로그 기록은 04 배치라 범위 밖(D50).
 - 설정: 모델 프로필에 호출 형식 필드를 두고(`openai`·`text`·`auto`), 선언 값은 감지 없이 쓰고 auto만 감지로 고른다. 읽기·저장·기본값·예시 파일을 함께 고친다(D50).
@@ -42,7 +42,7 @@ OpenAI `tools`/`tool_calls`를 쓰지 못하는 로컬 모델(llama.cpp 템플�
 
 | 작업 | 범위 | 금지 | 산출물 | 검증 명령 | 선행 작업 |
 |---|---|---|---|---|---|
-| T1 2안 폴백 경로 | 루프 안의 `ToolCallFormat` 상태 전환(runner.rs), 4xx·2회 연속 텍스트 감지, 2안 프롬프트 스키마 글자 주입, JSON 복원 래더(`agent/args.rs` 재사용), 결과 전달 규격, 전환·복귀 기록, `tool_call_form` 설정 4곳 | 다중 호출 2개 이상 파싱(06 판단), 제약 생성 서버 연동, 파일 로그 기록(04), 본문 글자 감지(D28) | 폴백 경로 모듈·모의 서버 테스트 | cargo test(4xx 전환·2회 연속 전환·복원 3종·스키마 불일치·`text` 선언), cargo clippy, cargo fmt | 03-2 |
+| T1 2안 폴백 경로 | 루프 안의 `ToolCallFormat` 상태 전환(runner.rs), 4xx·2회 연속 텍스트 감지, 2안 프롬프트 스키마 글자 주입, JSON 복원 래더(`agent/fallback/args.rs` 재사용), 결과 전달 규격, 전환·복귀 기록, `tool_call_form` 설정 4곳 | 다중 호출 2개 이상 파싱(06 판단), 제약 생성 서버 연동, 파일 로그 기록(04), 본문 글자 감지(D28) | 폴백 경로 모듈·모의 서버 테스트 | cargo test(4xx 전환·2회 연속 전환·복원 3종·스키마 불일치·`text` 선언), cargo clippy, cargo fmt | 03-2 |
 
 ## DoD
 AC 충족, 검증 명령 통과(`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`), 리뷰 PASS(`docs/reviews/03/03-04-form-protocol/`, 지적 0건).

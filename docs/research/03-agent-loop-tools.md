@@ -40,7 +40,7 @@
 - 작은 모델의 도구 호출 신뢰성
   - 링크: [arXiv 2609.07370](https://arxiv.org/abs/2609.07370)
   - 핵심: 제목은 "Beyond Fluent Generation: A CPU Reliability Benchmark for MCP-Style Tool Calling in Sub-2B Small Language Models for Edge Deployment"입니다. 2B 미만 모델 5종을 100개 과제에서 탐욕 디코딩과 샘플링으로 비교했습니다. 복구 파서를 거치기 전 원시 응답 1,000개 중 유효한 JSON은 5개뿐이어서 결과가 파서에 크게 좌우됐고, 샘플링에서 0.5B 모델은 72%에서 32%로 떨어졌습니다. 권고는 스키마 검증, 제약 생성, 최소 권한 실행, 중요한 동작의 사람 확인입니다. 초록에 "재시도"는 없습니다.
-  - 적용 위치: 인자 JSON 복구와 검증은 `tools/args.rs`, 오류를 모델에 돌려 이어 가는 흐름은 `agent/runner.rs`, 기본 온도 0은 `llm/openai/mod.rs`의 `with_default_temperature`와 `agent/runner.rs`의 `DEFAULT_TEMPERATURE`.
+  - 적용 위치: 인자 JSON 복구와 검증은 `tools/args.rs`, 오류를 모델에 돌려 이어 가는 흐름은 `agent/loop/runner.rs`, 기본 온도 0은 `llm/openai/mod.rs`의 `with_default_temperature`와 `agent/loop/runner.rs`의 `DEFAULT_TEMPERATURE`.
 - 코드 편집 출력 형식
   - 링크: [arXiv 2604.27296](https://arxiv.org/abs/2604.27296)
   - 핵심: 제목은 "To Diff or Not to Diff? Structure-Aware and Adaptive Output Formats for Efficient LLM-based Code Editing"입니다. 줄 번호 기반 일반 diff는 모델이 쓰기 어렵다고 하고, 블록·함수 단위 diff와 diff/전체 코드 선택 학습(AdaEdit)을 제안합니다. 검색-치환 형식은 초록에 나오지 않아, 이 논문은 "줄 번호 diff를 피한다"는 근거로만 씁니다. 형식별 실패율 비교는 작업 06에서 합니다.
@@ -52,17 +52,17 @@
 - opencode
   - 링크: [Tools](https://opencode.ai/docs/tools/), [Permissions](https://opencode.ai/docs/permissions/)
   - 핵심: 편집 도구는 정확한 텍스트 일치를 바꾸는 방식이라고만 적혀 있고, 인자와 다중 일치 처리는 문서에 없습니다. grep과 glob은 ripgrep을 쓰고 `.gitignore`를 존중하며 glob은 수정 시각순으로 돌려줍니다. 권한은 allow, ask, deny 세 가지이고 bash는 명령 패턴(와일드카드, 마지막으로 맞는 규칙 우선)별로 정할 수 있으며 편집·쓰기·패치는 하나의 edit 권한으로 묶입니다. 승인 창에서는 한 번 허용, 세션 동안 허용, 거부를 고릅니다.
-  - 적용 위치: 명령 실행 전 사용자 확인(허용·거부 두 갈래)은 `tools/run_command.rs`와 `tools/approval.rs`, 콘솔 구현은 `snap-cli/src/console.rs`. `.gitignore` 존중은 적용하지 않았습니다(미적용 이유: 목록·검색은 `.git`, `target` 등 고정 제외만 하고 규칙 해석은 범위 밖).
+  - 적용 위치: 명령 실행 전 사용자 확인(허용·거부 두 갈래)은 03-6에서 `tools/run_command.rs`와 `tools/approval/approver.rs`로 구현했고, 콘솔 구현은 `snap-cli/src/console.rs`(04 배치). `.gitignore` 존중은 적용하지 않았습니다(미적용 이유: 목록·검색은 `.git`, `target` 등 고정 제외만 하고 규칙 해석은 범위 밖).
   - 미적용: 패턴별 자동 허용 규칙과 세션 동안 허용(범위 밖, 필요해지면 별도 작업).
 - Codex CLI
   - 링크: [저장소 README](https://github.com/openai/codex), [승인과 보안](https://learn.chatgpt.com/docs/agent-approvals-security)
   - 핵심: 샌드박스 모드(read-only, workspace-write, danger-full-access)와 승인 정책(on-request, never, granular)을 따로 둡니다. 샌드박스 안 명령은 묻지 않고 실행하며, 밖으로 나가거나 네트워크가 필요하면 승인을 요청합니다. 승인 검토자가 기본은 사용자입니다. 검색-치환 편집 도구와 다중 일치 처리는 열어 본 문서에 없어 확인하지 못했습니다.
-  - 적용 위치: `tools/approval.rs`(`CommandApprover`, `NoApproval`), `snap-cli/src/select.rs`의 `ask_approval`이 비대화형이면 거부합니다.
+  - 적용 위치: 03-6에서 `tools/approval/approver.rs`가 `CommandApprover`을 두고, 승인자 미주입은 `request_approval`이 기다리지 않고 거부합니다. 콘솔(사람 확인 창)은 `snap-cli/src/console.rs`로 04 배치.
   - 미적용: 샌드박스 격리(운영체제별 구현이 크고 범위 밖).
 - Pi 코딩 에이전트
   - 링크: [coding-agent README](https://github.com/badlogic/pi-mono/tree/main/packages/coding-agent), [사용법](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/usage.md), [동작 방식](https://github.com/badlogic/pi-mono/blob/main/packages/coding-agent/docs/how-pi-works.md)
   - 핵심: 최소 하네스를 표방하며 하위 에이전트와 계획 모드를 기본에서 뺍니다. 도구 호출마다 묻지 않고 샌드박스를 권합니다. 시스템 프롬프트는 기본 지시와 발견한 맥락 파일로 만들고, 요청에는 도구 정의와 스킬 설명이 실리며 스킬 본문은 필요할 때 불러옵니다. 기본 도구 목록과 프롬프트 길이는 열어 본 문서에서 확인하지 못했습니다.
-  - 적용 위치: `agent/system_prompt.txt`(8줄)와 `agent/prompt.rs`.
+  - 적용 위치: `agent/system_prompt.txt`(8줄)와 `agent/prompt/assemble.rs`.
   - 미적용: 승인 없이 실행하는 방식(이 프로젝트는 명령 실행에 사용자 확인을 요구).
 - Flue
   - 링크: [withastro/flue](https://github.com/withastro/flue)
@@ -75,11 +75,11 @@
 - 형식
   - 링크: [OpenAI 함수 호출](https://developers.openai.com/api/docs/guides/function-calling), [OpenRouter 도구 호출](https://openrouter.ai/docs/guides/features/tool-calling), [Ollama 도구 호출](https://docs.ollama.com/capabilities/tool-calling)
   - 핵심: 요청의 `tools` 배열은 `type: "function"`과 `function`(`name`, `description`, JSON Schema `parameters`)입니다. 응답 메시지의 `tool_calls` 각 항목은 `id`와 `function.name`, `function.arguments`(JSON 문자열)를 가지며 `finish_reason`은 `tool_calls`입니다. 결과는 assistant 메시지를 기록에 덧붙인 뒤 `role: "tool"`, `tool_call_id`, `content` 메시지로 돌려줍니다. 한 응답에 호출이 여러 개일 수 있고 `parallel_tool_calls`를 `false`로 제한할 수 있습니다. OpenRouter는 `tools`를 매 요청에 넣으라고 합니다. OpenAI 함수 호출 문서의 Chat Completions 기본값은 strict가 꺼져 있습니다. Ollama의 네이티브 API는 `arguments`가 객체이고 결과에 `tool_name`을 쓰는 등 달라서, 호환 경로(`/v1`)만 씁니다. OpenAI `platform.openai.com` API 참조(chat create)는 403으로 열리지 않았습니다.
-  - 적용 위치: `agent/runner.rs`(매 요청에 `tools`, 응답의 호출을 순서대로 실행, `tool_call_id`를 붙인 결과를 기록에 덧붙임), 인자 문자열 해석은 `tools/args.rs`.
+  - 적용 위치: `agent/loop/runner.rs`(매 요청에 `tools`, 응답의 호출을 순서대로 실행, `tool_call_id`를 붙인 결과를 기록에 덧붙임), 인자 문자열 해석은 `tools/args.rs`.
 - 도구 미지원 서버·모델
   - 링크: [llama.cpp 함수 호출](https://github.com/ggml-org/llama.cpp/blob/master/docs/function-calling.md), [OpenRouter 도구 호출](https://openrouter.ai/docs/guides/features/tool-calling)
   - 핵심: llama.cpp 서버는 `--jinja`와 도구를 아는 채팅 템플릿이 있어야 하고, 템플릿을 모르면 Generic 처리로 떨어져 토큰이 더 들고 효율이 낮습니다. `/props`의 `chat_template`, `chat_template_tool_use`로 확인할 수 있습니다. 극단적인 KV 캐시 양자화는 도구 호출을 해칠 수 있습니다. OpenRouter는 `supported_parameters=tools`로 모델을 거를 수 있다고 합니다. 도구를 못 쓰는 모델이 오류를 내는지 무시하는지는 열어 본 문서 어디에도 적혀 있지 않아 확인하지 못했습니다.
-  - 적용 위치: 4xx 응답은 `agent/runner.rs`의 `map_llm_error`가 `AgentError::ToolsUnsupported`로 알립니다. 도구 호출 없이 일반 텍스트만 오는 경우의 판별은 미적용(미적용 이유: 최종 답과 구분할 수 없어 스모크의 실제 응답으로 확정). 판별 방식은 스모크에서 확정합니다.
+  - 적용 위치: 4xx 응답은 `agent/loop/runner.rs`의 `map_llm_error`가 `AgentError::ToolsUnsupported`로 알립니다. 도구 호출 없이 일반 텍스트만 오는 경우의 판별은 미적용(미적용 이유: 최종 답과 구분할 수 없어 스모크의 실제 응답으로 확정). 판별 방식은 스모크에서 확정합니다.
   - 미적용: 모델 목록 메타데이터(`supported_parameters`)로 사전 판별(서버마다 없어서 공통 근거가 안 됨).
 - 관련 작업: 03
 
@@ -118,7 +118,7 @@
   - 링크: [nullprogram (2026-10-31)](https://nullprogram.com/blog/2026-10-31/), [skeeto/prospero](https://github.com/skeeto/prospero)(README·`docs/windows.md` 요약), [GeekNews](https://news.hada.io/topic?id=36346)
   - 핵심: 모든 작업에 deadline을 두고(Plan·`ask_user`만 무기한), 권한 미응답은 timeout으로 거부하며, 네트워크·watchdog·mailbox bound·셸 timeout 후 비동기 백그라운드와 주기 wake를 씁니다. 자식 프로세스는 트리와 함께 수명을 맞추고 Windows에서는 Job Object를 씁니다. 모델 제공자는 비내장(OpenAI Chat Completions·Anthropic Messages, INI·`env:KEY`)이며, 권한은 완전한 보안 경계가 아니라 실수·범위 상기용입니다(실격리는 하네스 격리). 서브에이전트·원격 헤드리스·데스크톱 제어·패시브 렌더링·스킬/자기문서가 제품 차별점입니다.
   - snap 대조: 엔드포인트·키 비내장(D10/D20, PLAN), HTTP connect/header/stream_idle(D20, config), `run_command` 승인(03)은 이미 가깝거나 기획됨. Job Object는 D9 후보. 03에 아직 없는 것은 셸·도구 deadline, timeout→백그라운드 폴링, 프로세스 트리 종료, 권한 응답 timeout입니다. GUI·ImGui, 원격 엔진, 데스크톱 제어, 런타임 서브에이전트, CE/Pro 모델은 범위 밖·보류입니다.
-  - 적용 위치: 작업 03 또는 D9 재검토 시 Never wait forever의 셸·승인 timeout, Job Object/프로세스 트리 정리를 우선 참고. timeout→백그라운드 전환과 에이전트 폴링은 자율 빌드 루프의 부분 적용 후보.
+  - 적용 위치: 03-6 T1에서 D22 값(실행 600초·승인 300초)을 `tools/run_command.rs`의 `select!`과 `tools/approval/approver.rs`의 `request_approval`에 적용했고, 값은 `config/read/agent.rs`의 `agent` 섹션(`run_command_deadline`·`approval_deadline`)으로 받는다. 미응답 승인은 timeout 뒤 거부로만 본다(Prospero `ask_timeout`과 같은 결, 값은 D22의 300초). Job Object/프로세스 트리 정리는 03-7 배치, timeout→백그라운드 전환은 03-9 후보로 두었다.
   - 본 절은 **조사 기록**이며 **규범 정본이 아니다**. 적용·금지·단계 정의의 정본은 `docs/decisions/D22-execution-reliability-autonomy.md` (요약은 DECISIONS D22).
   - 미적용: 네이티브 GUI·패시브 렌더(PLAN은 Tauri+Solid, 범위 밖). 원격 헤드리스·데스크톱 제어(경량·D9/Flue 미적용과 충돌). 권한 timeout 거부는 snap의 'run_command는 확인 후 실행'과 긴장 관계 — 비대화형·미응답 시 Codex식 거부와 맞춰 문서화 필요.
   - 이미 정렬: 제공자 비내장, 권한≠완전 보안 경계(D9 경량).

@@ -6,7 +6,7 @@ use std::time::Duration;
 
 use jsonc_parser::{JsonObject, JsonValue};
 
-use super::super::error::{ConfigError, ValidationError};
+use super::super::error::{ConfigError, SectionIssue};
 use super::types::HttpSettings;
 use super::validate;
 use crate::jsonc::{WrongType, parse_number, pick_object, take_optional};
@@ -26,14 +26,13 @@ pub(super) fn read_http(root: &mut JsonObject<'_>) -> Result<HttpSettings, Confi
             http.retries = parse_number(&value).ok_or_else(invalid)?;
             continue;
         }
-        let slot =
-            duration_slot(&mut http, item).ok_or_else(|| ValidationError::UnknownHttpItem {
-                item: item.to_owned(),
-            })?;
+        let slot = duration_slot(&mut http, item).ok_or_else(|| SectionIssue::UnknownHttpItem {
+            item: item.to_owned(),
+        })?;
         *slot = parse_seconds(&value).ok_or_else(invalid)?;
     }
     if !validate::is_valid_backoff_range(http.backoff_min, http.backoff_max) {
-        return Err(ValidationError::BackoffRangeInverted.into());
+        return Err(SectionIssue::BackoffRangeInverted.into());
     }
     Ok(http)
 }

@@ -7,6 +7,11 @@ use std::io::ErrorKind;
 
 use crate::llm::retry::PreHeaderConnectKind;
 
+use super::os_error_codes::{
+    EAI_AGAIN, EAI_FAIL, EAI_HOST_NOT_FOUND, EAI_NO_DATA, WSA_HOST_NOT_FOUND,
+    WSA_HOST_NOT_FOUND_DATA,
+};
+
 /// 헤더 전 연결 오류를 02-4의 6종 세부로 가르는 열쇠 표입니다.
 ///
 /// 앞 열부터 살펴 첫 번째로 걸리는 열쇠를 고릅니다. 02-4가 받는 「헤더 전 연결」 세부와
@@ -39,14 +44,6 @@ pub(crate) const CONNECT_KIND_BY_ROW: [PreHeaderConnectKind; 6] = [
     PreHeaderConnectKind::Tls,
     PreHeaderConnectKind::Proxy,
 ];
-
-const WSA_HOST_NOT_FOUND: i32 = 11001;
-const WSA_HOST_NOT_FOUND_DATA: i32 = 11004;
-// Linux에서 주소 이름 풀이가 실패하면 원시 코드가 없이 종류만 없는 io 오류로 온다(실측: 111·5·7·4).
-const EAI_HOST_NOT_FOUND: i32 = 111;
-const EAI_NO_DATA: i32 = 5;
-const EAI_FAIL: i32 = 4;
-const EAI_AGAIN: i32 = 7;
 
 /// 헤더 전 연결 오류에서 세부 종류를 고릅니다.
 ///

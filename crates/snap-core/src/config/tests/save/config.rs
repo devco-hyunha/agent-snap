@@ -2,16 +2,18 @@
 //!
 //! 주석이 든 파일에 저장하면 주석과 손대지 않은 항목이 그대로 남고, 02-2 해석·검증으로 다시
 //! 읽혀 새 값이 읽히는지 봅니다. 키 값이 설정 파일에 안 들어가는 것도 함께 봅니다.
-
-use std::collections::BTreeMap;
+//! 저장 견본 조립은 지원부(`support/save_samples.rs`)로 옮겨 여러 시험이 함께 쓰게 합니다.
 
 use crate::config::{
-    CONFIG_FILE_NAME, ConfigError, EndpointKind, EndpointSave, ExtraValue, ModelSave, Reasoning,
-    Sampling, ToolCallForm, ValidationError, save_endpoint,
+    CONFIG_FILE_NAME, ConfigError, EndpointKind, EndpointSave, ModelIssue, Reasoning, ToolCallForm,
+    ValidationError, save_endpoint,
 };
 
 use super::super::support::{
-    HOST, KEY_VALUE, TempDir, assert_error_hides_secrets, base_url, parse_ok,
+    ANNOTATED_FILE, BROKEN_TEXT, EMPTY_ENDPOINTS_FILE, EXISTING_MAIN_FILE, HOST, HTTP_TEXT,
+    KEY_VALUE, LOCAL_ENDPOINT_TEXT, ROOT_EXTRA_TEXT, TempDir, assert_error_hides_secrets, base_url,
+    full_extra, full_save, model_save, model_with_extra_key, parse_ok, reasoning_only_save,
+    save_named, validate_reserved_keys,
 };
 
 /// AC 1: `extra` 예약 키는 02-2 읽기 규칙을 재사용해 저장 전에 거부합니다(AC 1 보존과 함께).
@@ -34,7 +36,7 @@ fn reserved_extra_key_rejects_before_touching_file() {
             "`{key}`: 파일이 바뀌었습니다"
         );
         assert!(
-            matches!(&error, ConfigError::Validation(ValidationError::ExtraReservedKey{ model, key: found })
+            matches!(&error, ConfigError::Validation(ValidationError::Model(ModelIssue::ExtraReservedKey{ model, key: found }))
                 if model == "fast" && found == key),
             "오류가 모델과 키 이름만 밝혀야 합니다: {error}"
         );
@@ -353,142 +355,4 @@ fn unreadable_file_reports_error_and_keeps_file() {
 
     assert_eq!(folder.read(CONFIG_FILE_NAME), BROKEN_TEXT);
     assert_error_hides_secrets("내용 오류", &error);
-}
-
-/// AC 1에 쓰는 파일: 주석 3종, 손대지 않은 엔드포인트 항목, 손대지 않은 칸이 있습니다.
-const ANNOTATED_FILE: &str = r#"// 사용자 주석입니다.
-{
-  /* 블록 주석 */
-  "target_language": "ko",
-  "endpoints": [
-    // 배열 안 주석
-    {"name": "local", "base_url": "http://local.invalid/v1", "kind": "ollama"} // 항목 뒤 주석
-  ],
-  // http 위 주석
-  "http": { "retries": 5 },
-  "unknown_root_key": { "keep_alive": 1 }
-}"#;
-
-/// AC 1 원문 비교에 쓰는 항목들입니다.
-const LOCAL_ENDPOINT_TEXT: &str =
-    r#"{"name": "local", "base_url": "http://local.invalid/v1", "kind": "ollama"}"#;
-const ROOT_EXTRA_TEXT: &str = "\"unknown_root_key\": { \"keep_alive\": 1 }";
-const HTTP_TEXT: &str = "\"retries\": 5";
-
-/// 저장 전에 `main` 엔드포인트와 `fast` 모델이 있는 파일 텍스트입니다(수정 검증용).
-const EXISTING_MAIN_FILE: &str = r#"{
-  "endpoints": [
-    {
-      "name": "main",
-      "base_url": "http://old.invalid/v1", // 주소 설명 주석
-      "kind": "openai",
-      "notes": " 그대로 두는 칸",
-      "models": [
-        // 모델 안 주석
-        {"name": "fast", "id": "first-id", "reasoning": "high"}
-      ]
-    }
-  ]
-}"#;
-
-const EMPTY_ENDPOINTS_FILE: &str = "{\"endpoints\":[]}";
-const BROKEN_TEXT: &str = "{\"endpoints\":[}";
-
-/// 이름과 주소를 고른 저장 정보(모델 `fast` 하나, 모델 옵션 전부).
-fn full_save(name: &str, base_url: &str) -> EndpointSave {
-    EndpointSave {
-        name: name.to_owned(),
-        base_url: base_url.to_owned(),
-        kind: EndpointKind::LlamaCpp,
-        models: vec![full_model_save()],
-    }
-}
-
-/// `reasoning`만 준 저장 정보(AC 4).
-fn reasoning_only_save() -> EndpointSave {
-    EndpointSave {
-        name: "main".to_owned(),
-        base_url: base_url(),
-        kind: EndpointKind::Ollama,
-        models: vec![ModelSave {
-            name: "fast".to_owned(),
-            id: "id-1".to_owned(),
-            reasoning: Some(Reasoning::Low),
-            ..Default::default()
-        }],
-    }
-}
-
-/// `name`과 `base_url`만 고른 저장 정보(모델 없음).
-fn save_named(name: &str, base_url: &str) -> EndpointSave {
-    EndpointSave {
-        name: name.to_owned(),
-        base_url: base_url.to_owned(),
-        kind: EndpointKind::OpenAi,
-        models: Vec::new(),
-    }
-}
-
-/// 모델 옵션을 다 준 저장 정보(trim한 이름 ` fast `를 씁니다).
-fn full_model_save() -> ModelSave {
-    ModelSave {
-        name: " fast ".to_owned(),
-        id: "id-1".to_owned(),
-        reasoning: Some(Reasoning::Low),
-        extra: full_extra(),
-        context_window: Some(32768),
-        // D50 결정 7: 호출 형식 선언도 옵션을 다 준 값에서 함께 채웁니다.
-        tool_call_form: Some(ToolCallForm::Auto),
-        sampling: Sampling {
-            temperature: Some(0.2),
-            top_p: None,
-            max_tokens: Some(1024),
-        },
-    }
-}
-
-/// 이름과 id만 고르고 나머지는 옵션 다 준 값에서 채웁니다.
-fn model_save(name: &str, id: &str) -> ModelSave {
-    ModelSave {
-        name: name.to_owned(),
-        id: id.to_owned(),
-        ..full_model_save()
-    }
-}
-
-/// `extra`에 예약 키 `key`를 넣은 모델 저장 정보입니다.
-fn model_with_extra_key(name: &str, key: &str) -> ModelSave {
-    let mut extra = full_extra();
-    extra.insert(key.to_owned(), ExtraValue::Number("1".to_owned()));
-    ModelSave {
-        extra,
-        ..model_save(name, "id-1")
-    }
-}
-
-/// 02-2 읽기 규칙이 거부하는 `extra` 예약 키 목록입니다(구현 상수를 쓰면 순환 검증이 됩니다).
-fn validate_reserved_keys() -> [&'static str; 4] {
-    ["model", "messages", "stream", "tools"]
-}
-
-/// 벤치마크 결론(작업 1, D40)에 맞는 `extra`: 생각 길이·`textVerbosity`는 새 키가 아니라 `extra`로 흡수합니다.
-fn full_extra() -> BTreeMap<String, ExtraValue> {
-    let mut extra = BTreeMap::new();
-    extra.insert("keep_alive".to_owned(), ExtraValue::Number("0".to_owned()));
-    extra.insert(
-        "textVerbosity".to_owned(),
-        ExtraValue::String("high".to_owned()),
-    );
-    extra.insert(
-        "thinking".to_owned(),
-        ExtraValue::Object(
-            [(
-                "budgetTokens".to_owned(),
-                ExtraValue::Number("2048".to_owned()),
-            )]
-            .into_iter()
-            .collect(),
-        ),
-    );
-    extra
 }

@@ -36,3 +36,29 @@ fn display_path(path: &Path) -> String {
     let raw = path.to_string_lossy();
     raw.replace('\\', "/")
 }
+
+/// 텍스트에서 앞 `max_bytes` 바이트까지를 글자 경계에서 잘라 줍니다.
+///
+/// UTF-8 글자 한가운데에서 자르면 결과가 깨지므로 글자 경계까지 내려갑니다.
+#[must_use]
+pub(super) fn head_bytes(text: &str, max_bytes: usize) -> &str {
+    if text.len() <= max_bytes {
+        return text;
+    }
+    let mut cut = max_bytes;
+    while cut > 0 && !text.is_char_boundary(cut) {
+        cut -= 1;
+    }
+    &text[..cut]
+}
+
+/// 줄마다 번호를 붙여 한 줄씩 이어 씁니다. 번호는 `start`부터 매깁니다.
+///
+/// 구간 읽기도 기본 읽기도 같은 표기를 쓰므로 이 한 곳에서만 만듭니다(DRY).
+#[must_use]
+pub(super) fn numbered_lines(text: &str, start: usize) -> String {
+    text.lines()
+        .enumerate()
+        .map(|(index, line)| format!("{}: {line}\n", start + index))
+        .collect()
+}

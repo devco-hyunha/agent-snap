@@ -1,6 +1,6 @@
 # 10 문서 규칙 정착과 문서 정리
 
-- 상태: in-progress (세부 1·2·4는 2026-11-07 완료, 세부 3 추가 요구로 `update-harness` 폴더·중첩 기획 순번 구조 도입 완료. 세부 5는 2026-11-09 규칙 추가 완료. 2차 보정: 기획 문서의 "작업 파일" 표 채우기 남아 있음)
+- 상태: 진행 (세부 1·2·4는 2026-11-07 완료, 세부 3 추가 요구로 `update-harness` 폴더·중첩 기획 순번 구조 도입 완료. 세부 5는 2026-11-09 규칙 추가 완료 → 2026-11-13 PASS 기준 규칙을 확인 단위 규칙으로 교체하고 그 자리 폐기 메모를 남김. 2차 보정: 기획 문서의 "작업 파일" 표 채우기 남아 있음)
 
 ## 목적
 strata-shift의 문서 관리 방식에서 좋은 부분을 agent-snap에 이식하고, 규칙에 안 맞는 기존 문서를 정리한다. 코드 변경은 없다.
@@ -39,18 +39,20 @@ strata-shift의 실사용 규칙(`C:\workspace\strata-shift\docs\PROJECT_RULES.m
 - 금지: 문서 본문 내용 재생산(기존 내용 이동이 원칙), 결정 문서 본문 복제.
 - 검증: `rg --files docs/tasks`로 옛 중첩 이름(`02-4-retry-1-classify.md` 같은 flat 이름) 사라짐 확인, 이동 후 각 파일에 라운드 섹션 하나만 있는지 확인.
 
-### 세부 5: 리뷰 PASS 기준 강화와 notes 로컬 전용 규칙 (2026-11-09 추가)
+### 세부 5: 리뷰 PASS 기준 강화와 notes 로컬 전용 규칙 (2026-11-09 추가, 2026-11-13 규칙 폐기)
 - 범위: `harness/PROJECT_RULES.md` 개발 규칙 절에 "PASS는 지적 0건 확인 후 판정" 규칙을 새 줄로 추가(Fast-track 셀프 체크·라운드 로그 기록은 예외로 본문에 명시, `[안전 예외 승인: 5번]`). `docs/notes/` 규칙 줄(38번 줄)에 로컬 전용 문서 성질 예시 보강.
 - 산출물: 규칙 1줄(판정) + 38번 줄 예시 문장. 하네스 7절·9절과 겹치는 자리는 두지 않고 정본을 개발 규칙 절 한 곳에 둔다.
 - 금지: HARNESS.md·마커 블록 수정, PROJECT_RULES.md 40번 줄(측정 기준)·45번 줄(경로 명시)과 새 규칙(46번 줄)의 합치기 금지(별개 규칙이라 현행 유지).
 - 검증: `rg -n "지적 0건" harness/PROJECT_RULES.md`, 마커 블록 무변경 확인.
+- 폐기 메모(2026-11-13): "PASS는 지적 0건 확인 후 판정" 규칙(46번 줄)은 하네스 9절(재리뷰 범위) 정본과 확인 단위 표를 정하는 프로젝트 규칙으로 교체됐다. 교체 근거와 정본: `harness/PROJECT_RULES.md` 개발 규칙 46~49행, [docs/decisions/D71-review-verification-unit.md](../decisions/D71-review-verification-unit.md) 결정 6(미측정·미기록 항목은 major, critical은 없다), 작업 문서 [docs/tasks/update-harness/03-harness-review-check-8/T1-rule-sync.md](../tasks/update-harness/03-harness-review-check-8/T1-rule-sync.md). 이유: 지적 0건만을 PASS 기준으로 삼으면 03-6 T5 통합 리뷰에서 발견된 주석 잔여(minor 2건)처럼 "측정 항목이 문서에 존재하는가"를 확인하는 단위가 없어 같은 지적이 3라운드 반복됐다. 그래서 판정 기준을 확인 단위 표(정합 항목 목록) 기준으로 바꿨고, 위 검증 명령 `rg -n "지적 0건" harness/PROJECT_RULES.md`는 성립하지 않으므로 폐기한다. 이 절의 38번 줄 예시 문장 보강(로컬 전용 문서 성질)은 그대로 유효하다.
 
 ## AC(인수 조건)
 1. `harness/PROJECT_RULES.md`에 `## 문서 규격` 절이 있고, 그 절이 라운드 누적 금지·검증 재사용 기록·작업 파일 표를 담는다.
 2. PLAN.md의 각 순번 행에는 상태 한 행만 남고 라운드 문장이 없다.
 3. `docs/tasks/` 작업 문서가 `docs/tasks/<순번>-<작업명>/T<번호>-*.md` 형식이 되고, 같은 작업 문서에 라운드 보고 섹션이 하나다.
 4. 기획 문서 `tasks.md`의 "작업 파일" 표가 작업 파일 경로와 상태를 담고, 둘이 같은 상태를 맞춘다.
-5. 코드·테스트는 그대로다(`git diff`에 코드 파일 변경 없음).
+5. 리뷰 확인 단위 규칙(`harness/PROJECT_RULES.md` 개발 규칙 46~49행)과 그 정본([docs/decisions/D71-review-verification-unit.md](../decisions/D71-review-verification-unit.md))이 문서 전체에 반영된다. 이 기획이 넣은 "PASS는 지적 0건" 규칙은 2026-11-13 교체로 폐기됐고, 폐기한 자리에 폐기 표시·근거·이유를 남긴다(세부 5 폐기 메모).
+6. 코드·테스트는 그대로다(`git diff`에 코드 파일 변경 없음).
 
 ## 테스트 계획
 - 코드 없음. 문서 실재 검사: `rg --files docs`, `rg -n "T[0-9]+-" docs/tasks`, `rg -n "작업 파일" docs/plans/02-client`.

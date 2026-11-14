@@ -7,11 +7,12 @@ mod read;
 mod save;
 
 pub use error::{ConfigError, ReadingError, SaveError, ValidationError};
+pub use error::{EndpointIssue, FieldIssue, ModelIssue, SectionIssue};
 pub use load::{CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, load_config, load_credentials};
 pub use location::{ConfigEnv, HostOs, resolve_config_dir};
 pub use read::{
-    Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig, Reasoning,
-    Sampling, SelectionError, ToolCallForm,
+    AgentSettings, Config, EndpointConfig, EndpointKind, ExtraValue, HttpSettings, ModelConfig,
+    Reasoning, Sampling, SelectionError, ToolCallForm,
 };
 pub use save::{
     EndpointSave, KeyRename, ModelSave, SaveIoKind, SaveIoTarget, remove_endpoint, remove_key,
@@ -25,6 +26,7 @@ pub(crate) use read::{RESERVED_EXTRA_KEYS, is_valid_temperature};
 
 #[cfg(test)]
 mod tests {
+    mod agent;
     mod extra_json;
     mod keys;
     mod location;

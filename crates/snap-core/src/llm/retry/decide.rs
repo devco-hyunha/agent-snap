@@ -8,7 +8,8 @@ use std::time::{Duration, SystemTime};
 
 use super::after::{RetryAfterDecision, interpret_retry_after};
 use super::backoff::{BackoffDecision, GiveUpPriority, decide_backoff, resolve_give_up_priority};
-use super::classify::{RetryFailureInput, classify_retry};
+use super::classify::classify_retry;
+use super::input::RetryFailureInput;
 
 /// 재시도 판단에 쓰는 설정 값입니다.
 ///
