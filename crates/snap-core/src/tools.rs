@@ -9,6 +9,7 @@ pub mod edit_file;
 pub mod glob;
 pub mod grep;
 pub mod list_dir;
+pub mod process_tree;
 pub mod read_file;
 pub(crate) mod read_text;
 pub mod ripgrep;

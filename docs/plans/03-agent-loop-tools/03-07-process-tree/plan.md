@@ -1,6 +1,6 @@
 # 03-7 프로세스 트리 종료(Job Object 등): 상세 기획
 
-- 상태: planned
+- 상태: 완료 (T1 구현·보정 완료, 독립 리뷰 1차 미달(major 1·minor 4) → 보정 → 2차 재리뷰 PASS(critical·major 0·minor 1, `docs/reviews/03/03-07-process-tree/t1-r2.md`). CI 매트릭스 `ubuntu-latest`·`windows-latest` 4검사는 amend 보정 뒤 전부 초록으로 확인했다)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-6](../03-06-run-command/plan.md)
 
 ## 목적
@@ -39,4 +39,4 @@ Windows Job Object가 자식·조상 모두를 담는지, 자식이 그룹 밖�
 
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-07-process-tree/T1-process-tree.md` | 트리 종료 | 계획 |
+| `docs/tasks/03/03-07-process-tree/T1-process-tree.md` | 트리 종료 | 완료 |

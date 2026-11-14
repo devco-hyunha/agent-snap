@@ -1250,12 +1250,14 @@ dependencies = [
  "fastrand",
  "http-body",
  "jsonc-parser",
+ "libc",
  "reqwest",
  "serde_json",
  "snap-core",
  "thiserror",
  "tokio",
  "tokio-util",
+ "windows-sys 0.61.2",
 ]
 
 [[package]]

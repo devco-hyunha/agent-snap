@@ -20,3 +20,11 @@ snap-core = { path = ".", version = "0.1.0" }
 axum = "0.8"
 http-body = "1"
 tokio = { version = "1", features = ["macros", "rt-multi-thread", "sync", "time", "net"] }
+
+[target."cfg(windows)".dependencies]
+# 03-7 Job Object 창구(process_tree/windows_tree.rs)가 쓰는 Win32 항목만 골라 잠근다.
+# CloseHandle·HANDLE(Foundation), Job Object API(JobObjects), OpenProcess·프로세스 플래그(Threading).
+windows-sys = { version = "0.61.2", features = ["Win32_Foundation", "Win32_System_JobObjects", "Win32_System_Threading"] }
+
+[target."cfg(unix)".dependencies]
+libc = "0.2.191"

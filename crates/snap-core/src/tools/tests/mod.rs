@@ -15,6 +15,8 @@ mod grep;
 #[path = "list_dir.rs"]
 mod list_dir;
 mod path_guard;
+#[path = "process_tree.rs"]
+mod process_tree;
 #[path = "read_file.rs"]
 mod read_file;
 #[path = "ripgrep.rs"]

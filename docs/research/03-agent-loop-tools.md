@@ -180,3 +180,18 @@
 - 적용 위치: `docs/decisions/D22-execution-reliability-autonomy.md`, `docs/plans/03-agent-loop-tools.md` (신뢰성·승인자 주입). L2·L3 설정 UI/키는 06 이후 기획.
 - 본 절은 **조사 기록**이며 **규범 정본이 아니다**. 적용·금지·단계 정의의 정본은 `docs/decisions/D22-execution-reliability-autonomy.md` (요약은 DECISIONS D22).
 - 미적용(지금): L2·L3 구현, 기본 무인.
+
+### 프로세스 트리 종료 실측 조사 (03-7 T1, 2026-11-14)
+
+확인 날짜는 2026-11-14이며 Windows 11 로컬에서 직접 확인했다. 근거 문서는 MSDN Job Objects 개요 절이고, 직접 열어 확인한 링크는 [Job Objects - Win32 apps](https://learn.microsoft.com/en-us/windows/win32/procthread/job-objects)이다.
+
+- 실측 결과(로컬 Windows, `cargo test` 재실행으로 확인):
+  - `CreateJobObjectW` + `JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE`를 건 Job Object에 셸을 할당하면, 셸이 만든 손자(자식의 자식)가 묶음에 들어가고 트리가 함께 끝난다. 확인 시험: `tools::tests::process_tree::terminate_leaves_no_grandchild`.
+  - Job Object를 닫기만(`CloseHandle`)해도 같은 종료 동작이 나온다. 확인 시험: `tools::tests::process_tree::drop_closes_tree_and_ends_grandchild`.
+  - 손자 2단 명령(`start /b cmd /c "ping && echo leak > marker"`)로 자식·손자를 만들고, 트리를 끝낸 뒤 5초를 더 관찰해 마커 미생성을 확인했다(자식 잔존 없음).
+- 그룹 밖으로 나가는 경로(Breakaway) 판정(MSDN 확인): 기본 동작은 자식이 Job Object를 상속한다. 밖으로 나가려면 Job에 `JOB_OBJECT_LIMIT_BREAKAWAY_OK`·`JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK` 확장을 걸어야 한다. 우리 Job Object는 두 확장을 걸지 않는다 → Windows에서는 breakaway 경로가 막힌다(MSDN "Prevent breakaways of any kind" 절). 따라서 Windows에서 표시할 경로는 없다.
+- Unix의 같은 경로는 `setsid`로 새 세션을 만든 자식에 그룹 시그널이 닿지 않는 것이다. 이 경로는 우리 책임 범위가 아니므로 시그널 범위 밖임을 시험으로 표시한다(`group_outside_path_is_marked_not_killed`, Unix 전용, spec 동작 규칙 5).
+- 조상 포함 여부: MSDN 기준 Job Object는 할당 이후 하위 트리를 상속으로 담는다. 셸 시작 전에 Job Object를 만드는 순서가 손자 상속의 조건이고, `process_tree.rs`의 `start`가 이 순서를 지킨다. 셸보다 먼저 만들어진 조상 프로세스는 우리 경로가 아니다(리스크 절의 "조상" 항목은 이 기준으로 정리).
+- 적용 위치: `crates/snap-core/src/tools/process_tree.rs`(조립), `process_tree/windows_tree.rs`(Job Object), `process_tree/unix_tree.rs`(process group), `run_command.rs`의 만료·cancel 자리(`append_tree_note`).
+- 미적용(지금): breakaway를 허용하는 정책(`JOB_OBJECT_LIMIT_BREAKAWAY_OK`·`JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK` — 정리 범위가 좁아지므로 기각), 03-9의 timeout→백그라운드 이관.
+- 관련 작업: 03-7 T1

@@ -1,6 +1,6 @@
 # 03-6 run_command·승인자 주입·deadline: 상세 기획
 
-- 상태: done (2026-11-12 T1 r4 리뷰 PASS·지적 0건, 검증 3종 통과. 2026-11-13 후속 SRP 분리 T2·T3·T5 완료 — 작업 단위 통합 리뷰 2차 PASS(critical·major·minor 0건, docs/reviews/03/03-06-run-command/t5-integration-r2.md). 2026-11-13~14 사용자 추가 지시로 T6 agent·tools 하위 폴더 정리 완료 — F1·F2 독립 리뷰와 F2 재리뷰 PASS(docs/reviews/03/03-06-run-command/t6-f1-review.md·	6-f2-review-2.md)와 minor 2건 보정, 언어 순수성 전수 정리(한자·깨진 글자 0건)까지 마쳤다. 이 작업 단위를 담은 브랜치 eature/agent-03-06-run-command를 origin에 푸시하고 PR #35로 eature/agent에 병합했다(2026-11-14, CI 매트릭스 ubuntu·windows 4검사 전부 초록 뒤 병합). 커밋 해시는 문서가 바뀌면 갱신 대상이라 박아두지 않는다.)
+- 상태: done (2026-11-12 T1 r4 리뷰 PASS·지적 0건, 검증 3종 통과. 2026-11-13 후속 SRP 분리 T2·T3·T5 완료 — 작업 단위 통합 리뷰 2차 PASS(critical·major·minor 0건, docs/reviews/03/03-06-run-command/t5-integration-r2.md). 2026-11-13~14 사용자 추가 지시로 T6 agent·tools 하위 폴더 정리 완료 — F1·F2 독립 리뷰와 F2 재리뷰 PASS(docs/reviews/03/03-06-run-command/t6-f1-review.md·t6-f2-review-2.md)와 minor 2건 보정, 언어 순수성 전수 정리(한자·깨진 글자 0건)까지 마쳤다. 이 작업 단위를 담은 브랜치 feature/agent-03-06-run-command를 origin에 푸시하고 PR #35로 feature/agent에 병합했다(2026-11-14, CI 매트릭스 ubuntu·windows 4검사 전부 초록 뒤 병합). 커밋 해시는 문서가 바뀌면 갱신 대상이라 박아두지 않는다.)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-2](../03-02-agent-loop/plan.md)
 
 ## 목적
