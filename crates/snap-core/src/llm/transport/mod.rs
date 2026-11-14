@@ -9,6 +9,7 @@ mod client_settings;
 pub(crate) mod connect_classify;
 mod fetch_models;
 mod open_stream;
+pub(crate) mod os_error_codes;
 mod send_headers;
 mod send_once;
 mod status_error;

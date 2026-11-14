@@ -1,21 +1,20 @@
 //! 도구 호출을 처리해 모델에 넘길 기록으로 바꿉니다(승인 흐름 포함).
 //!
-//! 이름 확인은 등록 목록(`registry.rs`)을, 인자 JSON 해석은 `args.rs`를, 잘림은
-//! `truncate.rs`를 재사용합니다(SRP·DRY). 03-6이 승인 흐름의 창구로 이 파일을 씁니다:
-//! 승인이 필요한 도구는 `ToolContext.approver`를 불러 승인·거부·만료를 정하고(D22),
+//! 이름 확인은 등록 목록(`record/registry.rs`)을, 인자 JSON 해석은 `fallback/args.rs`를,
+//! 잘림은 `record/truncate.rs`를 재사용합니다(SRP·DRY). 03-6이 승인 흐름의 창구로 이 파일을
+//! 씁니다: 승인이 필요한 도구는 `ToolContext.approver`를 불러 승인·거부·만료를 정하고(D22),
 //! 승인자 미주입은 즉시 거부, 만료는 거부로 기록합니다. 상한·거부 판정(종료 4갈래)은
-//! `runner.rs`의 판단에 넘깁니다. 기록 필드 조립과 시각은 `record_fill.rs`의 책임입니다
+//! `loop/runner.rs`의 판단에 넘깁니다. 기록 필드 조립과 시각은 `record/record_fill.rs`의 책임입니다
 //! (03-6 리뷰 SRP 지적, dev-principles 2절).
 
+use crate::agent::fallback::args::recover_arguments;
+use crate::agent::record::record_fill::{RunOne, record, recorded};
+use crate::agent::record::registry::ToolRegistry;
+use crate::agent::schema::types::ToolCallRecord;
 use crate::llm::ToolCall;
+use crate::time::now_unix_secs;
 use crate::tools::approver::request_approval;
 use crate::tools::tool::{Tool, ToolContext, ToolOutcome};
-
-use super::args::recover_arguments;
-use super::record_fill::{RunOne, record, recorded};
-use super::registry::ToolRegistry;
-use super::types::ToolCallRecord;
-use crate::time::now_unix_secs;
 
 /// 도구 호출 한 바퀴가 만든 기록 목록입니다.
 pub struct ToolRun {

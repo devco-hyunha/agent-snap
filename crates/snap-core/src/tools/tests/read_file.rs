@@ -1,7 +1,7 @@
 //! `read_file` 도구 시험(spec AC 1·1a·AC 2·AC 4).
 //!
 //! 크기·구간 기준은 D49 값(256KB·128KB·50KiB)을 그대로 두고, 잘림 표식과 4,000자 상한은
-//! 03-2 정본(`agent/truncate.rs`, `agent/config.rs`)을 재사용합니다.
+//! 03-2 정본(`agent/record/truncate.rs`, `agent/settings/config.rs`)을 재사용합니다.
 
 use crate::agent::{DEFAULT_TOOL_RESULT_MAX_CHARS, TRUNCATION_MARK, truncate_tool_result};
 use crate::tools::read_file::ReadFileTool;

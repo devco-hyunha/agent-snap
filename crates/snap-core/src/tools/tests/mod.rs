@@ -14,7 +14,6 @@ mod glob;
 mod grep;
 #[path = "list_dir.rs"]
 mod list_dir;
-#[path = "path_guard.rs"]
 mod path_guard;
 #[path = "read_file.rs"]
 mod read_file;

@@ -2,7 +2,7 @@
 //!
 //! 2안 왕복의 `assistant` 줄(`tool_calls` 없이 내용만)과 도구 결과를 `role: user` 글자로 messages에
 //! 붙입니다(llama.cpp·mlx-lm 관례: `tool` 역할과 레거시 `name` 칸은 400을 부른다).
-//! 1안 `tool` 줄 조립은 `prompt.rs`의 책임이고, 이 파일은 2안 전용만 만듭니다(관심사 분리).
+//! 1안 `tool` 줄 조립은 `prompt/assemble.rs`의 책임이고, 이 파일은 2안 전용만 만듭니다(관심사 분리).
 //! 결과 글자를 잘림 상한까지 채워 조합하는 일까지 이 파일의 책임입니다(dev-principles 2절 SRP).
 
 use crate::llm::ChatMessage;

@@ -11,13 +11,22 @@ use crate::config::{
     EndpointKind, EndpointSave, ExtraValue, ModelSave, Reasoning, Sampling, ToolCallForm,
 };
 
-/// 이름과 주소를 고른 저장 정보(모델 `fast` 하나, 모델 옵션 전부).
-pub(crate) fn full_save(name: &str, base_url: &str) -> EndpointSave {
+/// 이름과 주소와 종류를 고른 기본 엔드포인트 저장입니다(모델 없음). 저장 견본 만들기의
+/// 한 자리입니다(3절 DRY). 여러 시험 파일과 견본 파일이 이 한 함수로 조립을 대신합니다.
+pub(crate) fn endpoint_save(name: &str, base_url: &str, kind: EndpointKind) -> EndpointSave {
     EndpointSave {
         name: name.to_owned(),
         base_url: base_url.to_owned(),
-        kind: EndpointKind::LlamaCpp,
+        kind,
+        models: Vec::new(),
+    }
+}
+
+/// 이름과 주소를 고른 저장 정보(모델 `fast` 하나, 모델 옵션 전부).
+pub(crate) fn full_save(name: &str, base_url: &str) -> EndpointSave {
+    EndpointSave {
         models: vec![full_model_save()],
+        ..endpoint_save(name, base_url, EndpointKind::LlamaCpp)
     }
 }
 
@@ -36,14 +45,9 @@ pub(crate) fn reasoning_only_save() -> EndpointSave {
     }
 }
 
-/// `name`과 `base_url`만 고른 저장 정보(모델 없음).
+/// `name`과 `base_url`만 고른 저장 정보(모델 없음, 종류 `openai`).
 pub(crate) fn save_named(name: &str, base_url: &str) -> EndpointSave {
-    EndpointSave {
-        name: name.to_owned(),
-        base_url: base_url.to_owned(),
-        kind: EndpointKind::OpenAi,
-        models: Vec::new(),
-    }
+    endpoint_save(name, base_url, EndpointKind::OpenAi)
 }
 
 /// 모델 옵션을 다 준 저장 정보(trim한 이름 ` fast `를 씁니다).

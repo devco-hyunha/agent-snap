@@ -31,7 +31,7 @@ pub(crate) use self::save_failures::{
     ANNOTATED_CREDENTIALS, HOST_CONFIG, bad_base_url_save, config_replace_failure,
     config_write_failure, every_save_path_error, key_replace_failure, replace_file_ok,
 };
-pub(crate) use self::save_path::{blocking_replacement, endpoint_save, side_effect_errors};
+pub(crate) use self::save_path::{blocking_replacement, side_effect_errors};
 pub(crate) use self::save_samples::{
     ANNOTATED_FILE, BROKEN_TEXT, CONFIG_TEXT, CREDENTIALS_TEXT, EMPTY_ENDPOINTS_FILE,
     EXISTING_MAIN_FILE, HTTP_TEXT, LOCAL_ENDPOINT_TEXT, ROOT_EXTRA_TEXT, TWO_ENDPOINTS_TEXT,

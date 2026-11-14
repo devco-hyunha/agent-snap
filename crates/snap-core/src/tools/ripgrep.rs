@@ -14,6 +14,7 @@ use serde_json::Value;
 
 use crate::config::{CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME};
 
+use super::command_probe::command_works;
 use super::display::relative_path;
 use super::path_guard::is_secret_name;
 
@@ -68,14 +69,6 @@ pub(crate) fn search_with_ripgrep(
     }
     let stdout = String::from_utf8(output.stdout).ok()?;
     parse_ripgrep_json(&stdout, working_dir, format)
-}
-
-/// 명령 한 번이 성공했는지 봅니다.
-pub(crate) fn command_works(program: &str, args: &[&str]) -> bool {
-    Command::new(program)
-        .args(args)
-        .output()
-        .is_ok_and(|out| out.status.success())
 }
 
 /// `rg --json` 줄들을 결과 형식으로 바꿉니다. 모양이 다르면 `None`(내장 대체)입니다.

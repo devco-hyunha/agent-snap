@@ -1,11 +1,11 @@
-//! 저장 시험 도움: 교체 지점, 어긋난 상태 견본, 저장 정보 조립.
+//! 저장 시험 도움: 교체 지점, 어긋난 상태 견본.
 //!
 //! 검증·저장 경로가 파일을 옮기는 방식과 교체 지점을 모아 두고, 여러 시험 파일이 같은 조립을
 //! 다시 적지 않게 합니다.
 
 use std::path::Path;
 
-use crate::config::{ConfigError, EndpointKind, EndpointSave, SaveError};
+use crate::config::{ConfigError, SaveError};
 
 /// 검증·저장 경로가 표준대로 파일을 옮기는 교체 지점입니다.
 pub(crate) fn standard_replacement(from: &Path, target: &Path) -> std::io::Result<()> {
@@ -39,16 +39,5 @@ pub(crate) fn blocking_replacement(
             return Err(std::io::Error::other("교체 시험"));
         }
         std::fs::rename(from, target)
-    }
-}
-
-/// 키 값 없이 저장하는 엔드포인트 저장 정보입니다(모델 없음). 설정 파일 저장 쪽 견본에서
-/// 여러 파일이 같은 조립을 다시 적지 않게 하려는 자리입니다.
-pub(crate) fn endpoint_save(name: &str, base_url: &str) -> EndpointSave {
-    EndpointSave {
-        name: name.to_owned(),
-        base_url: base_url.to_owned(),
-        kind: EndpointKind::OpenAi,
-        models: Vec::new(),
     }
 }

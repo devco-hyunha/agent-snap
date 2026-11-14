@@ -7,7 +7,7 @@
 use std::io::Read;
 use std::os::windows::fs::OpenOptionsExt;
 
-use super::super::support::{CONFIG_TEXT, TempDir, endpoint_save};
+use super::super::support::{CONFIG_TEXT, TempDir, save_named};
 use crate::config::save::atomic::replace_file;
 use crate::config::save::config::save_endpoint_with;
 use crate::config::{
@@ -76,8 +76,9 @@ fn windows_read_only_open_allows_standard_rename() {
 }
 
 /// 검증만 통과하면 그대로 저장할 수 있는 `main` 엔드포이트 정보입니다.
+/// 교체 성공 확인에 쓰는 로컬 주소(`http://local.invalid/v1`)를 견본 조립 한 자리에서 씁니다(3절 DRY).
 fn main_endpoint_save() -> EndpointSave {
-    endpoint_save("main", LOCAL_BASE_URL)
+    save_named("main", LOCAL_BASE_URL)
 }
 
 /// 교체 성공 확인에 쓰는 로컬 엔드포이트 주소입니다.

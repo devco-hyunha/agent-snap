@@ -1,6 +1,6 @@
 # 03-6 run_command·승인자 주입·deadline: 상세 기획
 
-- 상태: done (2026-11-12 T1 r4 리뷰 PASS·지적 0건, 검증 3종 통과)
+- 상태: done (2026-11-12 T1 r4 리뷰 PASS·지적 0건, 검증 3종 통과. 2026-11-13 후속 SRP 분리 T2·T3·T5 완료 — 작업 단위 통합 리뷰 2차 PASS(critical·major·minor 0건, `docs/reviews/03/03-06-run-command/t5-integration-r2.md`). 2026-11-13~14 사용자 추가 지시로 T6 agent·tools 하위 폴더 정리 완료 — F1·F2 독립 리뷰와 F2 재리뷰 PASS(`docs/reviews/03/03-06-run-command/t6-f1-review.md`·`t6-f2-review-2.md`), 이 작업 단위를 담은 브랜치 `feature/agent-03-06-run-command`의 로컬 커밋(선두 1커밋; 커밋 해시는 문서를 담는 커밋을 Amend로 갱신하면 새로 바뀌므로 문서에 해시를 박아두지 않는다. 푸시·병합은 사용자 허락 대기)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-2](../03-02-agent-loop/plan.md)
 
 ## 목적
@@ -54,4 +54,5 @@
 | `docs/tasks/03/03-06-run-command/T3-srp-tests-split.md` | SRP 시험 지원·본문 분할(리뷰 후속) | 완료 |
 | `docs/tasks/03/03-06-run-command/T4-srp-full-audit.md` | SRP 전수 감사(읽기 전용) | 완료 |
 | `docs/tasks/03/03-06-run-command/T4-audit-results.md` | 전수 감사 결과 표 | 완료 |
-| `docs/tasks/03/03-06-run-command/T5-srp-splits.md` | SRP 분리 라운드(감사 major 반영) | 계획 |
+| `docs/tasks/03/03-06-run-command/T5-srp-splits.md` | SRP 분리 라운드(감사 major 반영) | 완료 |
+| `docs/tasks/03/03-06-run-command/T6-folder-splits.md` | agent·tools 하위 폴더 정리(F1·F2) | 완료 |

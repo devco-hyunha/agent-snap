@@ -1,7 +1,7 @@
 //! 03-6 승인 흐름이 쓰는 시간 상한 값 타입만 둡니다(03-6 T1, SRP).
 //!
 //! 설정에서 읽은 [`AgentSettings`]를 `Duration` 두 값으로 바꾸는 자리만 맡습니다.
-//! 승인 대기·실행 판단은 `approver.rs`가, 명령 실행은 `run_command.rs`가 씁니다.
+//! 승인 대기·실행 판단은 `approval/approver.rs`가, 명령 실행은 `run_command.rs`가 씁니다.
 
 use std::time::Duration;
 

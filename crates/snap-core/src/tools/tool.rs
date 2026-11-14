@@ -1,8 +1,8 @@
 //! `Tool` 트레이트 골격입니다. 03-1 spec.md가 서명 정본이고, 필드·메서드 이름을 바꾸지 않습니다.
 //!
-//! 등록 목록과 변환은 `agent/registry.rs` 한 곳에만 있고(DRY, 03-1 등록 규칙),
+//! 등록 목록과 변환은 `agent/record/registry.rs`와 `agent/schema/definitions.rs` 한 곳에 있고(DRY, 03-1 등록 규칙),
 //! 이 파일은 03-3·03-6이 만들 도구 구현의 골격인 트레이트와 실행 판만 둡니다.
-//! 승인 표식·취소 토큰을 다루는 메서드는 `approval_state.rs`에 따로 있습니다(03-6 R1 감사 분리).
+//! 승인 표식·취소 토큰을 다루는 메서드는 `approval/approval_state.rs`에 따로 있습니다(03-6 R1 감사 분리).
 
 use std::path::PathBuf;
 use std::sync::Mutex;
@@ -21,7 +21,7 @@ use super::run_command_settings::RunCommandSettings;
 pub struct ToolContext {
     /// 도구 경로 검사가 허용할 기준 폴더입니다.
     pub working_dir: PathBuf,
-    /// 도구 결과를 잘라 모델에 보낼 최대 글자 수입니다(잘림 정본은 03-2 `truncate.rs`).
+    /// 도구 결과를 잘라 모델에 보낼 최대 글자 수입니다(잘림 정본은 03-2 `agent/record/truncate.rs`).
     pub tool_result_max_chars: usize,
     /// 쓰기·명령 도구가 넘기는 승인자 자리입니다. 03-6이 채우고 없으면 즉시 거부입니다.
     pub approver: Option<ApproverBox>,

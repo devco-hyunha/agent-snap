@@ -7,7 +7,8 @@ use std::io::ErrorKind;
 use std::path::Path;
 
 use super::super::error::ConfigError;
-use super::error::{READ, save_io, save_io_kind};
+use super::error::READ;
+use super::io_error::{save_io, save_io_kind};
 
 /// 저장이 파일을 읽어 텍스트를 얻습니다. 파일이 없으면 빈 텍스트(새 파일)로 봅니다.
 ///

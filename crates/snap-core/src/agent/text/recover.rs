@@ -1,16 +1,17 @@
 //! 2안 텍스트 프로토콜 응답 복원 래더 한 곳입니다(03-4 spec AC 3, D50 결정 4 ①~④).
 //!
 //! 순서는 D50 결정 4 정본을 그대로 따릅니다: Markdown 코드블럭 둘레 제거 → 중괄호로 묶인
-//! 객체 찾아내기 → 파싱 → `args.rs`의 `recover_arguments` 1회 복구 재사용.
+//! 객체 찾아내기 → 파싱 → `fallback/args.rs`의 `recover_arguments` 1회 복구 재사용.
 //!
-//! 둘레 제거와 중괄호 추출은 03-2에 없는 단계라 이 파일이 새로 만들고, 닫힘 기호 복구는
-//! `agent/args.rs`를 그대로 부릅니다(중복 구현 금지, dev-principles 3절 DRY).
+//! 둘레 제거와 중괄호 객체 골라내기는 03-2에 없는 단계라 이 파일이 새로 만들고, JSON 기호를
+//! 세는 지식(짝 찾기)과 닫힘 기호 복구는 `agent/fallback/args.rs`를 그대로 부릅니다(중복 구현 금지,
+//! dev-principles 3절 DRY, 03-6 T5 R4).
 //! 스키마 검증은 `validate.rs`, 안내 글자는 `notice.rs`, 기록 채움은 `record.rs`가
 //! 맡습니다(관심사 분리).
 
 use serde_json::Value;
 
-use crate::agent::args::recover_arguments;
+use crate::agent::args::{balanced_object_end, recover_arguments};
 
 /// 2안 응답에서 복원한 도구 호출 한 개입니다.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -129,36 +130,6 @@ fn collect_object_texts(text: &str) -> Vec<String> {
         }
     }
     objects
-}
-
-/// 잘린 글자에서 첫 중괄호의 짝에 맞는 닫힘 기호 위치를 찾습니다.
-///
-/// 문자열 안의 중괄호는 셀지 않습니다. 짝이 맞지 않으면 `None`을 돌려주어 1회 복구 대상으로 넘깁니다.
-fn balanced_object_end(text: &str) -> Option<usize> {
-    let mut depth: i32 = 0;
-    let mut inside_string = false;
-    let mut escaped = false;
-    for (index, ch) in text.char_indices() {
-        if inside_string {
-            if ch == '"' && !escaped {
-                inside_string = false;
-            }
-            escaped = ch == '\\' && !escaped;
-            continue;
-        }
-        match ch {
-            '"' => inside_string = true,
-            '{' => depth += 1,
-            '}' => {
-                depth -= 1;
-                if depth == 0 {
-                    return Some(index);
-                }
-            }
-            _ => {}
-        }
-    }
-    None
 }
 
 /// JSON을 파싱하고, 실패하면 `recover_arguments`(닫힘 기호 1회 복구)에 넘겨 확인합니다(래더 ③·④).

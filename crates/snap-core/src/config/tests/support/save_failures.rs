@@ -8,7 +8,8 @@ use std::path::Path;
 
 use super::checks::KEY_VALUE;
 use super::config_text::base_url;
-use super::save_path::{blocking_replacement, endpoint_save, standard_replacement};
+use super::save_path::{blocking_replacement, standard_replacement};
+use super::save_samples::save_named;
 use crate::config::save::config::save_endpoint_with;
 use crate::config::save::credentials::save_key_with;
 use crate::config::save::store::{remove_endpoint_with, rename_endpoint_with};
@@ -72,7 +73,7 @@ pub(crate) fn every_save_path_error(folder: &Path) -> Vec<(&'static str, Result<
 
 /// 규칙에 맞지 않는 주소의 설정 저장 입력입니다. 검증 거부 견본입니다.
 pub(crate) fn bad_base_url_save() -> EndpointSave {
-    endpoint_save("main", BAD_URL)
+    save_named("main", BAD_URL)
 }
 
 /// 설정 파일 교체를 막아 교체 실패를 만듭니다.
@@ -110,7 +111,7 @@ pub(crate) fn replace_file_ok() -> impl Fn(&Path, &Path) -> std::io::Result<()> 
 
 /// 검증·저장 견본으로 쓰는 기본 엔드포인트 저장입니다.
 pub(crate) fn main_save() -> EndpointSave {
-    endpoint_save("main", &base_url())
+    save_named("main", &base_url())
 }
 
 /// 검증 거부 입력에 쓰는 주소입니다. 가리기 대상 호스트가 들어 있어 Display에 나오면 안 됩니다.

@@ -3,8 +3,8 @@
 //! `data` 없음·배열 아님·`id` 없음·`id` 문자열 아님을 모두 형식 오류로 알리는지,
 //! 모르는 필드·`null` 필드 무시는 그대로 유지하는지 본다.
 
-use super::models_list::{ModelsListIds, parse_models_ids};
 use crate::llm::error::models_format::{ModelsListFormatError, ModelsListFormatKind};
+use crate::llm::selection::models_list::{ModelsListIds, parse_models_ids};
 
 fn parse(json: &str) -> Result<ModelsListIds, ModelsListFormatError> {
     parse_models_ids(json)
