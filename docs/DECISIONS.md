@@ -143,10 +143,10 @@
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다.
 
 ## D27 Retry-After 정책과 IMF-fixdate 파싱 분리 (2026-11-02)
-- 결정: HTTP-date 파싱은 `llm/codec/http_date.rs`로 두고 retry 정책과 모듈 경계를 나눈다. IMF-fixdate·민간 달력·`wait_until`은 Retry-After 정책이 아니므로 `retry/` 아래에 두지 않는다. `after.rs`는 정책·delay-seconds·상한만 남기고 HTTP-date 경로는 `crate::llm::codec::http_date` 파서를 호출한다. 필요 진입점은 같은 crate의 retry가 쓰도록 `pub(crate)`로 열고, `snap-core` lib 공개면은 기존 retry 공개 API를 유지한다. 하위 폴더로 감싸지 않는다(D25). (경로 표기는 2026-11-05 작업 08 이동 결과 실체로 정정, 결정 내용 그대로)
+- 결정: HTTP-date 파싱은 `llm/retry/http_date.rs`로 두고 retry 정책과 모듈 경계를 나눈다. IMF-fixdate·민간 달력·`wait_until`은 Retry-After 정책이 아니므로 `retry/` 정책 파일과 분리한다. `after.rs`는 정책·delay-seconds·상한만 남기고 HTTP-date 경로는 `crate::llm::retry::http_date` 파서를 호출한다. 필요 진입점은 같은 crate의 retry가 쓰도록 `pub(crate)`로 열고, `snap-core` lib 공개면은 기존 retry 공개 API를 유지한다. (경로 표기는 2026-11-05 작업 08과 2026-11-14 이동 결과를 반영한 실재 경로로 정정. 결정 내용 그대로)
 - 근거: 파일·모듈 단위 SRP(SOLID), D25(관심사 파일이 하나일 때 하위 폴더 금지), AGENTS 개발 규칙. 제품 공개 표면은 기존 retry 공개 API를 유지한다.
 - 다시 볼 점: 다른 레이어가 같은 파서를 쓰게 되면 그때 위치를 재검토한다(추가 소비자가 생겼을 때의 이동이지, 지금 분리를 미루는 이유가 아님).
-- 관련 작업: [docs/tasks/03-retry-after-http-date-split.md](tasks/03-retry-after-http-date-split.md)
+- 관련 작업: [docs/tasks/02/11-retry-after-http-date-split/T1-http-date-split.md](tasks/02/11-retry-after-http-date-split/T1-http-date-split.md)
 
 ## D28 02 클라이언트 브랜치 리뷰 1 보정 범위 (2026-11-03)
 - 결정: `docs/reviews/02/branch-review-1.md` 미달에 대해 major 2건은 전부 고친다. (1) 제품 코드 `unreachable!` 제거(패닉 없는 경로). (2) `serde_json`에 `preserve_order`를 켜고 한 델타 안 생각·모르는 필드 순서를 테스트로 고정한다(02-3 AC·주석 약속과 맞춤). minor 중 이번에 고칠 것: `facade`→한국어, `llm.rs` 모듈 문서, 재시도 중간 API를 `pub(crate)`로 좁혀 lib 공개는 `decide_retry`와 02-6에 필요한 입력·결과 타입만, `index`는 `u32::try_from`. 미룸 중 **디코더 실패 후 Ok·알고 있는 키·호스트 가리기**는 02-5 plan/spec/tasks·AC에 반영함(2026-11-03). 남은 미룸: SSE 버퍼 비용, tasks 옛 경로·상위 상태 문구(문서 정리).
@@ -216,7 +216,7 @@
 - 다시 볼 점: `SelectedModel` 필트의 공개 여부는 02-7 작업 2(`GET /models`)와 작업 04·05 CLI에서 쓸 때 필요한 만큼만 좁힌다. `From`/조립 트레이트로 넓힐 요구가 생기면 02-5 공개면 좁히기(D28)와 함께 판단한다.
 
 ## D38 02-7 작업 2: 모델 목록 조회는 전송·해석·조립을 나누고, 공개 API는 전송 키·선택 키 두 자리 (2026-11-05)
-- 결정: 모델 목록 조회의 공개 API는 `OpenAiCompatClient::list_models(cancel) -> Result<Vec<String>, TransportError>` 한 가지를 그대로 쓰고, 선택 키로 만든 `SelectedClient`에도 같은 이름의 조회 길을 얹는다. 전송 파일(`transport/fetch_models.rs`)은 한 번 보내기만 하고, 목록 JSON 해석(`codec/models_list.rs`)과 Bearer 헤더 조립(`transport/client.rs`)은 파일을 나눠 한 책임씩 둔다. 채팅 전송의 헤더 대기·오류 본문 읽기는 transport 안에서 같은 만들기를 재사용한다.
+- 결정: 모델 목록 조회의 공개 API는 `OpenAiCompatClient::list_models(cancel) -> Result<Vec<String>, TransportError>` 한 가지를 그대로 쓰고, 선택 키로 만든 `SelectedClient`에도 같은 이름의 조회 길을 얹는다. 전송 파일(`transport/fetch_models.rs`)은 한 번 보내기만 하고, 목록 JSON 해석(`selection/models_list.rs`)과 Bearer 헤더 조립(`llm/transport/send_headers.rs`)은 파일을 나눠 한 책임씩 둔다. (경로 표기는 2026-11-05 이동 결과 실재 경로로 정정했고 결정 내용은 그대로다. Bearer 헤더 조립은 02-7 당시 `transport/client.rs`에 있었고, 이동 뒤 실재 파일은 `llm/transport/send_headers.rs`다) 채팅 전송의 헤더 대기·오류 본문 읽기는 transport 안에서 같은 만들기를 재사용한다.
 - 근거: 목록 조회는 재시도하지 않는 한 번짜리 조회이고(D14), 02-5의 시간·취소 규격을 그대로 쓴다. 전송·해석·조립을 한 파일에 몰면 책임 분리(SRP)에 걸리고, 헤더 조립을 채팅과 목록에서 다시 적으면 중복(DRY)이 된다.
 - 다시 볼 점: 본문 해석 실패는 02-7 작업 2에서는 형식 오류로 나누지 않고 빈 목록으로 보는 자리를 비운다. 형식 오류 규칙은 02-7 작업 3에서 정하고, 이 자리에 맞는 오류 종류를 DECISIONS에 남긴다. 시간·취소 동작 확인은 02-7 작업 4에서 한다.
 
@@ -271,7 +271,7 @@
 - 결정: 도구 호출 형식을 하나로 정하지 않고 3갈래 조합으로 쓴다. (1) 기본은 OpenAI `tools`/`tool_calls`(1안) — 03-2 루프. (2) 로컬 미지원 모델은 텍스트 프로토콜 폴백(2안) — 03-4. 스냅의 메인 사용처가 로컬 AI이므로 폴백은 스모크(03-10)보다 앞서 만드는 순서 필수. (3) 코드 모드는 `execute` 브리지(3안)로 두되 03-8에서 1차 읽기 전용으로 제한 — 도구 정의·실행·승인 게이트는 03의 `Tool` 경로 그대로, 스크립트 안 쓰기·명령 호출은 승인 게이트에서 승인 시까지 대기. (4) 모델 프로필에 호출 형식 필드를 두고(auto/`openai`/`text`) 경로 선택을 설정으로 정한다.
 - 근거: 2026-11-08 사용자 판단 — Cursor 단독은 로컬 도구 호출 실패가 잦음, OpenAI 단독은 로컬이 약점(스냅 메인과 충돌), OpenCode는 로컬 호출이 가장 원만하나 보안 부담. 비교 근거: [research/12-tool-calling-forms.md](research/12-tool-calling-forms.md)(4절 다섯 축, 5절 준수율 수치). 코드 모드 승인 축 근거: 12번 2절 3갈래·6절 한계.
 - 배치(2026-11-08 번호 재정렬로 확정): 03-1 트레이트 설계 → 03-2 루프 → 03-3 파일 도구 → 03-4 폴백 → 03-5 AGENTS.md → 03-6 run_command → 03-7 트리 종료 → 03-8 execute → 03-9(후보) → 03-10 스모크. 스모크는 3형식을 다 갖춘 뒤 최후에 한다.
-- 다시 볼 점: 03-8 엔진 선정(boa/deno_core/rquickjs)과 라이선스는 착수 전 확정. 03-4의 다중 호출 파싱(2개 이상)은 06 실측 후. 모델 프로필 형식(02 설정 스키마와 결합)은 03-4 착수 시 확정 → **2026-11-10 D50으로 마감**(`tool_call_form` `openai`·`text`·`auto`, 선언 우선, `auto`만 감지).
+- 다시 볼 점: 03-8 엔진 선정(boa/deno_core/rquickjs)과 라이선스는 착수 전 확정. → **2026-11-15 D51로 마감**(`rquickjs` 0.14.0 채택, MIT 확인. boa·deno_core·mlua는 기각). 03-4의 다중 호출 파싱(2개 이상)은 06 실측 후. 모델 프로필 형식(02 설정 스키마와 결합)은 03-4 착수 시 확정 → **2026-11-10 D50으로 마감**(`tool_call_form` `openai`·`text`·`auto`, 선언 우선, `auto`만 감지).
 
 ## D47 스트리밍 델타는 `apply_event` 한 자리에서만 누적한다 (2026-11-08)
 - 상태: **recorded** (2026-11-08, 03-2 T1 구현 중 발견·교정).
@@ -298,6 +298,13 @@
 - 정본: [docs/decisions/D50-form-switch-detection.md](decisions/D50-form-switch-detection.md)
 - 근거: 정본 참조(업계 관례 조사 12번 8절, llama.cpp·vLLM 실무 함정, 2609.07370 감사 주의, 사용자 판단).
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다. `tool_call_id` 9자리 규칙 실측(06), TSCG 채택 여부(06), 4x 코드 표 확장(06).
+
+## D51 03-8 엔진 선택: rquickjs (2026-11-15)
+- 상태: **recorded** (2026-11-15 조사 확정. 사용자 승인 시 approved로 올림).
+- 결정: 03-8 `execute` 브리지 런타임은 `rquickjs` 0.14.0(MIT) + 기능 `std`·`futures`(ES6 Promise ↔ Rust future 왕복)로 한다. `boa_engine`(Unlicense OR MIT, 의존 43, MSRV 1.91.0)·`deno_core`(MIT, V8+의존 33)·`mlua`(MIT, Lua 코르outine·학습성 열함)·JSON 호출 체인(의존 0이나 분기·반복 불가)은 기각 근거를 정본에 남겼다. D46의 "엔진·라이선스 착수 전 확정" 항목을 마감한다.
+- 정본: [docs/decisions/D51-engine-selection.md](decisions/D51-engine-selection.md)
+- 근거: 정본 참조(2026-11-15 crates.io·docs.rs·GitHub 직접 열람 비교표, M1 저사양 우선, D5·D18·D24·D30 라이선스 확인 방식).
+- 다시 볼 점: 정본의 「다시 볼 점」을 따른다. Windows MSVC QuickJS 표기 "experimental"은 T2 CI 매트릭스 빌드 실측으로 확정, 엔진 기동 시간·크기 실측은 T2, MSRV 1.87 확인은 T2.
 
 ## D71 리뷰 확인 단위 (2026-11-13)
 - 상태: **recorded** (2026-11-13 사용자 승인).

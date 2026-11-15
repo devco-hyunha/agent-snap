@@ -73,12 +73,6 @@ impl ToolRegistry {
             .collect()
     }
 
-    /// 등록 목록이 비었는지 확인합니다.
-    #[must_use]
-    pub const fn is_empty(&self) -> bool {
-        self.tools.is_empty()
-    }
-
     /// 이름이 등록 목록에 있는지 확인합니다. 없으면 `도구 없음`으로 알립니다.
     #[must_use]
     pub fn contains(&self, name: &str) -> bool {
