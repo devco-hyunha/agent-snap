@@ -2,6 +2,9 @@
 //!
 //! 승인자는 가짜(mock)로 만들고, 시간 상한은 짧게 주며, 경과 시간은 하한·상한으로만 본다(테스트 계획).
 
+use std::sync::Arc;
+use std::sync::atomic::AtomicUsize;
+use std::sync::atomic::Ordering;
 use std::time::Duration;
 
 use crate::config::AgentSettings;
@@ -33,7 +36,49 @@ impl CommandApprover for WaitingApprover {
 }
 
 fn box_of(approver: impl CommandApprover + 'static) -> ApproverBox {
-    Box::new(approver)
+    Arc::new(approver)
+}
+
+/// 즉시 승인을 돌려주는 가짜 승인자 창구입니다(03-8 execute 시험에서 재사용).
+#[must_use]
+pub(in crate::tools) fn approved_approver() -> ApproverBox {
+    box_of(MockApprover {
+        reply: ApprovalReply::Approved,
+    })
+}
+
+/// 승인자를 부른 횟수를 세고, 정한 응답을 순번대로 돌려주는 가짜 승인자입니다(03-8 AC 2·AC 5 확인).
+///
+/// 통합 시험 트리의 `counting_approver`와 같은 성질이지만 두 compile 단위(단위 시험·통합 시험)가
+/// 서로를 볼 수 없어, 이 트리에 한 번만 두고 필요한 시험이 다 씁니다(재사용, 한 정의).
+#[must_use]
+pub(in crate::tools) fn counting_approver_with_reply(
+    replies: &[ApprovalReply],
+) -> (ApproverBox, Arc<AtomicUsize>) {
+    let calls = Arc::new(AtomicUsize::new(0));
+    let approver = Arc::new(CountingApprover {
+        calls: calls.clone(),
+        replies: replies.to_vec(),
+    });
+    (approver, calls)
+}
+
+/// 응답을 정해진 순번대로 돌려주고 불린 횟수를 세는 가짜 승인자입니다.
+struct CountingApprover {
+    calls: Arc<AtomicUsize>,
+    replies: Vec<ApprovalReply>,
+}
+
+impl CommandApprover for CountingApprover {
+    fn approve<'a>(&'a self, _summary: &'a str) -> ApprovalFuture<'a> {
+        let index = self.calls.fetch_add(1, Ordering::Relaxed);
+        let reply = self
+            .replies
+            .get(index)
+            .copied()
+            .unwrap_or(ApprovalReply::Approved);
+        Box::pin(async move { reply })
+    }
 }
 
 /// 상한을 짧게 주입한 설정입니다(승인 대기 초, 실행 상한은 60초 — 시험 계획대로 값 주입).

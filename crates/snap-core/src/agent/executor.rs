@@ -108,7 +108,9 @@ async fn run_one(
 ///
 /// 표식을 이 호출 한 개에 채우고 부른 뒤 반드시 지웁니다(D22 5.3절·spec AC 1: 명령마다 확인).
 /// 도구가 표식을 소비하지 않고 끝나도 다음 호출은 다시 승인자를 타야 합니다.
-async fn run_approved_call(
+/// 03-8 execute 브리드가 같은 승인 순서를 다시 정의하지 않으려 이 정본을 그대로 씁니다
+/// (dev-principles 3절 DRY, 라운드 3 major 4). 가시는 이 정본을 쓰는 자리까지 넓혔습니다.
+pub(crate) async fn run_approved_call(
     tool: &dyn Tool,
     args_json: &str,
     context: &ToolContext,

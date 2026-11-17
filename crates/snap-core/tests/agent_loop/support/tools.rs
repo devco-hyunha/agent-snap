@@ -75,6 +75,9 @@ impl snap_core::tools::tool::Tool for ApprovalTool {
 /// 승인 표식이 호출마다 열리는지 확인하는 시험의 승인자입니다(03-6 T1 critical 보정 격자).
 ///
 /// 승인자가 불린 횟수를 세고, 정해 둔 응답을 불린 순번대로 돌려줍니다. 순번 목록이 끝나면 승인으로 봅니다.
+/// 단위 시험 트리(`src/tools/tests/approver.rs`)에도 같은 성질의 정의가 하나 더 있습니다.
+/// 이 트리는 `snap_core`를 외부 크레이트로 보는 통합 시험이고, 그 정의는 `pub(in crate::tools)`라
+/// 이곳에서 볼 수 없어 중복 정의가 불가피합니다(한 정의 재사용 불가, 근거: 그 가시성 한계).
 pub struct CountingApprover {
     calls: Arc<AtomicUsize>,
     replies: Vec<ApprovalReply>,
@@ -84,7 +87,7 @@ pub struct CountingApprover {
 #[must_use]
 pub fn counting_approver(replies: &[ApprovalReply]) -> (ApproverBox, Arc<AtomicUsize>) {
     let calls = Arc::new(AtomicUsize::new(0));
-    let boxed = Box::new(CountingApprover {
+    let boxed = std::sync::Arc::new(CountingApprover {
         calls: calls.clone(),
         replies: replies.to_vec(),
     }) as ApproverBox;

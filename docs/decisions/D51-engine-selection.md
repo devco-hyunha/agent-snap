@@ -1,6 +1,6 @@
 # D51 03-8 엔진 선택: rquickjs (정본)
 
-- 상태: recorded (2026-11-15 조사 확정, 사용자 승인 대기)
+- 상태: approved (2026-11-15 조사 확정 후 사용자 승인 받음. T2 착수)
 - 요약 인덱스: [docs/DECISIONS.md](../DECISIONS.md#d51-03-8-엔진-선택-rquickjs-2026-11-15)
 - 조사 상세·비교표·직접 열람 링크: [docs/tasks/03/03-08-execute-bridge/T1-engine-selection.md](../tasks/03/03-08-execute-bridge/T1-engine-selection.md)
 - 이 문서가 해당 결정의 상세 정본. DECISIONS.md에는 요약과 링크만 둔다.

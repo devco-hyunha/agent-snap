@@ -4,6 +4,7 @@
 //! 등록 이름 중복 검사는 이 파일 한 곳(`find_duplicate_name`)에 있습니다.
 
 use crate::tools::edit_file::EditFileTool;
+use crate::tools::execute::ExecuteTool;
 use crate::tools::glob::GlobTool;
 use crate::tools::grep::GrepTool;
 use crate::tools::list_dir::ListDirTool;
@@ -25,12 +26,14 @@ impl ToolRegistry {
         Self { tools: Vec::new() }
     }
 
-    /// 파일 읽기·쓰기·편집·목록·검색 도구와 `run_command` 도구를 등록한 목록을 만듭니다(03-3·03-6).
+    /// 파일 읽기·쓰기·편집·목록·검색 도구와 `run_command`·`execute` 도구를 등록한 목록을 만듭니다(03-3·03-6·03-8).
     ///
-    /// 도구 조립 자리를 한 곳으로 정했습니다. 조립 코드를 여러 곳에 두면 이름과
-    /// 순서가 갈라지므로, 이 한 곳에서만 읽기 → 쓰기 → 편집 → 목록 → glob → grep → 명령 순서를
+    /// 도구 조립 자리를 이 파일 한 곳으로 정했습니다. 조립 코드를 여러 곳에 두면 이름과
+    /// 순서가 갈라지므로, 이 한 곳에서만 읽기 → 쓰기 → 편집 → 목록 → glob → grep → 명령 → execute 순서를
     /// 만듭니다(DRY, dev-principles 3절).
-    /// 등록 순서는 읽기 → 쓰기 → 편집 → 목록 → glob → grep → 명령이며, `find_duplicate_name` 검사로
+    /// 엔진마다 등록 목록을 새로 만드는 지점은 `execute_bridge/engine_types.rs`의 `EngineBridge::new` 한 곳이고,
+    /// 그곳도 이 정의만 부릅니다.
+    /// 등록 순서는 읽기 → 쓰기 → 편집 → 목록 → glob → grep → 명령 → execute이며, `find_duplicate_name` 검사로
     /// 막혀 있습니다.
     ///
     /// ```
@@ -39,6 +42,7 @@ impl ToolRegistry {
     /// assert!(registry.contains("read_file"));
     /// assert!(registry.contains("list_dir"));
     /// assert!(registry.contains("run_command"));
+    /// assert!(registry.contains("execute"));
     /// ```
     #[must_use]
     pub fn with_agent_tools() -> Self {
@@ -50,6 +54,7 @@ impl ToolRegistry {
         registry.register(Box::new(GlobTool));
         registry.register(Box::new(GrepTool));
         registry.register(Box::new(RunCommandTool));
+        registry.register(Box::new(ExecuteTool));
         registry
     }
 

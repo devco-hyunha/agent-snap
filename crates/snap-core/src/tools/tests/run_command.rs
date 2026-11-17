@@ -3,6 +3,7 @@
 //! 셸을 쓰는 시험은 이 OS에서 확인이 쉬운 명령만 쓰고, 확인이 어려운 항목은 본문에 표기로 남긴다(테스트 계획).
 //! 시간 상한은 짧게 주고, 경과 시간은 넉넉한 하한·상한으로만 본다.
 
+use std::sync::Arc;
 use std::time::Duration;
 
 use crate::config::AgentSettings;
@@ -43,7 +44,7 @@ fn run_context(folder: &TempFolder, settings: RunCommandSettings) -> ToolContext
 }
 
 fn boxed_approved() -> ApproverBox {
-    Box::new(ApprovedApprover)
+    Arc::new(ApprovedApprover)
 }
 
 /// AC 1: 승인 표식이 없는 호출은 셸에 넘기지 않고 승인 요청만 돌려줍니다(미실행).

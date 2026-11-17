@@ -300,7 +300,7 @@
 - 다시 볼 점: 정본의 「다시 볼 점」을 따른다. `tool_call_id` 9자리 규칙 실측(06), TSCG 채택 여부(06), 4x 코드 표 확장(06).
 
 ## D51 03-8 엔진 선택: rquickjs (2026-11-15)
-- 상태: **recorded** (2026-11-15 조사 확정. 사용자 승인 시 approved로 올림).
+- 상태: **approved** (2026-11-15 조사 확정. 사용자 승인 받음 — T2 착수).
 - 결정: 03-8 `execute` 브리지 런타임은 `rquickjs` 0.14.0(MIT) + 기능 `std`·`futures`(ES6 Promise ↔ Rust future 왕복)로 한다. `boa_engine`(Unlicense OR MIT, 의존 43, MSRV 1.91.0)·`deno_core`(MIT, V8+의존 33)·`mlua`(MIT, Lua 코르outine·학습성 열함)·JSON 호출 체인(의존 0이나 분기·반복 불가)은 기각 근거를 정본에 남겼다. D46의 "엔진·라이선스 착수 전 확정" 항목을 마감한다.
 - 정본: [docs/decisions/D51-engine-selection.md](decisions/D51-engine-selection.md)
 - 근거: 정본 참조(2026-11-15 crates.io·docs.rs·GitHub 직접 열람 비교표, M1 저사양 우선, D5·D18·D24·D30 라이선스 확인 방식).
