@@ -51,7 +51,10 @@ impl ApprovalReply {
 }
 
 /// 승인자 트레이트 객체를 담는 창구입니다. `ToolContext.approver`의 타입 정본입니다(03-1 골격 자리).
-pub type ApproverBox = Box<dyn CommandApprover + Send + Sync>;
+///
+/// 03-8 T2 보정: JS 엔진 스레드가 승인자를 실행 판 복제본과 함께 쓰므로, 복사해 넘길 수 있는
+/// 공유 창구로 둡니다(승인자 한 자리를 여러 스레드가 같이 봄 — dev-principles 2절 SRP는 유지).
+pub type ApproverBox = std::sync::Arc<dyn CommandApprover + Send + Sync>;
 
 /// 승인자가 돌려주는 미래 타입입니다. `ToolCallFuture`과 같은 핀 상자 규칙을 따릅니다(DRY).
 pub type ApprovalFuture<'a> =

@@ -33,7 +33,7 @@ fn registry_to_definitions_keeps_registration_order() {
     assert_eq!(names, ["read", "write"]);
 }
 
-/// 03-3 T1·T2·03-6 T1 등록 확인: 도구를 한 자리에서 조립하면 등록한 도구가 순서대로
+/// 03-3 T1·T2·03-6 T1·03-8 T2 등록 확인: 도구를 한 자리에서 조립하면 등록한 도구가 순서대로
 /// 등록됩니다.
 #[test]
 fn agent_tools_registry_has_the_agent_tools() {
@@ -48,7 +48,8 @@ fn agent_tools_registry_has_the_agent_tools() {
             "list_dir",
             "glob",
             "grep",
-            "run_command"
+            "run_command",
+            "execute"
         ]
     );
     assert!(registry.find_duplicate_name().is_none());
@@ -60,6 +61,7 @@ fn agent_tools_registry_has_the_agent_tools() {
         "glob",
         "grep",
         "run_command",
+        "execute",
     ] {
         assert!(registry.contains(name), "{name}이 등록되어 있어야 합니다");
     }

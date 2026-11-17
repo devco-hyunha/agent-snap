@@ -3,8 +3,13 @@
 //! 등록 목록과 변환은 `agent/record/registry.rs`와 `agent/schema/definitions.rs` 한 곳에 있고(DRY, 03-1 등록 규칙),
 //! 이 파일은 03-3·03-6이 만들 도구 구현의 골격인 트레이트와 실행 판만 둡니다.
 //! 승인 표식·취소 토큰을 다루는 메서드는 `approval/approval_state.rs`에 따로 있습니다(03-6 R1 감사 분리).
+//!
+//! 03-8 T2 lifetime 보정: JS 엔진(브리지)이 실행 판을 스레드 여러 개로 나누어 써야 합니다.
+//! 그래서 실행 판 값은 복제하면 같은 상태를 가리키는 복제 가능 타입입니다(승인 표식·취소 토큰 공유).
+//! 승인자는 엔진이 스레드 경계를 넘어 부르므로 상자가 아니라 공유 창구로 받습니다.
 
 use std::path::PathBuf;
+use std::sync::Arc;
 use std::sync::Mutex;
 use std::sync::atomic::AtomicBool;
 
@@ -18,6 +23,8 @@ use super::run_command_settings::RunCommandSettings;
 /// 작업 폴더는 도구 경로 검사의 기준이고, `tool_result_max_chars`는 결과를 잘리는 상한이며,
 /// `approver`는 03-6이 채우는 승인자이고 없으면 즉시 거부이고, `run_command`는 03-6이 쓰는
 /// 승인 대기·실행 시간 상한입니다. 02 취소 토큰은 루프가 도구 실행 창구로 넘깁니다.
+/// 03-8 JS 엔진은 실행 판을 여러 스레드에 나누어 쓰므로, 복제본은 같은 상태를 가리킵니다.
+#[derive(Clone)]
 pub struct ToolContext {
     /// 도구 경로 검사가 허용할 기준 폴더입니다.
     pub working_dir: PathBuf,
@@ -25,12 +32,10 @@ pub struct ToolContext {
     pub tool_result_max_chars: usize,
     /// 쓰기·명령 도구가 넘기는 승인자 자리입니다. 03-6이 채우고 없으면 즉시 거부입니다.
     pub approver: Option<ApproverBox>,
-    /// 03-6가 쓰는 승인 대기·실행 시간 상한입니다. 설정 값(`agent` 섹션)으로 채웁니다.
+    /// 03-6이 쓰는 승인 대기·실행 시간 상한입니다. 설정 값(`agent` 섹션)으로 채웁니다.
     pub run_command: RunCommandSettings,
-    /// 02가 만든 취소 토큰입니다. 03-6이 승인 대기·명령 중단(cancel) 자리에서 듣습니다.
-    pub(super) cancel: Mutex<CancellationToken>,
-    /// 승인 표식입니다. 승인자 응답이 승인한 호출 한 개에서만 참이 되고, 그 호출이 끝나면 거짓으로 돌아옵니다.
-    pub(super) approved: AtomicBool,
+    /// 취소 토큰과 승인 표식(복제본이 같은 자리)을 묶은 창구입니다.
+    pub(super) shared: Arc<SharedToolState>,
 }
 
 impl ToolContext {
@@ -41,10 +46,21 @@ impl ToolContext {
             tool_result_max_chars,
             approver: None,
             run_command: RunCommandSettings::with_defaults(),
-            cancel: Mutex::new(CancellationToken::new()),
-            approved: AtomicBool::new(false),
+            shared: Arc::new(SharedToolState {
+                cancel: Mutex::new(CancellationToken::new()),
+                approved: AtomicBool::new(false),
+            }),
         }
     }
+}
+
+/// 실행 판이 스레드 여러 개에서 나누는 상태입니다(취소 토큰·승인 표식).
+#[derive(Default)]
+pub(in crate::tools) struct SharedToolState {
+    /// 02가 만든 취소 토큰입니다. 03-6이 승인 대기·cancel 자리에서 듣습니다.
+    pub(in crate::tools) cancel: Mutex<CancellationToken>,
+    /// 승인 표식입니다. 승인자 응답이 승인한 호출 한 개에서만 참이 되고, 그 호출이 끝나면 거짓으로 돌아옵니다.
+    pub(in crate::tools) approved: AtomicBool,
 }
 
 /// 도구가 돌려주는 실행 결과입니다.

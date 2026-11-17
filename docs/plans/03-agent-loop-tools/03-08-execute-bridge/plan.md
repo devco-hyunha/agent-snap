@@ -1,6 +1,6 @@
 # 03-8 호출 형식 3안 execute 브리지: 상세 기획
 
-- 상태: planned
+- 상태: T1·T2 완료 (T1 엔진 선택 확정·D51 approved, T2 execute 브리지 독립 리뷰 6차 PASS → 리뷰 기록 6종 `docs/reviews/03/03-08-execute-bridge/t2-r1.md`~`t2-r6.md`, Windows·Linux 동등 게이트 포함 + 구조 감사 `snap-review-01-structure.md`. 03-8 세부 작업 마감)
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-1](../03-01-tool-trait/plan.md), [03-3](../03-03-file-tools/plan.md), [03-6](../03-06-run-command/plan.md)
 - `Tool` 트레이트 서명 정본: [03-1 spec.md](../03-01-tool-trait/spec.md)(이 문서가 쓰는 `Tool`·`ToolContext`·`ToolOutcome`·`executes_writes`는 03-1이 확정한 이름을 따른다).
 - 근거: [12번 문서](../../../research/12-tool-calling-forms.md) 2절 3갈래·4절 ③행, OpenCode Code Mode `execute` (https://opencode.ai/docs/tools). 2026-11-08 사용자 결정(3형식 조합)의 3안.
@@ -52,5 +52,5 @@ AC 충족, 검증 명령 통과, `docs/reviews/03/`에 리뷰 PASS. 착수 전 �
 
 | 파일 | 작업 | 상태 |
 |---|---|---|
-| `docs/tasks/03/03-08-execute-bridge/T1-engine-selection.md` | 엔진 선택 메모 | 계획 |
-| `docs/tasks/03/03-08-execute-bridge/T2-execute-bridge.md` | execute 브리지 | 계획 |
+| `docs/tasks/03/03-08-execute-bridge/T1-engine-selection.md` | 엔진 선택 메모 | 완료 |
+| `docs/tasks/03/03-08-execute-bridge/T2-execute-bridge.md` | execute 브리지 | 완료 |

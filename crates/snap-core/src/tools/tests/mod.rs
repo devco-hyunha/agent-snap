@@ -8,6 +8,7 @@
 mod approver;
 #[path = "edit_file.rs"]
 mod edit_file;
+mod execute_bridge;
 #[path = "glob.rs"]
 mod glob;
 #[path = "grep.rs"]

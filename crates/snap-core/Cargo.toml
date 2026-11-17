@@ -12,6 +12,7 @@ serde_json = { version = "1.0", features = ["preserve_order"] }
 thiserror = "2.0.21"
 tokio = { version = "1", features = ["macros", "time", "process", "rt"] } # run_command는 자식 프로세스 실행과 kill에 process가, 출력 파이프 태스크에 rt가 필요합니다.
 tokio-util = { version = "0.7", default-features = false }
+rquickjs = { version = "0.14.0", default-features = false, features = ["std", "futures"] } # 03-8 execute 브리지 엔진(D51: rquickjs 0.14.0 채택). MIT 1개, 의존 1개(rquickjs-core)만 들어간다.
 
 [dev-dependencies]
 # 단위 시험(src/llm/tests)과 통합 시험이 `snap_core::` 경로로 지원 코드를 함께 쓰게 하는 자기 경로 개발 의존입니다.

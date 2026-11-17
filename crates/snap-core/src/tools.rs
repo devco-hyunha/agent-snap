@@ -6,6 +6,8 @@
 pub mod args;
 pub mod display;
 pub mod edit_file;
+pub mod execute;
+pub(crate) mod execute_bridge;
 pub mod glob;
 pub mod grep;
 pub mod list_dir;
