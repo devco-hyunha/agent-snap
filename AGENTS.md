@@ -5,7 +5,7 @@
 <!-- agent-harness:begin -->
 ## 기획·개발 하네스 핵심 규칙
 
-정본은 harness/HARNESS.md입니다. 스킬: plan-harness, build-harness, review-harness, delegation-brief, proofread-harness, eli5-clarity, dev-principles
+정본은 harness/HARNESS.md입니다. 스킬: plan-harness, project-plan-harness, build-harness, review-harness, delegation-brief, proofread-harness, eli5-clarity, dev-principles
 
 ### 공통 규칙 (메인·서브·리뷰 전원 필수, HARNESS.md 1절)
 - 사용자 언어·존댓말·eli5-clarity(결론 먼저, 짧게, 용어 첫 등장 풀이)를 응답·서브 지시와 보고·문서·코드 주석과 독스트링·커밋 메시지에 씁니다.
@@ -21,11 +21,11 @@
 - 허락 후 메인이 한 줄 명령(git status·log·diff, 커밋, 푸시, python -I -c)을 실행합니다.
 - 표준은 구현 서브 → 독립 리뷰 서브 2단계입니다.
 - Fast-track(단일 파일·20줄 이하 단순 수정 또는 하네스 설치·업데이트 동기화, 보안·비가역 제외)은 서브 없이 메인이 직접 처리하고 인라인 검증·셀프 체크로 PASS합니다.
-- 서브 호출 전 도구 schema와 delegation-brief를 읽고, 모든 서브 프롬프트에 개발 하네스([앞: 가드레일 6줄(harness/HARNESS.md·AGENTS.md·dev-principles 전 항목(2~11절 전체) 경로 포함)] → [작업 문서 경로·작업 번호] → [끝: 자기점검 4줄], 500자 이하)를 전달합니다.
+- 서브 호출 전 도구 schema와 delegation-brief를 읽고, 위임 전 오버레이 경로를 채운 뒤 모든 서브 프롬프트에 개발 하네스([앞: 가드레일 6줄(harness/HARNESS.md·AGENTS.md·오버레이·dev-principles 전 항목(2~11절 전체) 경로 포함)] → [작업 문서 경로·작업 번호] → [끝: 자기점검 4줄], 500자 이하)를 전달합니다.
 - 긴 출력은 로그 파일+한 줄 요약, 보고는 결과1줄/불릿≤5/경로/다음1줄입니다.
 
 ### 자식(구현·리뷰 서브) 세션 규칙 (HARNESS.md 3·6·7절)
-- 전달받은 가드레일과 세 문서(harness/HARNESS.md·AGENTS.md·dev-principles)를 먼저 읽고 준수합니다. 본문은 다시 적지 않습니다.
+- 전달받은 가드레일과 규칙 문서(harness/HARNESS.md·AGENTS.md·오버레이·dev-principles)를 먼저 읽고 준수합니다. 본문은 다시 적지 않습니다.
 - 구현·보정 서브는 지정 문서·파일만 읽고 바로 고치며, 주석 eli5-clarity를 지키고 -c 검증과 dev-principles 전 항목(2~11절 전체) 준수·확인을 보고합니다.
 - 리뷰 서브는 맥락 없는 새 세션에서 검증 재실행·산출물 확인·7대 체크리스트(주석·언어 순수성)·dev-principles 전 항목(2~11절 전체) 준수·확인 후 판정합니다.
 
