@@ -6,7 +6,7 @@ description: 설명·주석·보고를 사람이 바로 읽게 짧게 쓰는 규
 # eli5-clarity (쉬운 설명)
 
 설명·주석·사용자 보고·대화 해설에 항상 적용한다. 강도는 짧은 완전 문장이다(반말 조각 남발 금지). 존중하는 공손 어투(존댓말)와 함께 쓴다.
-정본 경로: `.agents/skills/eli5-clarity/SKILL.md` 또는 `.claude/skills/eli5-clarity/SKILL.md`. 상세 우선순위는 harness/HARNESS.md 1절.
+저장소 정본: `skills/eli5-clarity/SKILL.md`. 도구 소비 경로: Cursor·Codex·OpenCode는 `.agents/skills/eli5-clarity/SKILL.md`, Claude Code는 `.claude/skills/eli5-clarity/SKILL.md`. 상세는 harness/HARNESS.md 1절.
 
 ## 규칙
 - 결론·답을 앞에 둔다.
@@ -31,6 +31,6 @@ description: 설명·주석·보고를 사람이 바로 읽게 짧게 쓰는 규
 보안 경고, 비가역 확인, 순서가 중요한 절차는 또렷한 문장으로 쓴 뒤 이 어조로 돌아온다. 사용자가 「자세히」를 요청하면 분량 상한을 잠시 푼다(게이트 대화와 같음).
 
 ## 경계
-코드 자체, 커밋 메시지, PR 본문은 이 스킬로 강제 단축하지 않는다. 코드 안의 주석·독스트링과 그 옆 설명·채팅 해설에는 적용한다.
+주석·독스트링·설명·채팅·커밋·PR에는 eli5로 짧게 쓰되, 코드 본체·커밋·PR을 이 스킬로 강제 단축하지는 않는다.
 
 프로젝트 규칙 우선은 하네스 문서 1절, 승인·안전은 5절. (하네스 문서: harness/HARNESS.md)
