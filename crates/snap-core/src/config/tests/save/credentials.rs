@@ -1,9 +1,6 @@
-//! 자격 파일 키 추가·수정 저장 테스트(02-8 작업 3 AC 1~5).
+//! 자격 파일 키 추가·수정 저장 시험
 //!
-//! 키 이름 바꾸기와 키 삭제 저장을 보는 테스트는 `credentials_rename.rs`로 나눴습니다.
-//! 여기에는 키 추가·수정 저장을 보는 테스트가 남습니다. 저장 후 02-1 해석(`Credentials::parse`)으로
-//! 다시 읽은 값이 같은지, 주석과 다른 항목이 그대로인지, 오류와 파일에 키 값이 남지 않는지 봅니다.
-//! 자격 파일 텍스트 견본과 키 확인 도움은 지원부(`support/credentials.rs`)에서 가져옵니다.
+//! 자격 파일 텍스트 견본과 키 확인 도움은 지원부(`support/credentials.rs`)에서 가져옴
 
 use crate::config::{
     CONFIG_FILE_NAME, CREDENTIALS_FILE_NAME, ConfigError, EndpointIssue, ReadingError, SaveError,
@@ -18,8 +15,7 @@ use super::super::support::{
     assert_error_hides_secrets, count_key_entries, key_value, parse_credentials,
 };
 
-/// AC 1: 주석·다른 항목이 있는 자격 파일에 키를 저장하면 02-1 해석으로 같은 값이 읽히고,
-/// 주석과 손대지 않은 항목은 그대로이며 설정 파일은 건드리지 않습니다.
+/// 키 저장 시 주석·미수정 항목 보존, 설정 파일 미변경, 왕복 값 확인
 #[test]
 fn saving_key_keeps_comments_and_untouched_entries_and_round_trips() {
     let folder = TempDir::new("자격-주석-보존");
@@ -58,7 +54,7 @@ fn saving_key_keeps_comments_and_untouched_entries_and_round_trips() {
     );
 }
 
-/// AC 2: 자격 파일이 없으면 새 파일을 만들어 02-1 해석이 통과합니다.
+/// 자격 파일 미존재 시 신규 생성 후 해석 통과 확인
 #[test]
 fn saving_key_creates_missing_credentials_file() {
     let folder = TempDir::new("자격-새-파일");
@@ -70,14 +66,12 @@ fn saving_key_creates_missing_credentials_file() {
     assert_eq!(key_value(&credentials, "main").as_deref(), Some(KEY_VALUE));
 }
 
-/// AC 5: 키 값 없이 저장하는 수정은 자격 파일 쪽 저장 함수를 부르지 않으므로 기존 키가
-/// 그대로입니다. 파일 원문이 그대로이고 02-1 왕복 값도 그대로임을 확인합니다.
+/// 키 값 없는 수정은 자격 파일 저장 함수 미호출, 원문·왕복 값 유지 확인
 #[test]
 fn endpoint_only_edit_keeps_existing_key_in_credentials_file() {
     let folder = TempDir::new("자격-기존-키-유지");
     folder.write(CREDENTIALS_FILE_NAME, KEYS_ANNOTATED_FILE);
 
-    // 키를 주지 않는 수정은 save_key를 부르지 않습니다(저장 API 계약, D16).
     let text = folder.read(CREDENTIALS_FILE_NAME);
     assert_eq!(text, KEYS_ANNOTATED_FILE);
     assert_eq!(
@@ -87,7 +81,7 @@ fn endpoint_only_edit_keeps_existing_key_in_credentials_file() {
     );
 }
 
-/// 이름 규칙에 맞지 않으면 파일을 건드리지 않고 02-2와 같은 오류만 냅니다.
+/// 이름 규칙 위반은 파일 미변경, 검증 오류 반환
 #[test]
 fn invalid_endpoint_name_rejects_before_touching_file() {
     for (label, endpoint) in [("빈 이름", "   "), ("슬래시 이름", "a/b")] {
@@ -116,8 +110,7 @@ fn invalid_endpoint_name_rejects_before_touching_file() {
     }
 }
 
-/// 02-1 해석이 거부하는 파일(최상위 비객체·`api_keys` 비객체·문법 오류)은 쓰기를 거부하고
-/// 파일을 그대로 둩니다. 오류 Display·Debug에 키 값이 없습니다.
+/// 해석이 거부하는 파일(최상위 비객체·`api_keys` 비객체·문법 오류)은 쓰기 거부, 파일 유지
 #[test]
 fn unparseable_credentials_file_rejects_before_touching_file() {
     for (label, text) in [
@@ -152,7 +145,7 @@ fn unparseable_credentials_file_rejects_before_touching_file() {
     }
 }
 
-/// 값이 문자열이 아닌 키는 02-1 해석이 먼저 거부하므로 편집 경로가 생기기 전에 거부됩니다.
+/// 값이 문자열이 아닌 키는 해석 거부로 편집 경로 생성 전 거부
 #[test]
 fn non_string_key_value_rejects_before_touching_file() {
     let folder = TempDir::new("자격-값-타입-거부");
@@ -173,10 +166,7 @@ fn non_string_key_value_rejects_before_touching_file() {
     assert_error_hides_key_value("키 값 타입 거부", &error);
 }
 
-/// 쓰기 실패는 대상 파일 종류와 오류 종류만 밝히고 키 값은 밝히지 않습니다.
-///
-/// 자격 파일 저장은 주소를 다루지 않으므로, 이 검사에서는 가리기 대상으로 키 값만 봅니다
-/// (호스트 가리기는 설정 파일 쪽 검사 용도입니다).
+/// 쓰기 실패는 대상 파일 종류와 오류 종류만 밝히고 키 값은 미노출
 #[test]
 fn write_failure_reports_target_and_kind_only() {
     let folder = TempDir::new("자격-쓰기-실패");
@@ -205,10 +195,7 @@ fn write_failure_reports_target_and_kind_only() {
     assert_error_hides_key_value("자격 쓰기 실패", &error);
 }
 
-/// 자격 파일 저장이 원문 표기를 해치지 않는지 확인합니다.
-///
-/// 중복 칸을 정리하는 편집에서 값이 든 칸만 새 값으로 바뀌고, 주석·다른 칸·들여쓰기는
-/// 원문 그대로 남는지를 봅니다.
+/// 자격 파일 저장은 값이 든 칸만 새 값으로 바꾸고 주석·다른 칸·들여쓰기는 원문 그대로
 #[test]
 fn saving_key_preserves_untouched_lines_verbatim() {
     let folder = TempDir::new("자격-원문-보존");
@@ -223,7 +210,6 @@ fn saving_key_preserves_untouched_lines_verbatim() {
         "/* api_keys 밖 항목 */",
         OTHER_KEY_TEXT,
         KEYS_ROOT_EXTRA_TEXT,
-        // 첫 칸이 새 값으로 바뀌고 그 칸 하나가 남습니다(들여쓰기 원형 유지 포함).
         "  \"main\": \"leak-key-value-9\",",
     ] {
         assert!(

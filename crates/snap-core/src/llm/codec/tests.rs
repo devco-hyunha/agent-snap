@@ -1,7 +1,6 @@
-//! `GET /models` 목록 해석의 형식 오류 종류 테스트(02-7 AC 3).
+//! `GET /models` 목록 해석의 형식 오류 종류 시험.
 //!
-//! `data` 없음·배열 아님·`id` 없음·`id` 문자열 아님을 모두 형식 오류로 알리는지,
-//! 모르는 필드·`null` 필드 무시는 그대로 유지하는지 본다.
+//! `data`·`id` 형식 오류 알림과 모르는 필드·`null` 무시 유지를 확인.
 
 use crate::llm::error::models_format::{ModelsListFormatError, ModelsListFormatKind};
 use crate::llm::selection::models_list::{ModelsListIds, parse_models_ids};
@@ -80,7 +79,7 @@ fn format_error_display_hides_body_and_carries_only_kind() {
     let debug = format!("{error:?}");
 
     assert!(display.contains("형식 오류"));
-    // 종류 표기에는 `data`·`id` 같은 이름이 정상적으로 들어가므로, 본문 값 조각과 키 값만 가리는지 봅니다.
+    // 종류 표기에는 `data`·`id` 같은 이름이 정상적으로 들어가므로, 본문 값 조각과 키 값만 가리는지 확인.
     for forbidden in ["leak", "127", "object", "api_key"] {
         assert!(
             !display.contains(forbidden) && !debug.contains(forbidden),

@@ -1,6 +1,6 @@
-//! 엔드포인트·모델 칸(`endpoints[]`와 그 안의 `models[]`) 읽기입니다(D10, D20).
+//! 엔드포인트·모델 칸(`endpoints[]`와 그 안의 `models[]`) 읽기.
 //!
-//! 이름·중복·거부 칸 확인은 `validate` 규칙을 따르고, 오류에는 이름만 담습니다.
+//! 이름·중복·거부 칸 확인은 `validate` 규칙을 따르고, 오류에는 이름만 담음.
 
 use jsonc_parser::{JsonObject, JsonValue};
 
@@ -12,7 +12,7 @@ use super::{context_window, extra, reasoning, validate};
 use crate::jsonc::{WrongType, pick_object, take_optional};
 use crate::secrets::SecretValue;
 
-/// 루트의 `endpoints`를 읽습니다. 생략하면 빈 목록입니다.
+/// 루트의 `endpoints`를 읽음. 생략하면 빈 목록.
 pub(super) fn read_endpoints(
     root: &mut JsonObject<'_>,
 ) -> Result<Vec<EndpointConfig>, ConfigError> {

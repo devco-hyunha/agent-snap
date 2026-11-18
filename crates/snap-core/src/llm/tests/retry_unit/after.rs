@@ -1,4 +1,4 @@
-//! `Retry-After` 해석·상한 비교 단위 테스트(AC 1~3, spec AC 1·2).
+//! `Retry-After` 해석·상한 비교 단위 시험.
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -89,7 +89,7 @@ fn past_http_date_waits_zero() {
 
 #[test]
 fn pre_unix_epoch_http_date_waits_zero() {
-    // 1969-12-31 23:59:59 GMT (Unix epoch 이전, AC2/D14)
+    // 1969-12-31 23:59:59 GMT (Unix epoch 이전)
     let header = "Wed, 31 Dec 1969 23:59:59 GMT";
     assert_eq!(
         decide(Some(header)),

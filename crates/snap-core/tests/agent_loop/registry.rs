@@ -1,10 +1,10 @@
-//! 03-2 등록 검사 시험: 등록 이름 중복 검사 한 자리와 `tools` 배열 변환(AC 1 등록 규칙).
+//! 등록 이름 중복 검사와 `tools` 배열 변환 시험.
 
 use snap_core::agent::registry_to_definitions;
 
 use crate::support::{registry_with_fixed, registry_with_fixed_twice};
 
-/// 등록 규칙 단위 확인: 같은 이름이 두 개면 앞의 도구만 쓰고 뒤는 가려지므로, 검사 자리에서 막아야 합니다.
+/// 같은 이름이 두 개면 앞의 도구만 쓰고 뒤는 가려지므로, 검사 자리에서 차단.
 #[test]
 fn duplicate_registered_name_is_found() {
     let registry = registry_with_fixed_twice("echo", "ok");
@@ -15,7 +15,7 @@ fn duplicate_registered_name_is_found() {
     assert_eq!(position, 1, "뒤에 온 순번을 가리켜야 합니다");
 }
 
-/// 등록 규칙 단위 확인: 이름이 서로 다면 중복이 없습니다.
+/// 이름이 서로 다면 중복 없음.
 #[test]
 fn distinct_registered_names_have_no_duplicate() {
     let mut registry = registry_with_fixed("read", "ok");
@@ -23,7 +23,7 @@ fn distinct_registered_names_have_no_duplicate() {
     assert!(registry.find_duplicate_name().is_none());
 }
 
-/// 등록 변환 확인: 등록한 순서대로 OpenAI `tools` 배열 자리가 만들어집니다(AC 1 앞부분).
+/// 등록한 순서대로 OpenAI `tools` 배열 자리가 만들어짐.
 #[test]
 fn registry_to_definitions_keeps_registration_order() {
     let mut registry = registry_with_fixed("read", "ok");
@@ -33,8 +33,7 @@ fn registry_to_definitions_keeps_registration_order() {
     assert_eq!(names, ["read", "write"]);
 }
 
-/// 03-3 T1·T2·03-6 T1·03-8 T2 등록 확인: 도구를 한 자리에서 조립하면 등록한 도구가 순서대로
-/// 등록됩니다.
+/// 도구를 한 자리에서 조립하면 등록한 도구가 순서대로 등록됨.
 #[test]
 fn agent_tools_registry_has_the_agent_tools() {
     let registry = snap_core::agent::ToolRegistry::with_agent_tools();
@@ -67,7 +66,7 @@ fn agent_tools_registry_has_the_agent_tools() {
     }
 }
 
-/// 이름만 채운 최소 도구입니다. 변환·중복 검사 확인에 씁니다.
+/// 이름만 채운 최소 도구. 변환·중복 검사 확인용.
 struct FixedNamedTool(&'static str);
 
 impl snap_core::tools::tool::Tool for FixedNamedTool {

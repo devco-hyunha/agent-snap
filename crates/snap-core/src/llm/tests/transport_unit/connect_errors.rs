@@ -1,4 +1,4 @@
-//! 헤더 전 연결 오류 세부 구분·오류 가리기 통합 테스트(AC 2·6).
+//! 헤더 전 연결 오류 세부 구분·오류 가리기 통합 시험.
 
 use super::super::common::support::sample_request;
 use super::{client_at_with, connect_check_http, test_http};
@@ -6,13 +6,13 @@ use snap_core::config::HttpSettings;
 use snap_core::llm::{
     CancellationToken, LlmClient, PreHeaderConnectKind, RetryFailureInput, TransportError,
 };
-// 분류 코드가 크레이트 안에서 내보내는 같은 이름의 세부 타입을 시험 안쪽에서 가리키는 이름입니다.
+// 분류 코드가 내보내는 세부 타입을 시험 안쪽에서 가리키는 이름.
 use crate::llm::PreHeaderConnectKind as 내부_연결_세부;
 
-// AC 6: 연결이 거부되면 헤더 전 연결 세부 `ConnectionRefused`로 구분된다.
+// 연결이 거부되면 헤더 전 연결 세부 `ConnectionRefused`로 구분.
 #[tokio::test]
 async fn connection_refused_is_pre_header_connect_kind() {
-    // 닫힌 포트에 연결해 거부를 만듭니다.
+    // 닫힌 포트에 연결해 거부를 만듦.
     let closed = tokio::net::TcpListener::bind(std::net::SocketAddr::from(([127, 0, 0, 1], 0)))
         .await
         .expect("빈 포트 확인용 소켓");
@@ -37,7 +37,7 @@ async fn connection_refused_is_pre_header_connect_kind() {
         ),
         "연결 거부 세부여야 합니다: {error:?}"
     );
-    // AC 6: Display·Debug에 키와 base_url 호스트가 없다.
+    // Display·Debug에 키와 base_url 호스트가 없음.
     let key = "sk-refused-key-1234567890abcd";
     assert!(!format!("{error}").contains("127.0.0.1"));
     assert!(!format!("{error:?}").contains("127.0.0.1"));
@@ -45,10 +45,10 @@ async fn connection_refused_is_pre_header_connect_kind() {
     assert!(!format!("{error:?}").contains(key));
 }
 
-// AC 6: DNS 조회 실패는 헤더 전 연결 세부 `DnsFailure`로 구분된다.
+// DNS 조회 실패는 헤더 전 연결 세부 `DnsFailure`로 구분.
 #[tokio::test]
 async fn dns_failure_is_pre_header_connect_kind() {
-    // 연결 세부 확인이라 재시도는 켜지 않는다(연결 재시도는 02-4 판단 시험이 별도로 본다).
+    // 연결 세부 확인이라 재시도는 켜지 않음.
     let http = HttpSettings {
         retries: 0,
         ..test_http()
@@ -67,12 +67,12 @@ async fn dns_failure_is_pre_header_connect_kind() {
         ),
         "DNS 실패 세부여야 합니다: {error:?}"
     );
-    // AC 6: Display·Debug에 base_url 호스트가 없다.
+    // Display·Debug에 base_url 호스트가 없음.
     assert!(!format!("{error}").contains("agent-snap-does-not-exist"));
     assert!(!format!("{error:?}").contains("agent-snap-does-not-exist"));
 }
 
-// AC 6: 분류가 내보내는 세부 6종이 02-4 표의 「헤더 전 연결」 후보와 같은 값으로 채워진다.
+// 분류가 내보내는 세부 6종이 헤더 전 연결 후보와 같은 값으로 채워짐.
 #[test]
 fn connect_kinds_from_classification_match_retry_input_names() {
     let kinds = crate::llm::transport::connect_classify::CONNECT_KIND_BY_ROW;
@@ -89,8 +89,8 @@ fn connect_kinds_from_classification_match_retry_input_names() {
     );
     assert_eq!(kinds.len(), 6);
     for kind in kinds {
-        // 분류 코드가 준 값이 표에서 쓰는 「헤더 전 연결」 세부와 같은 값으로 옮아감 여부를 본다.
-        // 내부 세부는 공개_세부와 같은 값이므로 공개_세부로 옮겨 확인한다.
+        // 분류 코드가 준 값이 헤더 전 연결 세부와 같은 값으로 옮아감 여부를 봄.
+        // 내부 세부는 공개_세부와 같은 값이므로 공개_세부로 옮겨 확인.
         let 공개_세부 = match kind {
             내부_연결_세부::DnsFailure => PreHeaderConnectKind::DnsFailure,
             내부_연결_세부::ConnectionRefused => PreHeaderConnectKind::ConnectionRefused,

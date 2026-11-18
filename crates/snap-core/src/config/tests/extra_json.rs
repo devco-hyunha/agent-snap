@@ -1,4 +1,4 @@
-//! `ExtraValue`·실수 → JSON 변환 단위 테스트입니다.
+//! `ExtraValue`·실수를 JSON으로 변환 시험.
 
 use crate::config::ExtraValue;
 use crate::config::extra_json::{extra_to_json, json_f64};

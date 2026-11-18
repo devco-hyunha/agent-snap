@@ -1,4 +1,4 @@
-//! 03-8 execute 브리지 승인 게이트 시험입니다(AC 2·AC 5: 호출마다 승인, 승인 2개).
+//! execute 브리지 승인 게이트 시험.
 
 use crate::llm::ToolCall;
 use crate::tools::approver::ApprovalReply;
@@ -8,7 +8,7 @@ use super::shared::execute_text;
 use crate::agent::executor::run_tool_calls;
 use crate::agent::record::registry::ToolRegistry;
 
-/// AC 2·AC 5: 승인자 없는 상태(즉시 거부)에서는 쓰기 호출이 진행하지 않고 거부로 기록된다.
+/// 승인자 없는 상태(즉시 거부)에서는 쓰기 호출이 진행하지 않고 거부로 기록됨.
 #[tokio::test]
 async fn write_call_without_approver_is_rejected_and_logged() {
     let workdir = TempWorkdir::new("bridge-write-rejected");
@@ -31,7 +31,7 @@ async fn write_call_without_approver_is_rejected_and_logged() {
     assert!(!workdir.path().join("x.txt").exists(), "쓰기 없어야 함");
 }
 
-/// AC 2 연장: 승인 창구를 지난 쓰기 호출만 실행되고, 기록은 호출마다 남는다(승인 2개 흐름).
+/// 승인 창구를 지난 쓰기 호출만 실행되고, 기록은 호출마다 남음.
 #[tokio::test]
 async fn approved_write_call_runs_through_gate() {
     let workdir = TempWorkdir::new("bridge-write-approved");
@@ -49,7 +49,7 @@ async fn approved_write_call_runs_through_gate() {
     );
 }
 
-/// AC 2 연장: `for` 반복 쓰기가 승인 1회로 여러 쓰기가 되지 않고, 쓰기마다 승인 창구를 탄다.
+/// `for` 반복 쓰기가 승인 1회로 여러 쓰기가 되지 않고, 쓰기마다 승인 창구를 탐.
 #[tokio::test]
 async fn repeated_write_calls_each_gate_the_same_place() {
     let workdir = TempWorkdir::new("bridge-write-repeat");
@@ -75,11 +75,9 @@ async fn repeated_write_calls_each_gate_the_same_place() {
     );
 }
 
-/// AC 5: 승인 2개 기준(전체 확인 1승인 + 안의 쓰기 1승인)을 승인자 호출 횟수로 확인한다.
+/// 승인 2개 기준(전체 확인 1승인 + 안의 쓰기 1승인)을 승인자 호출 횟수로 확인.
 ///
-/// 1안 경로는 `execute`가 승인 요청을 내면 03-6 승인자를 부르고(승인 1개), 승인 뒤에
-/// 다시 불린 호출 안에서 안의 쓰기가 같은 승인자를 한 번 더 탑니다(합쳐 호출 2번).
-/// 시험은 03-2 정본 경로(`run_tool_calls`)를 그대로 써서 실제 흐름을 봅니다.
+/// `execute`가 승인 요청을 내면 승인자를 부르고, 승인 뒤에 다시 불린 호출 안에서 안의 쓰기가 같은 승인자를 한 번 더 탐 → 합쳐 호출 2번.
 #[tokio::test]
 async fn full_execute_call_counts_two_approvals() {
     let workdir = TempWorkdir::new("bridge-ac5-two-approvals");

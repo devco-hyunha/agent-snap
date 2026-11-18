@@ -1,4 +1,4 @@
-//! 요청 본문·인증 헤더 통합 테스트입니다(AC 2 요청부).
+//! 요청 본문·인증 헤더 통합 테스트.
 
 mod common;
 use serde_json::Value;

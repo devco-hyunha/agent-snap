@@ -1,13 +1,12 @@
-//! ripgrep 연동 시험: JSON 분석 결과의 비밀 거르기와 경로 표시.
+//! ripgrep 연동 시험: JSON 분석 결과의 비밀 거르기와 경로 표시
 //!
-//! `rg --json` 모의 줄을 직접 만들어 거르기를 확인합니다. 이 시험은 ripgrep이
-//! PATH에 없어도 돌아가므로, 비밀 자리·내용이 새는지를 이 환경과 무관하게 봅니다.
+//! `rg --json` 모의 줄을 직접 만들어 거르기를 확인. 이 시험은 ripgrep이 PATH에 없어도 돌아가므로, 비밀 자리·내용이 새는지를 환경과 무관하게 봄
 
 use std::path::PathBuf;
 
 use crate::tools::ripgrep::parse_ripgrep_json;
 
-/// `rg --json` match 줄 한 줄을 만들어 줍니다(rg가 내보내는 모양과 같은 형태).
+/// `rg --json` match 줄 한 줄 생성(rg가 내보내는 모양과 같은 형태)
 fn json_match_line(path: &str, text: &str, line_no: usize) -> String {
     let value = serde_json::json!({
         "type": "match",
@@ -22,7 +21,7 @@ fn json_match_line(path: &str, text: &str, line_no: usize) -> String {
     value.to_string()
 }
 
-/// content 형식의 표시는 `rg --json`의 자리와 작업 폴더 기준을 맞춘 결과입니다.
+/// content 형식의 표시는 `rg --json`의 자리와 작업 폴더 기준을 맞춘 결과
 #[test]
 fn content_lines_use_relative_display() {
     let working_dir = PathBuf::from("/work");
@@ -31,7 +30,7 @@ fn content_lines_use_relative_display() {
     assert_eq!(lines, vec!["keep.txt:2:secret-value".to_owned()]);
 }
 
-/// 비밀 자리 줄은 content·files·count 형식 전부에서 사라지는지 확인합니다(AC 4).
+/// 비밀 자리 줄은 content·files·count 형식 전부에서 사라짐
 #[test]
 fn secret_paths_are_dropped_from_parsed_events() {
     let working_dir = PathBuf::from("/work");
@@ -46,8 +45,8 @@ fn secret_paths_are_dropped_from_parsed_events() {
     assert_eq!(counts, vec!["keep.txt:1".to_owned()]);
 }
 
-/// Windows 표시(`\` 구분)도 비밀 이름이면 거르는지 봅니다.
-/// `\` 구분 표기는 Windows에서만 의미 있으므로 이 시험은 Windows 전용입니다.
+/// Windows 표시(`\` 구분)도 비밀 이름이면 거름
+/// `\` 구분 표기는 Windows에서만 의미 있으므로 이 시험은 Windows 전용
 #[cfg(windows)]
 #[test]
 fn secret_paths_with_native_separator_are_dropped() {

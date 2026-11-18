@@ -1,8 +1,8 @@
 #![allow(dead_code, unreachable_pub)]
 
-//! 모의 서버 자체 시험입니다. 모의 서버가 지연·멈춤·연결 종료·요청 기록·응답 상태·모델 목록을
-//! 지정한 스크립트대로 내보내는지 확인합니다. 02-7 작업 0이 요구한 항목(요청 기록의 응답 상태,
-//! `/models` 경로)까지 이 시험이 함께 다룹니다.
+//! 모의 서버 자체 시험
+//!
+//! 모의 서버가 지연·멈춤·연결 종료·요청 기록·응답 상태·모델 목록을 지정한 스크립트대로 내보내는지 확인
 
 use axum::http::StatusCode;
 
@@ -18,7 +18,7 @@ async fn records_request_headers_and_body() {
     server.set_script(MockResponseScript::empty_ok()).await;
 
     let client = reqwest::Client::new();
-    // 요청을 보내기 전 시각을 재는 데, 이보다 요청 도착 시각이 앞서는지 봅니다.
+    // 요청 시작 시각. 도착 시각이 앞서는지 확인
     let started = Instant::now();
     let response = client
         .post(server.chat_completions_url())
@@ -44,7 +44,6 @@ async fn records_request_headers_and_body() {
     assert_eq!(auth, "Bearer test-key-value");
     assert_eq!(req.body, br#"{"model":"demo","stream":true}"#);
 
-    // 도착 시각은 요청을 보내기 전과 기록을 확인한 후의 사이에 있어야 간격 비교에 쓸 수 있습니다.
     let checked = Instant::now();
     assert!(
         req.received_at >= started,
@@ -127,8 +126,8 @@ async fn connection_close_is_observed() {
     let server = MockServer::spawn(MockResponseScript::hang_headers()).await;
     assert_eq!(server.open_connections(), 0);
 
-    // 블록을 벗어나며 요청 Future를 버려 연결을 끊습니다.
-    // `tokio::pin!` 값만 drop 하면 실제 Future는 살아 남습니다.
+    // 블록을 벗어나며 요청 Future를 버려 연결을 끊음
+    // `tokio::pin!` 값만 drop 하면 실제 Future는 살아 남음
     {
         let client = reqwest::Client::new();
         let send = client.post(server.chat_completions_url()).body("{}").send();
@@ -164,25 +163,22 @@ async fn body_disconnect_is_observed() {
         .expect("본문 끊김 요청");
     assert_eq!(response.status(), StatusCode::OK);
 
-    // 앞 조각까지는 정상적으로 받고,
     let first = response.chunk().await.expect("첫 조각").expect("첫 바이트");
     assert_eq!(&first[..], b"first");
 
-    // 그 자리에서 본문이 마무리 없이 끝나 읽기가 실패합니다(연결 끊김).
-    // 오류 텍스트에 끊김을 밝힌 말이 들어 있는지만 보면 됩니다(문자열 확인).
+    // 끊김을 밝힌 말이 오류 텍스트에 들어 있는지만 확인
     let closed = response
         .chunk()
         .await
         .expect_err("끊김 표식 뒤에는 본문 읽기가 실패해야 합니다");
-    // 맨 윗말은 "본문 읽기 실패"만 밝히고 저수준 끊김 말은 아래 체인에 있습니다.
-    // 전체를 보게 Debug로 확인합니다.
+    // 맨 윗말은 "본문 읽기 실패"만 밝히고 저수준 끊김 말은 아래 체인에 있음. Debug로 전체를 확인
     let text = format!("{closed:?}").to_lowercase();
     assert!(
         text.contains("closed") || text.contains("eof"),
         "끊김을 밝히는 오류어야 합니다: {text}"
     );
 
-    // 끊긴 연결은 서버 쪽에서도 정리됩니다.
+    // 끊긴 연결은 서버 쪽에서도 정리됨
     assert!(
         server.wait_until_idle(Duration::from_secs(3)).await,
         "끊긴 연결이 3초 안에 정리되어야 합니다"
@@ -191,7 +187,6 @@ async fn body_disconnect_is_observed() {
 
 #[tokio::test]
 async fn records_response_status() {
-    // 서버가 429로 시작하고, 이후 503으로 바꿉니다. 기록 상태가 응답 상태와 요청별로 맞는지 봅니다.
     let server = MockServer::spawn(MockResponseScript::status_with_retry_after(
         StatusCode::TOO_MANY_REQUESTS,
         "0",
@@ -254,7 +249,7 @@ async fn models_list_is_served() {
         .collect();
     assert_eq!(ids, ["mock-model-a", "mock-model-b"]);
 
-    // 목록 요청 기록에도 메서드·경로·상태가 함께 찍힙니다. 기록 본문은 요청 본문입니다(GET이라 비어 있습니다).
+    // 목록 요청 기록에도 메서드·경로·상태가 함께 찍힘. 기록 본문은 요청 본문(GET이라 비어 있음).
     let recorded = server.recorded_requests().await;
     assert_eq!(recorded.len(), 1);
     assert_eq!(recorded[0].method, "GET");

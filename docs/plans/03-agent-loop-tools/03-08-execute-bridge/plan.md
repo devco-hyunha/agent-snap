@@ -1,6 +1,7 @@
 # 03-8 호출 형식 3안 execute 브리지: 상세 기획
 
 - 상태: T1·T2 완료 (T1 엔진 선택 확정·D51 approved, T2 execute 브리지 독립 리뷰 6차 PASS → 리뷰 기록 6종 `docs/reviews/03/03-08-execute-bridge/t2-r1.md`~`t2-r6.md`, Windows·Linux 동등 게이트 포함 + 구조 감사 `snap-review-01-structure.md`. 03-8 세부 작업 마감)
+- 병합 사실: `feature/agent-03-08-execute-bridge`를 origin에 푸시하고 PR #38으로 `feature/agent`에 병합했다(2026-11-17, CI 매트릭스 4검사 전부 초록 뒤 병합). 커밋 해시는 갱신 대상이라 문서에 박지 않는다.
 - 상위 문서: [../../03-agent-loop-tools.md](../../03-agent-loop-tools.md), 선행: [03-1](../03-01-tool-trait/plan.md), [03-3](../03-03-file-tools/plan.md), [03-6](../03-06-run-command/plan.md)
 - `Tool` 트레이트 서명 정본: [03-1 spec.md](../03-01-tool-trait/spec.md)(이 문서가 쓰는 `Tool`·`ToolContext`·`ToolOutcome`·`executes_writes`는 03-1이 확정한 이름을 따른다).
 - 근거: [12번 문서](../../../research/12-tool-calling-forms.md) 2절 3갈래·4절 ③행, OpenCode Code Mode `execute` (https://opencode.ai/docs/tools). 2026-11-08 사용자 결정(3형식 조합)의 3안.

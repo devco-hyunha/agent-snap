@@ -1,34 +1,32 @@
-//! `Retry-After` 헤더 해석과 상한 비교입니다.
+//! `Retry-After` 헤더 해석과 상한 비교.
 //!
-//! delay-seconds와 HTTP-date(IMF-fixdate)를 대기 시간으로 바꾸고, 설정 상한과 비교합니다.
-//! 호출 전제: [`super::classify::classify_retry`] 결과가 재시도 후보일 때만 이 함수를 호출합니다.
-//! 비후보 상태의 헤더는 이 모듈에서 보지 않습니다(D14, D26, RFC 9110).
+//! delay-seconds·HTTP-date를 대기로 바꾸고 상한과 비교. 재시도 후보일 때만 호출.
 
 use std::time::{Duration, SystemTime};
 
 use super::http_date::parse_imf_fixdate;
 
-/// `Retry-After` 해석·상한 비교 결과입니다.
+/// `Retry-After` 해석·상한 비교 결과.
 ///
-/// 포기 이유에는 대기 시간만 담으며 키·호스트·응답 본문은 담지 않습니다.
+/// 포기 이유에는 대기만 담고 키·호스트·본문은 담지 않음.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum RetryAfterDecision {
-    /// 상한 이하이므로 이만큼 기다리라고 권고합니다(0초 포함).
+    /// 상한 이하이므로 이만큼 기다리라고 권고(0초 포함).
     Wait(Duration),
-    /// 헤더가 없거나 음수·해석 불가입니다. 호출측이 백오프 경로로 갑니다.
+    /// 헤더가 없거나 음수·해석 불가. 호출측이 백오프 경로로 감.
     Absent,
-    /// 상한을 넘는 대기이므로 포기합니다. 대기 시간만 담습니다.
+    /// 상한을 넘는 대기이므로 포기. 대기만 담음.
     ExceedsCap {
-        /// 헤더가 지시한 대기 시간입니다.
+        /// 헤더가 지시한 대기 시간.
         wait: Duration,
     },
 }
 
-/// `Retry-After` 헤더를 해석하고 상한과 비교합니다.
+/// `Retry-After` 헤더를 해석하고 상한과 비교.
 ///
 /// # 호출 전제
 ///
-/// [`super::classify::classify_retry`]가 재시도 후보일 때만 호출합니다.
+/// [`super::classify::classify_retry`]가 재시도 후보일 때만 호출.
 ///
 /// # 경계
 ///
@@ -60,7 +58,7 @@ pub(crate) fn interpret_retry_after(
     }
 }
 
-/// 헤더 본문을 대기 [`Duration`]으로 바꿉니다. 해석 불가면 `None`입니다.
+/// 헤더 본문을 대기 [`Duration`]으로 바꿈. 해석 불가면 `None`.
 fn parse_retry_after_wait(value: &str, now: SystemTime) -> Option<Duration> {
     if let Some(secs) = parse_delay_seconds(value) {
         return Some(Duration::from_secs(secs));
@@ -69,12 +67,12 @@ fn parse_retry_after_wait(value: &str, now: SystemTime) -> Option<Duration> {
     Some(wait_until(when, now))
 }
 
-/// 목표 시각까지 남은 대기입니다. 과거이면 0초입니다.
+/// 목표 시각까지 남은 대기. 과거이면 0초.
 pub(crate) fn wait_until(when: SystemTime, now: SystemTime) -> Duration {
     when.duration_since(now).unwrap_or(Duration::ZERO)
 }
 
-/// RFC 9110 delay-seconds(비음수 정수)를 읽습니다. 음수·비숫자는 `None`입니다.
+/// RFC 9110 delay-seconds(비음수 정수)를 읽음. 음수·비숫자는 `None`.
 fn parse_delay_seconds(value: &str) -> Option<u64> {
     if value.is_empty() || !value.bytes().all(|b| b.is_ascii_digit()) {
         return None;

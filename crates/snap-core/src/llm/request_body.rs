@@ -1,7 +1,6 @@
-//! `/chat/completions` 요청 본문 조립입니다.
+//! `/chat/completions` 요청 본문 조립.
 //!
-//! 서버 종류(`kind`)에 맞춰 생각 옵션을 바꾸고, `extra`를 합칩니다(D15).
-//! `tool_choice`·`n`·`stream_options`·맥락 한도는 넣지 않습니다.
+//! 서버 종류에 맞춰 생각 옵션을 바꾸고 `extra`를 합침. `tool_choice`·`n`·`stream_options`·맥락 한도는 넣지 않음.
 
 use serde_json::{Map, Value};
 
@@ -11,7 +10,7 @@ use crate::llm::client::message_json;
 use crate::llm::client::{ChatMessage, ChatRequest, ToolDefinition};
 use crate::llm::reasoning_wire::insert_reasoning;
 
-/// 스트리밍 대화 요청 본문을 JSON 값으로 만듭니다.
+/// 스트리밍 대화 요청 본문을 JSON 값으로 만듦.
 pub(crate) fn build_chat_completions_body(kind: EndpointKind, request: &ChatRequest) -> Value {
     let mut map = Map::new();
     map.insert("model".into(), Value::String(request.model.clone()));

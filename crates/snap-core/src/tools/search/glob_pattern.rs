@@ -1,10 +1,8 @@
-//! `glob` 도구가 쓰는 이름 패턴 매칭 알고리즘 자리입니다(03-6 R3 SRP 분리).
-//!
-//! 도구 구현(`glob.rs`)과 패턴 해석은 바뀌는 이유가 달라 따로 둡니다(dev-principles 2절 SRP).
+//! `glob` 도구가 쓰는 이름 패턴 매칭 자리
 
-/// `*`·`?`·`**`만 지원하는 작은 이름 패턴 매처입니다.
+/// `*`·`?`·`**`만 지원하는 작은 이름 패턴 매처
 ///
-/// 경로를 `/` 구분 상대 문자열로 보고, `*`는 구분자를 넘지 않습니다.
+/// 경로를 `/` 구분 상대 문자열로 보고, `*`는 구분자를 넘지 않음
 pub(crate) fn match_pattern(pattern: &str, text: &str) -> bool {
     let p: Vec<char> = pattern.chars().collect();
     let t: Vec<char> = text.chars().collect();
@@ -41,7 +39,7 @@ pub(crate) fn match_pattern(pattern: &str, text: &str) -> bool {
     dp[0][0]
 }
 
-/// 글자 비교. Windows는 대소문자를 가리지 않고, 그 밖의 OS는 가립니다.
+/// 글자 비교. Windows는 대소문자를 가리지 않음
 fn char_eq(a: char, b: char) -> bool {
     if cfg!(windows) {
         a.eq_ignore_ascii_case(&b)

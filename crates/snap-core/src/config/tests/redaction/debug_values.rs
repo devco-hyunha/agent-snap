@@ -1,8 +1,6 @@
-//! 가리기 시험의 이름·값 확인(명세 AC 5 1번째~2번째 줄): 문법 오류와 설정 Debug, `context_window`
-//! 견본이 호스트와 키 값 없이 이름만 남기는지 봅니다.
+//! 가리기 시험: 오류 메시지와 설정 Debug에서 호스트·키 값이 가려지고 이름만 남는지 확인
 //!
-//! 가리기 대상 값과 확인 순서는 지원부(`support/checks.rs`)를, 모든 변형을 세는 견본은
-//! 지원부(`support/variant_samples.rs`)를 씁니다.
+//! 가리기 대상 값과 확인 순서, 변형 견본은 지원부를 사용
 
 use std::collections::HashSet;
 
@@ -13,7 +11,7 @@ use super::super::support::{
 };
 use crate::config::{ConfigError, ModelIssue, ReadingError, ValidationError};
 
-/// AC 5(1): JSONC 문법 오류는 줄 번호만 알리고 줄 내용과 값은 없다.
+/// JSONC 문법 오류 메시지에 줄 번호만 남고 줄 내용과 값은 가려지는지 확인
 #[test]
 fn jsonc_syntax_error_reports_only_line_number() {
     let text = format!("{{\n  \"endpoints\": [ \"{HOST}\" ]\n  \"x\": \"{KEY_VALUE}\" ]\n}}");
@@ -28,7 +26,7 @@ fn jsonc_syntax_error_reports_only_line_number() {
     assert!(error.to_string().contains("(줄 3번)"));
 }
 
-/// AC 5(2): 설정의 Debug에는 base_url 호스트가 없고 가리기 표기가 있다.
+/// 설정 Debug에 base_url 호스트가 가려지고 가리기 표기가 남는지 확인
 #[test]
 fn config_debug_hides_base_url_host() {
     let config = parse_ok(&config_of(&[endpoint_object("main", &base_url(), "")]));
@@ -40,7 +38,7 @@ fn config_debug_hides_base_url_host() {
     assert!(debug.contains("가림"));
 }
 
-/// AC 5(2): `context_window` 값 오류 견본이 호스트·키 없이 모델 이름만 담는지 확인한다(D29).
+/// `context_window` 값 오류 견본에 호스트·키가 가려지고 모델 이름만 남는지 확인
 #[test]
 fn context_window_rejection_sample_hides_host_and_key() {
     let case = rejection_cases()
@@ -57,7 +55,7 @@ fn context_window_rejection_sample_hides_host_and_key() {
     assert_error_hides_secrets("context_window 숫자 아님", &error);
 }
 
-/// AC 5(2): 모든 오류 변형의 Display·Debug에 호스트와 키가 없다. 변형 하나도 빠뜨리지 않는다.
+/// 모든 오류 변형의 Display·Debug에서 호스트와 키가 가려지는지, 견본이 모든 변형을 덮는지 확인
 #[test]
 fn every_error_display_and_debug_hides_host_and_key() {
     let mut errors: Vec<(&str, ConfigError)> = rejection_cases()

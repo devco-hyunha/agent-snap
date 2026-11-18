@@ -1,4 +1,4 @@
-//! 읽기와 기본값 테스트(명세 AC 1): 정상 설정, 빠진 값, 폴더에서 읽기.
+//! 읽기·기본값 시험: 정상 설정, 빠진 값, 폴더에서 읽기.
 
 use std::collections::BTreeMap;
 use std::time::Duration;
@@ -49,7 +49,7 @@ const FULL_CONFIG: &str = r#"
 }
 "#;
 
-/// AC 1: 주석·마지막 쉼표가 든 중첩 설정에서 엔드포인트·모델·샘플링·시간 값이 읽힌다.
+/// 주석·마지막 쉼표가 든 중첩 설정에서 엔드포인트·모델·샘플링·시간 값 읽힘.
 #[test]
 fn parse_full_config_with_comments_reads_every_value() {
     let config = parse_ok(FULL_CONFIG);
@@ -67,7 +67,6 @@ fn parse_full_config_with_comments_reads_every_value() {
     assert_eq!(fast.id, "path/to/model.gguf");
     assert_eq!(fast.reasoning, Some(Reasoning::Medium));
     assert_eq!(fast.context_window, 8192);
-    // D50 결정 7: 선언 값(`text`)을 그대로 읽습니다.
     assert_eq!(fast.tool_call_form, ToolCallForm::Text);
     assert_eq!(
         fast.sampling,
@@ -96,9 +95,7 @@ fn parse_full_config_with_comments_reads_every_value() {
     assert_eq!(plain.sampling, Sampling::default());
     assert_eq!(plain.reasoning, None);
     assert!(plain.extra.is_empty());
-    // D29: `context_window`를 생략하면 기본 65536이 읽힌다.
     assert_eq!(plain.context_window, 65536);
-    // D50 결정 7: `tool_call_form`를 생략하면 기본 `openai`가 읽힌다.
     assert_eq!(plain.tool_call_form, ToolCallForm::OpenAi);
 
     assert_eq!(config.sampling.temperature, Some(1.0));
@@ -117,7 +114,7 @@ fn parse_full_config_with_comments_reads_every_value() {
     );
 }
 
-/// AC 1: 빠진 값은 기본값이 되고 생략한 `endpoints`는 빈 목록이다.
+/// 빠진 값은 기본값, 생략한 `endpoints`는 빈 목록.
 #[test]
 fn parse_empty_object_uses_defaults_and_empty_endpoints() {
     let config = parse_ok("{}");
@@ -135,7 +132,7 @@ fn parse_empty_object_uses_defaults_and_empty_endpoints() {
     assert_eq!(config.http.stream_idle_seconds, Duration::from_secs(120));
 }
 
-/// AC 1: `http`의 일부만 적으면 나머지는 기본값이고, 생략한 `models`는 빈 목록이다.
+/// `http`의 일부만 적으면 나머지는 기본값, 생략한 `models`는 빈 목록.
 #[test]
 fn parse_partial_http_and_missing_models_fill_defaults() {
     let text = format!(
@@ -149,7 +146,7 @@ fn parse_partial_http_and_missing_models_fill_defaults() {
     assert_eq!(config.http.stream_idle_seconds, Duration::from_secs(120));
 }
 
-/// AC 1: `endpoints`를 빈 배열로 적어도 통과한다.
+/// `endpoints`를 빈 배열로 적어도 통과.
 #[test]
 fn parse_empty_endpoints_array_is_accepted() {
     let config = parse_ok(r#"{"endpoints":[]}"#);
@@ -157,7 +154,7 @@ fn parse_empty_endpoints_array_is_accepted() {
     assert!(config.endpoints.is_empty());
 }
 
-/// AC 1·2: 다른 엔드포인트의 같은 모델 별칭과, 대소문자만 다른 엔드포인트 이름은 허용된다.
+/// 다른 엔드포인트의 같은 모델 별칭과, 대소문자만 다른 엔드포인트 이름은 허용됨.
 #[test]
 fn parse_allows_same_alias_across_endpoints_and_case_different_names() {
     let model = models_tail(&[model_object("fast", "id-1", "")]);
@@ -174,7 +171,7 @@ fn parse_allows_same_alias_across_endpoints_and_case_different_names() {
     assert_eq!(pairs, [("Local", "fast"), ("local", "fast")]);
 }
 
-/// AC 1: 모델 이름과 서버에 보낼 id는 서로 다를 수 있다.
+/// 모델 이름과 서버에 보낼 id는 서로 다른 값 허용.
 #[test]
 fn parse_keeps_model_name_and_id_separate() {
     let config = parse_ok(&config_with_models(&[model_object(
@@ -190,7 +187,7 @@ fn parse_keeps_model_name_and_id_separate() {
     );
 }
 
-/// AC 1: `kind` 6종과 `reasoning` 4종이 모두 읽힌다.
+/// `kind` 6종과 `reasoning` 4종 모두 읽힘.
 #[test]
 fn parse_accepts_every_kind_and_reasoning_value() {
     let kinds = [
@@ -224,7 +221,7 @@ fn parse_accepts_every_kind_and_reasoning_value() {
     }
 }
 
-/// AC 1: 폴더 경로를 받아 `agent-snap.jsonc`와 `credentials.jsonc`를 읽는다(임시 폴더).
+/// 폴더 경로를 받아 `agent-snap.jsonc`와 `credentials.jsonc` 읽기.
 #[test]
 fn load_reads_config_and_credentials_from_folder() {
     let folder = TempDir::new("load");
@@ -244,7 +241,7 @@ fn load_reads_config_and_credentials_from_folder() {
     assert_eq!(key.reveal(), "key-from-file");
 }
 
-/// AC 1: 자격 파일이 없으면 키가 없는 상태이고 오류가 아니다.
+/// 자격 파일이 없으면 키 없는 상태, 오류는 아님.
 #[test]
 fn load_credentials_without_file_is_absent() {
     let folder = TempDir::new("no-credentials");
@@ -254,7 +251,7 @@ fn load_credentials_without_file_is_absent() {
     assert!(credentials.is_empty());
 }
 
-/// AC 1·5: 설정 파일이 없으면 폴더 경로와 파일 이름만 담은 접근 오류다.
+/// 설정 파일이 없으면 폴더 경로와 파일 이름만 담은 접근 오류.
 #[test]
 fn load_missing_config_reports_folder_and_file_name_only() {
     let folder = TempDir::new("no-config");
@@ -269,7 +266,7 @@ fn load_missing_config_reports_folder_and_file_name_only() {
     assert!(text.contains(&folder.path().display().to_string()));
 }
 
-/// AC 5: 자격 파일 내용 오류는 자격 파일 오류로 드러난다(키 값 없음).
+/// 자격 파일 내용 오류는 자격 파일 오류로 드러남(키 값 없음).
 #[test]
 fn load_credentials_with_invalid_content_reports_credentials_error() {
     let folder = TempDir::new("bad-credentials");

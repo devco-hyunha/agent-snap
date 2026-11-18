@@ -1,14 +1,12 @@
-//! 내장 부분 문자열 검색 자리입니다(03-3 T2).
+//! 내장 부분 문자열 검색 자리
 //!
-//! ripgrep이 없을 때의 대체 경로이고, 부분 문자열 일치만 합니다(정규식은
-//! ripgrep 몫이라 설명으로 알립니다). 숨김·비밀 거르기와 심볼릭 링크 비순회
-//! (하위 폴더로 안 내려감)는 `walk`가 합니다.
+//! ripgrep이 없을 때의 대체 경로. 부분 문자열 일치만 사용
 
 use std::path::Path;
 
 use super::walk::collect;
 
-/// 내장 검색: 부분 문자열 일치, 형식 3종을 한 순회에서 만듭니다.
+/// 내장 검색: 부분 문자열 일치, 형식 3종을 한 순회에서 생성
 pub(crate) fn search_builtin(
     working_dir: &Path,
     start: &Path,
@@ -64,9 +62,8 @@ pub(crate) fn search_builtin(
     lines
 }
 
-/// 확장자 필터 기준의 단일 정본입니다: `.rs`와 `rs`를 모두 받고, 비교는 대소문자를
-/// 가리지 않습니다. ripgrep 경로도 같은 기준으로 맞춥니다(`ripgrep.rs`의 확장자 `--glob`
-///에 `--glob-case-insensitive`를 붙여 이 판정과 같은 결과가 나오게 합니다).
+/// 확장자 필터 기준의 단일 정본. `.rs`와 `rs`를 모두 받고, 비교는 대소문자 무시
+/// ripgrep 경로도 같은 기준(`--glob`에 `--glob-case-insensitive` 병합)으로 맞춰 같은 결과가 나오게 함
 pub(crate) fn ext_matches(path: &Path, ext: Option<&str>) -> bool {
     let Some(want) = ext else {
         return true;

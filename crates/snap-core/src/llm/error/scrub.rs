@@ -1,9 +1,6 @@
-//! 이 요청에서 실제로 알고 있는 키·base_url로 한 번 더 가리는 확인 가리기 도구입니다(D28).
+//! 이 요청에서 알고 있는 키·base_url로 한 번 더 가리는 확인 가리기 도구.
 //!
-//! 어림 가리기를 지난 문구를 [`super::redact::summarize_stream_error`]로 먼저 거친 뒤,
-//! 알고 있는 값과 그 호스트 문자열로 한 번 더 가립니다.
-//! 값은 `Debug`·`Display`에 그대로 나타나지 않습니다. 서버가 되돌려 준 문구를 가릴 때만
-//! 원문을 쓰고, 가린 결과에만 원문이 섞이지 않게 합니다.
+//! 어림 가리기 뒤 알고 있는 값·호스트로 한 번 더 가림. `Debug`·`Display`에 원문은 나오지 않음.
 
 use std::fmt;
 
@@ -11,7 +8,7 @@ use crate::secrets::SecretValue;
 
 use super::redact::{SUMMARIZE_MAX_LEN, summarize_stream_error, truncate_chars};
 
-/// 이 요청에서 알고 있는 키·base_url을 기억하는 가림 도구입니다(D28).
+/// 이 요청에서 알고 있는 키·base_url을 기억하는 가림 도구.
 #[derive(Clone)]
 pub(in crate::llm) struct SecretScrub {
     key: Option<SecretValue>,
@@ -19,7 +16,7 @@ pub(in crate::llm) struct SecretScrub {
 }
 
 impl SecretScrub {
-    /// 요청에 쓴 키와 base_url로 가림 도구를 만듭니다.
+    /// 요청에 쓴 키와 base_url로 가림 도구를 만듦.
     pub(in crate::llm) fn new(key: Option<&SecretValue>, base_url: &SecretValue) -> Self {
         Self {
             key: key.cloned(),
@@ -27,9 +24,9 @@ impl SecretScrub {
         }
     }
 
-    /// 어림 가리기를 지난 문구를, 알고 있는 키·base_url과 그 호스트로 한 번 더 가립니다.
+    /// 어림 가리기 뒤 알고 있는 키·base_url·호스트로 한 번 더 가림.
     ///
-    /// 결과는 항상 어림 가리기 최대 길이로 잘립니다.
+    /// 결과는 항상 어림 가리기 최대 길이로 잘림.
     pub(in crate::llm) fn describe(&self, summary: &str) -> String {
         let rough = summarize_stream_error(summary);
         let mut cleaned = rough;
@@ -60,7 +57,7 @@ impl fmt::Display for SecretScrub {
     }
 }
 
-/// `http://`·`https://` 다음에 오는 호스트(포트 포함) 조각을 꺼냅니다.
+/// `http://`·`https://` 다음에 오는 호스트(포트 포함) 조각을 꺼냄.
 fn web_authority(url: &str) -> Option<&str> {
     let after_scheme = url
         .strip_prefix("http://")
@@ -72,9 +69,9 @@ fn web_authority(url: &str) -> Option<&str> {
     Some(authority)
 }
 
-/// 원문 문자열과 똑같아 보이는 조각을 골라 가린 문자열로 바꿉니다.
+/// 원문과 같아 보이는 조각을 가린 문자열로 바꿈.
 ///
-/// 대소문자·숫자는 자리 수만 유지해 옮기므로, 가린 결과에서 원문 글자를 되읽을 수 없습니다.
+/// 대소문자·숫자는 자리 수만 유지. 가린 결과에서 원문 글자를 되읽을 수 없음.
 fn replace_all_masked(text: &str, secret: &str) -> String {
     if secret.is_empty() {
         return text.to_owned();

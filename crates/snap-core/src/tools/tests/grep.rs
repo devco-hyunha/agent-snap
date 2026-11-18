@@ -1,8 +1,6 @@
-//! `grep` 도구 시험: 3형식, 대소문자 opt, 확장자 필터, 200줄 잘림, 비밀·숨김 거르기, 경계.
+//! `grep` 도구 시험: 3형식, 대소문자 opt, 확장자 필터, 200줄 잘림, 비밀·숨김 거르기, 경계
 //!
-//! `PATH`에 ripgrep이 있으면 ripgrep 경로, 없으면 내장 경로로 돌아 시험을 확인합니다.
-//! 두 경로가 같은 결과를 내야 하는 기준 시험이고, 개발 규칙(두 OS 동등)에 맞춰 둘 중
-//! 어느 환경에서 돌려도 통과해야 합니다.
+//! ripgrep이 `PATH`에 있으면 ripgrep 경로, 없으면 내장 경로로 돌려 두 경로 결과 동일을 확인
 
 use crate::agent::TRUNCATION_MARK;
 use crate::tools::grep::GrepTool;
@@ -10,13 +8,13 @@ use crate::tools::tool::Tool;
 
 use super::support::TempFolder;
 
-/// 도구를 돌려 결과 텍스트를 돌려줍니다. 오류도 한 줄 문자열로 봅니다.
+/// 도구를 돌려 결과 텍스트를 수집. 오류도 한 줄 문자열로 봄
 async fn grep_out(folder: &TempFolder, args: &str) -> String {
     let ctx = super::support::context_of(folder);
     GrepTool.call(args, &ctx).await.text().to_owned()
 }
 
-/// content 형식은 상대 경로:줄번호:내용을 담아 드립니다.
+/// content 형식은 상대 경로:줄번호:내용을 담음
 #[tokio::test]
 async fn content_format_lists_matching_lines() {
     let folder = TempFolder::new("grep-content");
@@ -28,7 +26,7 @@ async fn content_format_lists_matching_lines() {
     assert!(text.contains("sub/b.txt:1:첫째 여기"), "{text}");
 }
 
-/// 대소문자는 기본 구분, opt로 풉니다.
+/// 대소문자는 기본 구분, opt로 해제
 #[tokio::test]
 async fn case_sensitive_default_and_opt() {
     let folder = TempFolder::new("grep-case");
@@ -41,7 +39,7 @@ async fn case_sensitive_default_and_opt() {
     assert!(text.contains("c.txt:2:alpha"), "{text}");
 }
 
-/// files는 파일 하나당 한 줄, count는 `경로:횟수`입니다.
+/// files는 파일 하나당 한 줄, count는 `경로:횟수`
 #[tokio::test]
 async fn files_and_count_formats() {
     let folder = TempFolder::new("grep-formats");
@@ -52,7 +50,7 @@ async fn files_and_count_formats() {
     assert_eq!(counts, "a.txt:2", "{counts}");
 }
 
-/// 확장자 필터는 점 유무를 모두 받고 대소문자를 가리지 않습니다.
+/// 확장자 필터는 점 유무를 모두 받고 대소문자를 가리지 않음
 #[tokio::test]
 async fn ext_filter() {
     let folder = TempFolder::new("grep-ext");
@@ -62,7 +60,7 @@ async fn ext_filter() {
     assert_eq!(text, "code.rs:1:hit", "{text}");
 }
 
-/// 200줄을 넘으면 잘림 표식을 붙입니다(AC 5).
+/// 200줄을 넘으면 잘림 표식을 붙임
 #[tokio::test]
 async fn over_200_lines_truncates_with_mark() {
     let folder = TempFolder::new("grep-cap");
@@ -78,7 +76,7 @@ async fn over_200_lines_truncates_with_mark() {
     assert!(lines[0].starts_with("many.txt:1:hit 0"), "{text}");
 }
 
-/// 비밀 파일은 경로도 내용도 그 결과에 없어야 합니다(AC 4·AC 8).
+/// 비밀 파일은 경로도 내용도 결과에 남지 않음
 #[tokio::test]
 async fn secret_files_are_not_searched() {
     let folder = TempFolder::new("grep-secret");
@@ -87,7 +85,6 @@ async fn secret_files_are_not_searched() {
         "{\"api_keys\":{\"k\":\"secret-value\"}}",
     );
     folder.write_file("agent-snap.jsonc", "{\"endpoints\":[]}");
-    // T4(AC 8): `.env` 계열도 숨김 opt를 켠 검색에 결과·경로가 남지 않습니다.
     folder.write_file(".env", "TOPSECRET=1");
     folder.write_file(".env.local", "TOPSECRET_LOCAL=1");
     let text = grep_out(&folder, r#"{"pattern":"secret-value"}"#).await;
@@ -109,7 +106,7 @@ async fn secret_files_are_not_searched() {
     assert!(text.is_empty(), "files 형식에도 새지 않습니다: {text}");
 }
 
-/// 숨김 자리는 기본 제외, opt로 포함됩니다.
+/// 숨김 자리는 기본 제외, opt로 포함
 #[tokio::test]
 async fn hidden_entries_default_excluded_and_opt_included() {
     let folder = TempFolder::new("grep-hidden");
@@ -122,7 +119,7 @@ async fn hidden_entries_default_excluded_and_opt_included() {
     assert!(text.contains(".hidden.txt"), "opt 포함: {text}");
 }
 
-/// 작업 폴더 밖 경로는 거부합니다(AC 2).
+/// 작업 폴더 밖 경로는 거부
 #[tokio::test]
 async fn outside_path_is_refused() {
     let folder = TempFolder::new("grep-outside");
@@ -132,7 +129,7 @@ async fn outside_path_is_refused() {
     assert_eq!(text.lines().count(), 1, "{text}");
 }
 
-/// 인자 모양이 틀리면 한 줄 오류입니다.
+/// 인자 모양이 틀리면 한 줄 오류
 #[tokio::test]
 async fn bad_args_are_one_line_errors() {
     let folder = TempFolder::new("grep-args");
@@ -145,7 +142,7 @@ async fn bad_args_are_one_line_errors() {
     assert!(ext.starts_with("오류: "), "{ext}");
 }
 
-/// 등록 규칙대로 이름·설명·필수 인자·읽기 전용 표식을 한 자리에서 확인합니다.
+/// 등록 규칙대로 이름·설명·필수 인자·읽기 전용 표식을 한 자리에서 확인
 #[test]
 fn tool_shape_is_ready_for_registration() {
     assert_eq!(GrepTool.name(), "grep");
@@ -155,7 +152,7 @@ fn tool_shape_is_ready_for_registration() {
     assert!(!GrepTool.executes_writes());
 }
 
-/// 이진 파일은 조용히 건너뜁니다(내장 검색은 텍스트만 봅니다).
+/// 이진 파일은 조용히 건너뜀(내장 검색은 텍스트만 봄)
 #[tokio::test]
 async fn binary_files_are_skipped() {
     let folder = TempFolder::new("grep-binary");

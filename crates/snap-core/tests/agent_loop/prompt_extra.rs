@@ -1,4 +1,4 @@
-//! 03-2 프롬프트 앞머리·`extra` 합쳐 보내기 시험: AC 6(프롬프트 앞머리), AC 7(`extra` 합치기).
+//! 프롬프트 앞머리·`extra` 합쳐 보내기 시험.
 
 use snap_core::agent::{
     AgentLoop, LoopEnd, LoopOutcome, ToolCallProfile, ToolRegistry, assemble_messages,
@@ -13,7 +13,7 @@ use crate::support::{
     base_config_with, cancel_token, content_stream, registry_with_fixed, test_working_dir,
 };
 
-/// AC 6: 프롬프트 앞머리가 messages 맨자리에 오고, AGENTS.md 합치기 자리가 그 뒤에 붙는지 봅니다.
+/// 프롬프트 앞머리가 messages 맨자리에 오고, AGENTS.md 합치기 자리가 그 뒤에 붙음.
 #[test]
 fn system_prompt_is_first_message() {
     let messages = assemble_messages("규범 앞머리", "", "과제 한 장");
@@ -23,7 +23,7 @@ fn system_prompt_is_first_message() {
     assert_eq!(messages[1].content, "과제 한 장");
 }
 
-/// AC 6 연장: 03-5가 채울 AGENTS.md 합치기 자리를 앞머리 뒤에 붙여 넣습니다.
+/// AGENTS.md 합치기 자리를 앞머리 뒤에 붙여 넣음.
 #[test]
 fn agents_md_joins_after_prompt_head() {
     let messages = assemble_messages("규범 앞머리", "규칙 파일 요약", "과제 한 장");
@@ -37,7 +37,7 @@ fn agents_md_joins_after_prompt_head() {
     );
 }
 
-/// AC 7: `tool_call` 프로파일 온도가 요청 본문 `temperature`에 실리고 모델 `extra`도 함께 보냅니다.
+/// `tool_call` 프로파일 온도가 요청 본문 `temperature`에 실리고 모델 `extra`도 함께 보냄.
 #[tokio::test]
 async fn profile_temperature_and_extra_reach_request_body() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(content_stream("답"))).await;
@@ -61,8 +61,7 @@ async fn profile_temperature_and_extra_reach_request_body() {
     assert_eq!(body["num_ctx"], 8192);
 }
 
-/// AC 7 시험용 설정 골격입니다. `extra` 값은 지원부의 `base_config_with`로 채우고,
-/// 작업 폴더는 지원부의 `test_working_dir`(현재 위치 상대 표기)로 받아 절대경로 중복을 없앱니다(리뷰 3차 N8).
+/// 시험용 설정 골격. `extra` 값은 `base_config_with`, 작업 폴더는 `test_working_dir`로 채워 절대경로 중복을 없앰.
 fn snap_tool_call_config(registry: ToolRegistry) -> snap_core::agent::LoopConfig {
     let extra = BTreeMap::from([
         ("keep_alive".to_owned(), ExtraValue::Number("0".to_owned())),

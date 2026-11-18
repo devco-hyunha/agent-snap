@@ -1,7 +1,6 @@
-//! 값 가리기 시험(명세 AC 4): 거부 오류에 값은 남지 않고 엔드포인트·모델 이름과 안내만 남는다.
+//! 거부 오류 가리기 시험: 거부 오류에 값은 남지 않고 엔드포인트·모델 이름과 안내만 남는지 확인
 //!
-//! AC 4의 두 시험을 담습니다. 둘 다 거부 사례 표를 기준으로 삼으므로 표 계통과 가까운 자리에
-//! 함께 두었습니다. 가리기 확인 순서는 지원부(`support/checks.rs`)를 씁니다.
+//! 거부 사례 표를 기준으로 쓰는 시험이라 표 계통과 가까운 자리에 둠
 
 use super::super::support::{
     KEY_VALUE, LEGACY_MODELS_LABEL, MODEL_ENDPOINT_FIELD_LABEL, assert_error_hides_secrets,
@@ -9,7 +8,7 @@ use super::super::support::{
 };
 use crate::config::{ConfigError, EndpointIssue, ValidationError};
 
-/// AC 4: `api_key`·`api_key_env` 거부 오류에는 엔드포인트 이름과 안내만 있고 칸 값은 없다.
+/// `api_key`·`api_key_env` 거부 오류에 엔드포인트 이름과 안내만 남고 칸 값은 가려지는지 확인
 #[test]
 fn key_field_rejection_names_endpoint_and_guides_without_values() {
     for field in ["api_key", "api_key_env"] {
@@ -27,7 +26,7 @@ fn key_field_rejection_names_endpoint_and_guides_without_values() {
     }
 }
 
-/// AC 4: 옛 최상위 `models` 거부는 안내만 있고, 모델 `endpoint` 거부는 모델 이름만 있다.
+/// 옛 최상위 `models` 거부와 모델 `endpoint` 거부 오류에 안내와 모델 이름만 남는지 확인
 #[test]
 fn legacy_field_rejections_carry_guidance_or_model_name_only() {
     let cases = rejection_cases();

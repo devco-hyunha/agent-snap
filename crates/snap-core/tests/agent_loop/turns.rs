@@ -1,4 +1,4 @@
-//! 03-2 왕복 수·잘림·JSON 복구 시험: AC 2(상한 초과), AC 3(인자 JSON), AC 5(4,000자 잘림).
+//! 왕복 수·잘림·JSON 복구 시험.
 
 use snap_core::agent::{
     AgentLoop, LoopEnd, LoopOutcome, TRUNCATION_MARK, recover_arguments, truncate_tool_result,
@@ -10,12 +10,12 @@ use crate::support::{
     cancel_token, loop_config, registry_with_fixed, tool_call_stream, tool_calls_stream,
 };
 
-/// 도구 호출 여러 개를 한 번 알리는 모의 서버 스크립트로 감쌉니다.
+/// 도구 호출 여러 개를 한 번 알리는 모의 서버 스크립트.
 fn tool_calls_script(calls: &[(&str, &str, &str)]) -> MockResponseScript {
     MockResponseScript::with_body_parts(tool_calls_stream(calls))
 }
 
-/// AC 2: 왕복 상한을 채우면 상한 초과로 끝나고, 부분 결과에 지금까지 기록이 남습니다.
+/// 왕복 상한을 채우면 상한 초과로 끝나고, 부분 결과에 지금까지 기록이 남음.
 #[tokio::test]
 async fn turn_limit_ends_loop_with_partial_result() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(tool_call_stream(
@@ -43,10 +43,7 @@ async fn turn_limit_ends_loop_with_partial_result() {
     );
 }
 
-/// AC 3: 한 턴의 도구 호출 세 갈래를 확인합니다.
-/// - 잘린 인자는 복구를 거쳐 도구가 실행되고,
-/// - 복구 안 되는 인자는 `오류: 인자 JSON 형식 오류` 한 줄,
-/// - 등록에 없는 이름은 `도구 없음` 한 줄을 돌려줍니다.
+/// 한 턴의 도구 호출 세 갈래: 잘린 인자는 복구 후 도구 실행, 복구 안 되는 인자는 한 줄 오류, 등록에 없는 이름은 `도구 없음` 한 줄.
 #[tokio::test]
 async fn broken_arguments_and_missing_tool_return_one_line_errors() {
     let server = MockServer::spawn_queue(vec![tool_calls_script(&[
@@ -76,7 +73,7 @@ async fn broken_arguments_and_missing_tool_return_one_line_errors() {
     assert_eq!(partial.tool_calls[2].result, "도구 없음: nope");
 }
 
-/// AC 3 연장: 잘린 인자 JSON은 닫힘 기호를 채워 복구합니다(단위 확인).
+/// 잘린 인자 JSON은 닫힘 기호를 채워 복구.
 #[test]
 fn repaired_arguments_use_the_repaired_json() {
     let repaired = recover_arguments("{\"a\":[1,2").expect("닫힘 기호를 채워 복구해야 합니다");
@@ -88,7 +85,7 @@ fn repaired_arguments_use_the_repaired_json() {
     );
 }
 
-/// AC 5: 상한을 넘는 도구 결과는 앞만 남기고 `…[truncated]`를 붙입니다(단위 확인).
+/// 상한을 넘는 도구 결과는 앞만 남기고 `…[truncated]`를 붙임.
 #[test]
 fn tool_result_truncates_to_cap_with_mark() {
     let long = "가".repeat(4_001);

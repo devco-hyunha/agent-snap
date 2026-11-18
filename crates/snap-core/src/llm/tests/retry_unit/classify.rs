@@ -1,4 +1,4 @@
-//! 재시도 대상 판별 단위 테스트(AC 1~4, spec AC 5·6).
+//! 재시도 대상 판별 단위 시험.
 
 use crate::llm::retry::classify::{RetryClass, classify_retry};
 use crate::llm::retry::{PreHeaderConnectKind, RetryFailureInput};

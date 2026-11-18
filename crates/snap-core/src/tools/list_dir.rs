@@ -1,7 +1,6 @@
-//! `list_dir` 도구: 작업 폴더 아래 자리를 나열합니다(03-3 T2).
+//! `list_dir` 도구: 작업 폴더 아래 자리를 나열
 //!
-//! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외합니다.
-//! 경계 검사와 순회는 `walk`의 자리 모음이 하고, 이 파일은 표시만 맡습니다(책임 분리).
+//! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외
 
 use serde_json::{Value, json};
 
@@ -10,7 +9,7 @@ use super::display::cap_lines;
 use super::tool::{Tool, ToolCallFuture, ToolContext, ToolOutcome};
 use super::walk::{collect, resolve_dir};
 
-/// `list_dir` 도구입니다.
+/// `list_dir` 도구
 pub struct ListDirTool;
 
 impl ListDirTool {

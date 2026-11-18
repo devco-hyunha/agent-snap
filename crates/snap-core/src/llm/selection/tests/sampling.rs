@@ -1,12 +1,11 @@
-//! 샘플링 우선순위 시험 본문입니다(02-7 AC 1).
+//! 샘플링 우선순위 시험 본문.
 //!
-//! 모델별 값이 루트 기본값보다 앞서고, 모델에 없는 항목만 루트를 따라 가는지 봅니다.
-//! 설정 골격은 `support.rs`를 재사용합니다(dev-principles 3절 DRY).
+//! 모델별 값이 루트보다 앞서고, 없는 항목만 루트를 따르는지 확인. 골격은 `support.rs` 재사용.
 
 use super::support::config_with_two_endpoints;
 use crate::credentials::Credentials;
 
-/// AC 1: 샘플링은 모델별 값이 루트 기본값보다 앞서고, 모델에 없는 항목만 루트를 따라 간다.
+/// 샘플링은 모델별 값이 루트보다 앞서고, 없는 항목만 루트를 따름.
 #[test]
 fn select_model_merges_sampling_with_model_priority() {
     let config = config_with_two_endpoints();

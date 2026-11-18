@@ -1,8 +1,10 @@
+//! JSONC 파싱 보조 함수 시험.
+
 use super::{
     JsoncError, WrongType, parse_number, parse_root_object, pick_array, pick_object, take_optional,
 };
 
-/// 주석과 마지막 쉼표가 든 텍스트에서 최상위 객체를 읽는다.
+/// 주석과 마지막 쉼표가 든 텍스트에서 최상위 객체 읽기.
 #[test]
 fn parse_root_object_accepts_comments_and_trailing_comma() {
     let text = "{ // 주석\n \"a\": 1, /* 주석 */ }";
@@ -12,7 +14,7 @@ fn parse_root_object_accepts_comments_and_trailing_comma() {
     assert!(root.take("a").is_some());
 }
 
-/// 문법 오류는 줄 번호만 담고 줄 내용과 값은 담지 않는다.
+/// 문법 오류는 줄 번호만 담고 줄 내용과 값은 담지 않음.
 #[test]
 fn parse_root_object_syntax_error_carries_line_number_only() {
     let text = "{ \"key\": \"secret-value-777\" }\n] }";
@@ -25,7 +27,7 @@ fn parse_root_object_syntax_error_carries_line_number_only() {
     assert!(!debug.contains("key"));
 }
 
-/// 빈 텍스트와 객체가 아닌 최상위는 값 없는 오류로 거부한다.
+/// 빈 텍스트와 객체가 아닌 최상위는 값 없는 오류로 거부.
 #[test]
 fn parse_root_object_rejects_empty_and_non_object_root() {
     for text in ["", "   ", "[]", r#""secret-value-777""#, "7", "null"] {
@@ -36,7 +38,7 @@ fn parse_root_object_rejects_empty_and_non_object_root() {
     }
 }
 
-/// 칸이 없으면 `None`, 타입이 맞으면 값, 타입이 다르면 `WrongType`이다.
+/// 칸이 없으면 `None`, 타입이 맞으면 값, 타입이 다르면 `WrongType`.
 #[test]
 fn take_optional_separates_missing_matching_and_wrong_type() {
     let mut root = parse_root_object(r#"{"object":{},"array":[],"number":3}"#)
@@ -60,7 +62,7 @@ fn take_optional_separates_missing_matching_and_wrong_type() {
     ));
 }
 
-/// 꺼낸 칸은 객체에서 빠져 두 번째로 꺼내면 없는 칸이 된다.
+/// 꺼낸 칸은 객체에서 빠져 두 번째로 꺼내면 없는 칸이 됨.
 #[test]
 fn take_optional_consumes_the_field() {
     let mut root = parse_root_object(r#"{"object":{}}"#).expect("정상 텍스트여야 합니다");
@@ -75,7 +77,7 @@ fn take_optional_consumes_the_field() {
     ));
 }
 
-/// 객체와 배열 도우미는 다른 타입의 값을 거부한다.
+/// 객체와 배열 도우미는 다른 타입의 값을 거부.
 #[test]
 fn pick_helpers_reject_other_json_types() {
     let mut root =
@@ -87,7 +89,7 @@ fn pick_helpers_reject_other_json_types() {
     assert!(pick_object(array).is_none());
 }
 
-/// 숫자만 읽히고 문자열·타입 불일치(정수에 소수)는 `None`이다.
+/// 숫자만 읽히고 문자열·타입 불일치(정수에 소수)는 `None`.
 #[test]
 fn parse_number_reads_numbers_of_the_requested_type_only() {
     let mut root = parse_root_object(r#"{"int":12,"fraction":1.5,"text":"12"}"#)

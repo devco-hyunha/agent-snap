@@ -1,4 +1,4 @@
-//! 03-2 루프 왕복 시험: AC 1(도구 왕복→stop), AC 4(미지원 감지), AC 1 규칙 4(거부 정지).
+//! 루프 왕복 시험: 도구 왕복→stop, 미지원 감지, 승인 거부 정지.
 
 use snap_core::agent::{
     AgentLoop, FallbackPoint, LoopConfig, LoopEnd, LoopError, LoopOutcome, LoopStartError,
@@ -12,7 +12,7 @@ use crate::support::{
     tool_calls_stream,
 };
 
-/// AC 1: 모의 서버가 도구 호출→stop으로 답하고, 등록한 도구가 결과로 왕복하는지 봅니다.
+/// 모의 서버가 도구 호출→stop으로 답하고, 등록한 도구가 결과로 왕복하는지 확인.
 #[tokio::test]
 async fn tool_call_round_trip_ends_with_stop() {
     let server = MockServer::spawn_queue(vec![
@@ -66,7 +66,7 @@ async fn tool_call_round_trip_ends_with_stop() {
     assert_eq!(tool["content"], "ok");
 }
 
-/// AC 4: 내용도 도구 호출도 없는 응답이면 이유가 있는 오류로 끝나고, 폴백 지점을 남깁니다.
+/// 내용도 도구 호출도 없는 응답이면 이유가 있는 오류로 끝나고, 폴백 지점을 남김.
 #[tokio::test]
 async fn empty_answer_fails_with_unsupported_reason() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(empty_stream())).await;
@@ -86,7 +86,7 @@ async fn empty_answer_fails_with_unsupported_reason() {
     let LoopOutcome::Failed(LoopError::Unsupported { fallback, point }) = outcome else {
         panic!("미지원 오류로 끝나야 합니다: {outcome:?}");
     };
-    // 상태 단정: 표기 글자 상수의 상수 값을 폴백 지점 타입으로 봅니다(할 일 4, T2).
+    // 상태 단정: 표기 글자 상수의 상수 값을 폴백 지점 타입으로 봄.
     assert_eq!(
         format!("{fallback}"),
         snap_core::agent::FallbackConnector::FALLBACK_CONNECTOR
@@ -94,7 +94,7 @@ async fn empty_answer_fails_with_unsupported_reason() {
     assert_eq!(point, FallbackPoint::NoToolCallText);
 }
 
-/// AC 1 규칙 4: 승인이 필요한 도구는 즉시 거부로 알고 멈추며, 같은 호출을 되풀이하지 않습니다.
+/// 승인이 필요한 도구는 즉시 거부로 알고 멈추며, 같은 호출을 되풀이하지 않음.
 #[tokio::test]
 async fn approval_request_stops_loop_after_one_rejection() {
     let server = MockServer::spawn_queue(vec![MockResponseScript::with_body_parts(
@@ -125,7 +125,7 @@ async fn approval_request_stops_loop_after_one_rejection() {
         panic!("거부로 끝나야 합니다: {outcome:?}");
     };
     assert!(stopped_record.result.contains("승인 거부"));
-    // 거부 기록은 마지막 기록이 아니라 거부된 호출의 기록입니다. 한 턴에 다른 호출이 뒤에 있어도 멈춤 대상은 앞의 거부입니다.
+    // 거부 기록은 마지막 기록이 아니라 거부된 호출의 기록. 한 턴에 다른 호출이 뒤에 있어도 멈춤 대상은 앞의 거부.
     assert_eq!(stopped_record.call_id, "call_b");
     assert_eq!(partial.tool_calls.len(), 2);
     assert_eq!(
@@ -135,8 +135,7 @@ async fn approval_request_stops_loop_after_one_rejection() {
     );
 }
 
-/// 등록 규칙: 같은 이름이 두 개면 첫 요청을 만들기 전에 막습니다. 뒤의 도구는 `find`가 앞의 도구를
-/// 찾아 조용히 가려지므로, 요청을 보내는 것 자체가 결과가 어긋난 왕복입니다.
+/// 같은 이름이 두 개면 첫 요청을 만들기 전에 차단. 뒤의 도구는 `find`가 앞의 도구를 찾아 조용히 가려지므로, 요청을 보내면 결과가 어긋난 왕복.
 #[tokio::test]
 async fn duplicate_tool_name_stops_before_first_request() {
     let server = MockServer::spawn_queue(vec![MockResponseScript::with_body_parts(

@@ -1,8 +1,6 @@
-//! 설정 파일 쓰기 단위 테스트(02-8 작업 2 AC 1~4).
+//! 설정 파일 쓰기 단위 테스트
 //!
-//! 주석이 든 파일에 저장하면 주석과 손대지 않은 항목이 그대로 남고, 02-2 해석·검증으로 다시
-//! 읽혀 새 값이 읽히는지 봅니다. 키 값이 설정 파일에 안 들어가는 것도 함께 봅니다.
-//! 저장 견본 조립은 지원부(`support/save_samples.rs`)로 옮겨 여러 시험이 함께 쓰게 합니다.
+//! 저장 견본 조립은 지원부(`support/save_samples.rs`)에 둠
 
 use crate::config::{
     CONFIG_FILE_NAME, ConfigError, EndpointKind, EndpointSave, ModelIssue, Reasoning, ToolCallForm,
@@ -16,7 +14,7 @@ use super::super::support::{
     save_named, validate_reserved_keys,
 };
 
-/// AC 1: `extra` 예약 키는 02-2 읽기 규칙을 재사용해 저장 전에 거부합니다(AC 1 보존과 함께).
+/// `extra` 예약 키 저장 전 거부, 파일 미변경 확인
 #[test]
 fn reserved_extra_key_rejects_before_touching_file() {
     for key in validate_reserved_keys() {
@@ -44,7 +42,7 @@ fn reserved_extra_key_rejects_before_touching_file() {
     }
 }
 
-/// AC 1(D29): 저장한 `context_window`를 02-2 읽기로 다시 읽으면 같은 값이 읽힌다.
+/// 저장한 `context_window` 왕복 확인
 #[test]
 fn saved_context_window_roundtrips_to_same_value() {
     let folder = TempDir::new("맥락-창-왕복");
@@ -53,17 +51,15 @@ fn saved_context_window_roundtrips_to_same_value() {
     save_endpoint(folder.path(), &full_save("main", &base_url())).expect("저장이 성공해야 합니다");
 
     let saved = parse_ok(&folder.read(CONFIG_FILE_NAME));
-    // `full_save`의 모델이 32768를 쓰므로, 읽기도 같은 값을 돌려줘 왕복이 성립한다.
     assert_eq!(saved.endpoints[0].models[0].context_window, 32768);
 }
 
-/// AC 1(D29): `context_window`를 생략한 저장은 파일에 칸을 만들지 않고, 다시 읽으면 65536이다.
+/// `context_window` 생략 저장 시 칸 미작성, 재읽기 시 65536 확인
 #[test]
 fn omitted_context_window_roundtrips_to_default() {
     let folder = TempDir::new("맥락-창-생략-왕복");
     folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
 
-    // `reasoning`만 준 저장은 `context_window`를 쓰지 않는다(AC 4의 생략 규칙과 같은 입력).
     save_endpoint(folder.path(), &reasoning_only_save()).expect("저장이 성공해야 합니다");
 
     let text = folder.read(CONFIG_FILE_NAME);
@@ -74,7 +70,7 @@ fn omitted_context_window_roundtrips_to_default() {
     assert_eq!(parse_ok(&text).endpoints[0].models[0].context_window, 65536);
 }
 
-/// AC 1(D50 결정 7): 저장한 `tool_call_form`를 02-2 읽기로 다시 읽으면 같은 값이 읽힌다.
+/// 저장한 `tool_call_form` 왕복 확인
 #[test]
 fn saved_tool_call_form_roundtrips_to_same_value() {
     let folder = TempDir::new("호출-형식-왕복");
@@ -83,20 +79,18 @@ fn saved_tool_call_form_roundtrips_to_same_value() {
     save_endpoint(folder.path(), &full_save("main", &base_url())).expect("저장이 성공해야 합니다");
 
     let saved = parse_ok(&folder.read(CONFIG_FILE_NAME));
-    // `full_save`의 모델이 `auto`를 쓰므로, 읽기도 같은 값을 돌려줘 왕복이 성립한다.
     assert_eq!(
         saved.endpoints[0].models[0].tool_call_form,
         ToolCallForm::Auto
     );
 }
 
-/// AC 1(D50 결정 7): `tool_call_form`를 생략한 저장은 파일에 칸을 만들지 않고, 다시 읽으면 `openai`다.
+/// `tool_call_form` 생략 저장 시 칸 미작성, 재읽기 시 `openai` 확인
 #[test]
 fn omitted_tool_call_form_roundtrips_to_default() {
     let folder = TempDir::new("호출-형식-생략-왕복");
     folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
 
-    // `reasoning`만 준 저장은 `tool_call_form`를 쓰지 않는다(D29 `context_window`와 같은 자리 규칙).
     save_endpoint(folder.path(), &reasoning_only_save()).expect("저장이 성공해야 합니다");
 
     let text = folder.read(CONFIG_FILE_NAME);
@@ -110,7 +104,7 @@ fn omitted_tool_call_form_roundtrips_to_default() {
     );
 }
 
-/// AC 1: 저장한 파일을 02-2로 다시 읽으면 새 값이 읽히고, 주석과 손대지 않은 항목은 그대로입니다.
+/// 엔드포인트 추가 저장 시 주석·미수정 항목 보존, 새 값 왕복 확인
 #[test]
 fn added_endpoint_keeps_comments_and_untouched_entries() {
     let folder = TempDir::new("주석-보존");
@@ -151,7 +145,6 @@ fn added_endpoint_keeps_comments_and_untouched_entries() {
     assert_eq!(model.name, "fast");
     assert_eq!(model.id, "id-1");
     assert_eq!(model.reasoning, Some(Reasoning::Low));
-    // D50 결정 7: `full_save`가 준 호출 형식 선언(`auto`)이 그대로 읽혀야 합니다.
     assert_eq!(model.tool_call_form, ToolCallForm::Auto);
     assert_eq!(model.sampling.temperature, Some(0.2));
     assert_eq!(model.sampling.max_tokens, Some(1024));
@@ -159,14 +152,13 @@ fn added_endpoint_keeps_comments_and_untouched_entries() {
     assert_eq!(saved.http.retries, 5, "http 칸 값이 바뀌면 안 됩니다");
 }
 
-/// 같은 이름 엔드포인트와 모델은 항목을 새로 만들지 않고 값만 바꿉니다.
+/// 같은 이름 엔드포인트·모델은 값만 교체
 #[test]
 fn same_names_update_in_place_without_new_entries() {
     let folder = TempDir::new("같은-이름-수정");
     folder.write(CONFIG_FILE_NAME, EXISTING_MAIN_FILE);
     let saved_before = parse_ok(&folder.read(CONFIG_FILE_NAME));
 
-    // trim한 같은 이름이므로 기존 엔드포인트·모델을 고칩니다.
     save_endpoint(folder.path(), &full_save(" main ", &base_url()))
         .expect("수정 저장이 성공해야 합니다");
 
@@ -199,7 +191,7 @@ fn same_names_update_in_place_without_new_entries() {
     );
 }
 
-/// AC 2: 파일이 없으면 새로 만들어 02-2 검증을 통과합니다.
+/// 파일 미존재 시 신규 생성 후 검증 통과 확인
 #[test]
 fn saving_creates_missing_config_file() {
     let folder = TempDir::new("새-파일");
@@ -213,17 +205,17 @@ fn saving_creates_missing_config_file() {
     assert_eq!(saved.endpoints[0].models[0].name, "fast");
 }
 
-/// AC 3: 키 값이 저장 입력에 주어져도 설정 파일에는 키 칸이 없습니다(저장 API는 키를 받지 않습니다, D10).
+/// 저장 입력에 키 값이 있어도 설정 파일에는 키 칸·키 값 미기록
 #[test]
 fn saved_file_never_contains_key_field() {
     let folder = TempDir::new("키-안-씀");
     folder.write(CONFIG_FILE_NAME, EMPTY_ENDPOINTS_FILE);
 
-    // 02-8 저장 API는 키 값을 받지 않습니다. 화면(UI)이 키를 별도 자격 파일 저장으로 넘기는 설계입니다(D16).
+    // 저장 API는 키 값을 받지 않고 키는 별도 자격 파일로 넘기는 설계
     save_endpoint(folder.path(), &full_save("main", &base_url())).expect("저장이 성공해야 합니다");
 
     let text = folder.read(CONFIG_FILE_NAME);
-    // `base_url`에는 정당한 주소가 들어가므로, 가리기 대상은 키 칸과 키 값만 봅니다.
+    // 가리는 대상은 키 칸과 키 값으로 한정
     for forbidden in ["api_key", "api_key_env", KEY_VALUE] {
         assert!(
             !text.contains(forbidden),
@@ -234,7 +226,7 @@ fn saved_file_never_contains_key_field() {
     assert_eq!(parse_ok(&text).endpoints.len(), 1);
 }
 
-/// AC 4: 옵션을 일부만 준 저장은 기본값을 파일에 강제로 쓰지 않습니다.
+/// 옵션 일부만 준 저장은 기본값 강제 미작성
 #[test]
 fn partial_model_options_skip_default_fields() {
     let folder = TempDir::new("기본값-생략");
@@ -262,7 +254,7 @@ fn partial_model_options_skip_default_fields() {
     );
 }
 
-/// 모델 옵션을 준 저장은 값이 생긴 칸만 파일에 씁니다.
+/// 모델 옵션을 준 저장은 값이 생긴 칸만 기록
 #[test]
 fn given_model_options_are_written_as_fields() {
     let folder = TempDir::new("옵션-쓰기");
@@ -288,7 +280,7 @@ fn given_model_options_are_written_as_fields() {
     );
 }
 
-/// 검증 규칙에 맞지 않는 이름·주소는 파일을 건드리지 않고 02-2와 같은 오류만 냅니다.
+/// 검증 규칙 위반 이름·주소는 파일 미변경, 검증 오류 반환
 #[test]
 fn invalid_input_rejects_without_touching_file() {
     for (label, save) in [
@@ -315,7 +307,7 @@ fn invalid_input_rejects_without_touching_file() {
     }
 }
 
-/// 모델을 준 저장은 모델 이름·id 규칙 확인에서 거부되면 파일을 건드리지 않습니다.
+/// 모델 이름·id 규칙 위반 저장은 파일 미변경
 #[test]
 fn invalid_model_names_rejects_without_touching_file() {
     for (label, models) in [
@@ -344,7 +336,7 @@ fn invalid_model_names_rejects_without_touching_file() {
     }
 }
 
-/// 파일이 있는데 내용을 읽지 못하면 오류로 끝나고 파일을 그대로 둡니다.
+/// 내용을 읽지 못 하는 파일은 오류 반환, 원문 유지
 #[test]
 fn unreadable_file_reports_error_and_keeps_file() {
     let folder = TempDir::new("읽을-수-없음");

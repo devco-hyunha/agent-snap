@@ -1,4 +1,4 @@
-//! 조각 경계 불변 단위 테스트(AC 1).
+//! 조각 경계 불변 단위 테스트
 
 use crate::common::support::{decode_all, decode_byte_by_byte, decode_chunks, mixed_stream_bytes};
 use snap_core::llm::StreamEvent;
@@ -25,7 +25,7 @@ fn mixed_stream_arbitrary_splits_match_whole() {
 
 #[test]
 fn multibyte_and_crlf_split_midway_match_whole() {
-    // "안"의 UTF-8은 EC 95 88입니다. 문자 중간과 CRLF 중간에서 자릅니다.
+    // 멀티바이트 문자와 CRLF 중간에서 자름
     let mut bytes = Vec::new();
     bytes.extend_from_slice(b"data: {\"choices\":[{\"delta\":{\"content\":\"");
     bytes.extend_from_slice("안".as_bytes());
@@ -37,7 +37,6 @@ fn multibyte_and_crlf_split_midway_match_whole() {
             .any(|e| matches!(e, StreamEvent::Content(t) if t == "안"))
     );
 
-    // 멀티바이트 한가운데와 CRLF 한가운데로 자른다.
     let content_start = bytes
         .windows(3)
         .position(|w| w == "안".as_bytes())

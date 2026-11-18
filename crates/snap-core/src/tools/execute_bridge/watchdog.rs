@@ -1,18 +1,13 @@
-//! 03-8 execute 브리지: 엔진 스레드의 결과를 지켜보는 워치독 창구만 둡니다(AC 6).
+//! execute 브리지: 엔진 스레드의 결과를 지켜보는 워치독 창구.
 //!
-//! 결론: QuickJS 엔진을 건드리는 스레드는 워치독 하나여야 합니다(rlib2 병렬 락, AC 6).
-//! 엔진이 결과를 보내면 결과를 받고, 시간 상한이 지나면 엔진 스레드가 마칠 때까지
-//! 기다리는 중단 사유를 돌려줍니다. 시간 상한 값은 03-6 `run_command`이 쓰는 값을 함께 씁니다.
+//! QuickJS 엔진을 건드리는 스레드는 워치독 하나여야 함(rlib2 병렬 제어 제약). 시간 상한은 `run_command`가 쓰는 값과 동일.
 
 use std::sync::mpsc;
 use std::time::Duration;
 
 use super::policy::WATCHDOG_EXTRA_SECS;
 
-/// 워치독 창구입니다. 시간 상한·취소를 지켜보고 필요하면 중단 사유를 돌려줍니다.
-///
-/// 엔진이 결과를 보내면 결과를 받고, 시간 상한이 지나면 엔진 스레드가 마칠 때까지
-/// 기다리는 중단 사유를 돌려줍니다.
+/// 워치독 창구. 엔진 알림을 받고 시간 상한 초과를 판정.
 pub(in crate::tools) fn watch_outcome(
     run_limit_secs: u64,
     receiver: &mpsc::Receiver<Result<String, String>>,

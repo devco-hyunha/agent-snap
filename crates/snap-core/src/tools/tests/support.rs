@@ -1,8 +1,6 @@
-//! 파일 도구 시험 공용 재료: 임시 폴더를 만들고, 작업 폴더를 기준으로 한 실행 판을 만든다.
+//! 파일 도구 시험 공용 재료: 임시 폴더와 작업 폴더 기준 실행 판 생성
 //!
-//! 임시 폴더는 시험이 끝나면 이 파일의 정리 장치가 스스로 지웁니다.
-//! 제품 코드 항목은 같은 크레이트 경로(`crate::`)로만 봅니다. 개발 의존과 붙은 사본이
-//! 따로 놀아 타입 두 벌이 생기는 일을 막습니다.
+//! 제품 코드 항목은 같은 크레이트 경로(`crate::`)로만 봄
 
 #![allow(dead_code, unreachable_pub)]
 
@@ -12,13 +10,13 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use crate::agent::DEFAULT_TOOL_RESULT_MAX_CHARS;
 use crate::tools::tool::ToolContext;
 
-/// 시험용 임시 폴더. 시험이 끝나면 폴더와 안의 파일을 지웁니다.
+/// 시험용 임시 폴더. 시험이 끝나면 폴더와 안의 파일을 제거
 pub struct TempFolder {
     path: PathBuf,
 }
 
 impl TempFolder {
-    /// 프로세스 번호와 순번을 붙여 임시 폴더를 만듭니다(서로 다른 시험이 같은 폴더를 쓰지 않게).
+    /// 프로세스 번호와 순번을 붙여 임시 폴더 생성(서로 다른 시험이 같은 폴더를 쓰지 않게)
     pub fn new(label: &str) -> Self {
         static COUNTER: AtomicUsize = AtomicUsize::new(0);
         let unique = COUNTER.fetch_add(1, Ordering::Relaxed);
@@ -30,17 +28,17 @@ impl TempFolder {
         Self { path }
     }
 
-    /// 임시 폴더 경로.
+    /// 임시 폴더 경로
     pub fn path(&self) -> &Path {
         &self.path
     }
 
-    /// 임시 폴더 아래에 텍스트 파일을 쓰고 그 경로를 돌려줍니다(부모 폴더도 함께 만듭니다).
+    /// 임시 폴더 아래에 텍스트 파일을 쓰고 그 경로 반환(부모 폴더도 함께 생성)
     pub fn write_file(&self, name: &str, text: &str) -> PathBuf {
         self.write_bytes(name, text.as_bytes())
     }
 
-    /// 임시 폴더 아래에 바이트 그대로 파일을 쓰고 그 경로를 돌려줍니다.
+    /// 임시 폴더 아래에 바이트 그대로 파일을 쓰고 그 경로 반환
     pub fn write_bytes(&self, name: &str, bytes: &[u8]) -> PathBuf {
         let target = self.path.join(name);
         if let Some(parent) = target.parent() {
@@ -50,32 +48,28 @@ impl TempFolder {
         target
     }
 
-    /// 임시 폴더 아래 파일을 읽어 돌려줍니다.
+    /// 임시 폴더 아래 파일을 읽어 반환
     pub fn read_file(&self, name: &str) -> String {
         std::fs::read_to_string(self.path.join(name))
             .unwrap_or_else(|error| panic!("임시 파일을 읽지 못했습니다: {error}"))
     }
 
-    /// 임시 폴더 아래에 심볼릭 링크를 만듭니다. 실패하면 `false`(권한·미지원 환경).
-    ///
-    /// 링크 시험이 링크를 만들 수 없는 환경(Windows: 개발 모드·권한)에서는 시험이
-    /// 스스로 통과하게 두고, 링크 검사 자체는 `path_guard` 시험에서 확인합니다.
+    /// 임시 폴더 아래에 디렉터리 심볼릭 링크 생성. 실패하면 `false`(권한·미지원 환경)
     pub fn try_symlink_dir(&self, target: &Path, link_name: &str) -> bool {
         let link = self.path.join(link_name);
         make_symlink(target, &link, true)
     }
 
-    /// 임시 폴더 아래에 파일 심볼릭 링크를 만듭니다. 실패하면 `false`.
+    /// 임시 폴더 아래에 파일 심볼릭 링크 생성. 실패하면 `false`
     pub fn try_symlink_file(&self, target: &Path, link_name: &str) -> bool {
         let link = self.path.join(link_name);
         make_symlink(target, &link, false)
     }
 }
 
-/// OS 관례로 심볼릭 링크를 만들어 주는 한 자리입니다(두 OS 동등, 개발 규칙 이식성).
+/// OS 관례로 심볼릭 링크를 만드는 한 자리(두 OS 동등)
 ///
-/// Windows는 폴더·파일 링크를 따로 만들고, 권한이 없으면 실패합니다. `is_dir` 값으로
-/// 만들 종류를 정하고, 둘 다 실패하면 `false`를 줍니다.
+/// Windows는 폴더·파일 링크를 따로 만들고, 권한이 없으면 실패. `is_dir` 값으로 만들 종류를 정하고, 둘 다 실패하면 `false` 반환
 #[must_use]
 pub fn make_symlink(target: &Path, link: &Path, is_dir: bool) -> bool {
     #[cfg(windows)]
@@ -100,37 +94,37 @@ pub fn make_symlink(target: &Path, link: &Path, is_dir: bool) -> bool {
 
 impl Drop for TempFolder {
     fn drop(&mut self) {
-        // 정리 실패는 시험 판정에 영향을 주지 않으므로 넘깁니다.
+        // 정리 실패는 시험 판정에 영향을 주지 않으므로 무시
         let _ = std::fs::remove_dir_all(&self.path);
     }
 }
 
-/// 읽기·쓰기·편집 시험이 같은 조립을 다시 적지 않게 쓰는 작업 폴더 재료입니다.
+/// 읽기·쓰기·편집 시험이 같은 조립을 다시 적지 않게 쓰는 작업 폴더 재료
 pub struct TempWorkdir(TempFolder);
 
 impl TempWorkdir {
-    /// 임시 폴더를 만들어 작업 폴더로 쓰는 타입입니다.
+    /// 임시 폴더를 만들어 작업 폴더로 쓰는 타입
     pub fn new(label: &str) -> Self {
         Self(TempFolder::new(label))
     }
 
-    /// 작업 폴더 경로.
+    /// 작업 폴더 경로
     pub fn path(&self) -> &Path {
         self.0.path()
     }
 
-    /// 작업 폴더 안에 파일을 씁니다.
+    /// 작업 폴더 안에 파일을 기록
     pub fn write(&self, name: &str, text: &str) {
         self.0.write_file(name, text);
     }
 
-    /// 이 작업 폴더를 기준으로 한 실행 판을 만듭니다.
+    /// 이 작업 폴더를 기준으로 한 실행 판 생성
     pub fn context(&self) -> ToolContext {
         context_of(&self.0)
     }
 }
 
-/// 임시 폴더를 작업 폴더로 정한 실행 판을 만듭니다. 잘림 상한은 03-2 정본 값을 씁니다.
+/// 임시 폴더를 작업 폴더로 정한 실행 판. 잘림 상한은 정본 값 사용
 #[must_use]
 pub fn context_of(folder: &TempFolder) -> ToolContext {
     ToolContext::new(folder.path(), DEFAULT_TOOL_RESULT_MAX_CHARS)

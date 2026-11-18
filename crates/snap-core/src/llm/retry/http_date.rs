@@ -1,8 +1,6 @@
-//! IMF-fixdate(HTTP-date) 파싱입니다.
+//! IMF-fixdate(HTTP-date) 파싱.
 //!
-//! Retry-After 정책과 분리된 범용 HTTP-date 관심사입니다(D27).
-//! 달력 지식(요일·월 이름·일수 계산)은 [`crate::civil_date`]에서 부릅니다.
-//! 재시도 대기 계산은 재시도 자리인 [`super::after`]에 있습니다(03-6 R2 감사 분리).
+//! Retry-After 정책과 분리된 범용 HTTP-date. 달력은 [`crate::civil_date`], 대기는 [`super::after`].
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -10,9 +8,9 @@ use crate::civil_date::{
     civil_utc_to_unix_secs, is_imf_day_name, month_from_name, parse_time_of_day,
 };
 
-/// IMF-fixdate(`day-name, DD Mon YYYY HH:MM:SS GMT`)만 읽습니다.
+/// IMF-fixdate(`day-name, DD Mon YYYY HH:MM:SS GMT`)만 읽음.
 ///
-/// 요일 이름은 형식만 확인하고 날짜와 일치하는지는 보지 않습니다.
+/// 요일 이름은 형식만 확인하고 날짜와 일치하는지는 보지 않음.
 pub(crate) fn parse_imf_fixdate(value: &str) -> Option<SystemTime> {
     let (day_name, rest) = value.split_once(", ")?;
     if !is_imf_day_name(day_name) {
@@ -41,12 +39,12 @@ pub(crate) fn parse_imf_fixdate(value: &str) -> Option<SystemTime> {
     system_time_from_unix_secs(unix_secs)
 }
 
-/// Unix 초를 [`SystemTime`]으로 바꿉니다. 음수(epoch 이전)도 과거 시각으로 담습니다.
+/// Unix 초를 [`SystemTime`]으로 바꿈. 음수(epoch 이전)도 과거 시각으로 담음.
 fn system_time_from_unix_secs(unix_secs: i64) -> Option<SystemTime> {
     if unix_secs >= 0 {
         return Some(UNIX_EPOCH + Duration::from_secs(unix_secs as u64));
     }
-    // 플랫폼이 epoch 이전을 못 담으면 UNIX_EPOCH로 두어 Wait(0)이 되게 합니다(AC2/D14).
+    // 플랫폼이 epoch 이전을 못 담으면 UNIX_EPOCH로 두어 Wait(0)이 되게 함.
     UNIX_EPOCH
         .checked_sub(Duration::from_secs(unix_secs.unsigned_abs()))
         .or(Some(UNIX_EPOCH))

@@ -1,4 +1,4 @@
-//! 공개 재시도 판단 진입점 단위 테스트(AC 1~4, spec AC 1~7 스모크).
+//! 공개 재시도 판단 진입점 단위 테스트
 
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
@@ -14,8 +14,9 @@ const SETTINGS: RetrySettings = RetrySettings {
     retry_after_max: Duration::from_secs(60),
 };
 
+// 2015-10-21 07:28:00 GMT를 고정 시각으로 쓰는 헬퍼.
+// 1_445_412_480이 이 시각을 가리키는 초 값
 fn fixed_now() -> SystemTime {
-    // 2015-10-21 07:28:00 GMT
     UNIX_EPOCH + Duration::from_secs(1_445_412_480)
 }
 
@@ -48,7 +49,6 @@ fn whitelist_with_retry_after_within_cap_retries() {
 
 #[test]
 fn http_date_within_cap_retries() {
-    // fixed_now = 2015-10-21 07:28:00 GMT → +45초(상한 60초 이하)
     let decision = decide(http(503), Some("Wed, 21 Oct 2015 07:28:45 GMT"), 1, 0.5);
     assert_eq!(
         decision,
@@ -60,7 +60,6 @@ fn http_date_within_cap_retries() {
 
 #[test]
 fn negative_retry_after_uses_full_jitter_backoff() {
-    // 음수 → Absent → Full Jitter (sample=1.0 → backoff_min)
     let decision = decide(http(429), Some("-1"), 1, 1.0);
     assert_eq!(
         decision,
@@ -72,7 +71,6 @@ fn negative_retry_after_uses_full_jitter_backoff() {
 
 #[test]
 fn unparseable_retry_after_uses_full_jitter_backoff() {
-    // 해석불가 → Absent → Full Jitter (sample=1.0 → backoff_min)
     let decision = decide(http(500), Some("soon"), 1, 1.0);
     assert_eq!(
         decision,
@@ -181,7 +179,6 @@ fn zero_retry_after_retries_immediately() {
 
 #[test]
 fn settings_are_duration_and_u32_only() {
-    // HttpSettings 타입 없이 Duration/u32 구조체만으로 판단이 끝납니다(AC 1).
     let settings = RetrySettings {
         retries: 1_u32,
         backoff_min: Duration::from_millis(100),

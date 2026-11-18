@@ -1,4 +1,4 @@
-//! 사용량·원시 시각 반환 통합 테스트(AC 5).
+//! 사용량·원시 시각 반환 통합 테스트.
 
 use super::{client_at_with, drain, test_http};
 use crate::common::mock_server::{MockBodyPart, MockResponseScript, MockServer};
@@ -8,10 +8,9 @@ use crate::common::support::{
 use snap_core::llm::CancellationToken;
 use snap_core::llm::LlmClient;
 
-// AC 5: 서버가 사용량을 주면 그 값이고, 시각은 요청 시작·첫 토큰·마지막 토큰 순서다.
+// 서버가 준 사용량 값과 시각이 요청 시작·첫 토큰·마지막 토큰 순서로 남는지 확인.
 #[tokio::test]
 async fn outcome_carries_usage_and_raw_timings() {
-    // 내용 줄 두 줄 뒤 사용량 줄과 `[DONE]`을 붙인다.
     let mut bytes = Vec::new();
     bytes.extend_from_slice(delta_line("가").as_bytes());
     bytes.extend_from_slice(delta_line("김").as_bytes());
@@ -43,7 +42,7 @@ async fn outcome_carries_usage_and_raw_timings() {
     assert!(first <= last);
 }
 
-// AC 5: 서버가 사용량을 안 주면 "없음"이고, 시각 순서는 그대로 남는다.
+// 서버가 사용량을 안 주면 없음을 확인하는 시험.
 #[tokio::test]
 async fn outcome_usage_none_when_server_omits_it() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(vec![

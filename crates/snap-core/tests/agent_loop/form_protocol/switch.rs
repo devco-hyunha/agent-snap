@@ -9,7 +9,7 @@ use crate::support::{cancel_token, content_stream, form_config, registry_with_fi
 
 use super::tools_of;
 
-/// AC 1: `auto` 선언에서 미지원 400을 받으면 같은 요청을 2안 조립으로 다시 보내고, 2안 도구 호출이 이어진다.
+/// `auto` 선언에서 미지원 400을 받으면 같은 요청을 2안 조립으로 다시 보내고, 2안 도구 호출이 이어짐.
 #[tokio::test]
 async fn auto_switches_on_unsupported_status_and_runs_text_call() {
     let server = MockServer::spawn_queue(vec![
@@ -35,7 +35,7 @@ async fn auto_switches_on_unsupported_status_and_runs_text_call() {
     let LoopOutcome::Finished(LoopEnd::Stop { result }) = outcome else {
         panic!("stop으로 끝나야 합니다: {outcome:?}");
     };
-    // 4x 전환 기록이 2안 형식 칸과 함께 결과 자리에 남습니다(AC 5).
+    // 4x 전환 기록이 2안 형식 칸과 함께 결과 자리에 남음.
     assert_eq!(
         result.fallback_point,
         Some(FallbackPoint::UnsupportedStatus { status: 400 })
@@ -70,7 +70,7 @@ async fn auto_switches_on_unsupported_status_and_runs_text_call() {
     );
 }
 
-/// AC 1: `auto` 선언의 텍스트 1회는 1안으로 계속 보내고(전환 후보만 기록), 2회 연속에서 전환이 확정된다.
+/// `auto` 선언의 텍스트 1회는 1안으로 계속 보내고(전환 후보만 기록), 2회 연속에서 전환이 확정됨.
 #[tokio::test]
 async fn auto_text_streak_switches_after_second_turn() {
     let server = MockServer::spawn_queue(vec![
