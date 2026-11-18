@@ -1,7 +1,7 @@
-//! 모델 칸 `extra` 읽기입니다(D15).
+//! 모델 칸 `extra` 읽기.
 //!
 //! 예약 키가 하나라도 있으면 모델 이름만 밝히고 거부하고, 그 밖의 JSON 값은 하위 객체까지
-//! [`ExtraValue`]로 그대로 담습니다.
+//! [`ExtraValue`]로 그대로 담음.
 
 use std::collections::BTreeMap;
 
@@ -12,8 +12,8 @@ use super::types::ExtraValue;
 use super::validate;
 use crate::jsonc::{WrongType, pick_object, take_optional};
 
-/// 모델의 `extra`를 읽습니다. 칸이 없으면 빈 맵이고, 예약 키가 있으면 모델 이름과 칸 이름을
-/// 밝히고 거부합니다(D15).
+/// 모델의 `extra`를 읽음. 칸이 없으면 빈 맵이고, 예약 키가 있으면 모델 이름과 칸 이름을
+/// 밝히고 거부.
 pub(super) fn read_extra(
     endpoint: &str,
     model: &str,

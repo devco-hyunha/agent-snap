@@ -1,4 +1,4 @@
-//! 전송 오류·설정 값을 재시도 판단 입력으로 옮기는 매핑 표 단위 테스트(02-6 spec 매핑 표).
+//! 전송 오류·설정 값을 재시도 판단 입력으로 옮기는 매핑 표 단위 시험.
 
 use std::time::Duration;
 
@@ -7,7 +7,7 @@ use crate::llm::client::{TimeoutSegment, TransportError};
 use crate::llm::retry::retry_map::{retry_input, retry_settings};
 use crate::llm::retry::{PreHeaderConnectKind, RetryFailureInput, RetrySettings};
 
-/// 연결 실패 6종 전부가 그대로 헤더 전 연결 후보로 가는지 봅니다.
+/// 연결 실패 6종 전부가 그대로 헤더 전 연결 후보로 가는지 확인.
 #[test]
 fn connect_failed_maps_to_pre_header_connect() {
     for kind in [
@@ -29,7 +29,7 @@ fn connect_failed_maps_to_pre_header_connect() {
     }
 }
 
-/// 헤더 대기 초과는 비후보 입력으로 가고, 스트림 유휴 초과는 입력이 없습니다.
+/// 헤더 대기 초과는 비후보 입력, 스트림 유휴 초과는 입력이 없음.
 #[test]
 fn timeout_maps_by_segment() {
     let header_wait = TransportError::Timeout {
@@ -48,7 +48,7 @@ fn timeout_maps_by_segment() {
     assert_eq!(retry_input(&stream_idle, false), None);
 }
 
-/// 서버 상태 응답은 상태 코드와 헤더 유무(전송이 알려 준 값)만 옮깁니다.
+/// 서버 상태 응답은 상태 코드와 헤더 유무만 옮김.
 #[test]
 fn server_status_maps_to_http_status_with_header_flag() {
     let error = TransportError::ServerStatus {
@@ -72,7 +72,7 @@ fn server_status_maps_to_http_status_with_header_flag() {
     );
 }
 
-/// 취소·스트림 중 실패·클라이언트 제작 실패·본문 읽기 실패는 입력이 없습니다.
+/// 취소·스트림 중 실패·클라이언트 제작 실패·본문 읽기 실패는 입력이 없음.
 #[test]
 fn non_retry_failures_have_no_input() {
     let stream_error = TransportError::Streaming(crate::llm::StreamParseError::Format {
@@ -89,7 +89,7 @@ fn non_retry_failures_have_no_input() {
     }
 }
 
-/// `http` 설정의 재시도 값 4개만 판단 설정으로 1대1로 옮기는지 봅니다.
+/// `http` 설정의 재시도 값 4개만 판단 설정으로 1대1로 옮기는지 확인.
 #[test]
 fn http_settings_maps_to_retry_settings() {
     let http = HttpSettings {

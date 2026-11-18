@@ -1,4 +1,4 @@
-//! Full Jitter·시도 횟수 단위 테스트(AC 1~3, spec AC 3·4).
+//! Full Jitter·시도 횟수 단위 시험.
 
 use std::time::Duration;
 
@@ -75,7 +75,7 @@ fn decide_backoff_respects_ceiling_with_fixed_samples() {
 
 #[test]
 fn attempts_exceeded_when_past_retries() {
-    // retries=3 → 요청 최대 4번. 시도 1~3 실패 후에는 재시도, 4번째 실패 후 포기(D14).
+    // retries=3 → 요청 최대 4번. 시도 1~3 실패 후에는 재시도, 4번째 실패 후 포기.
     assert!(!is_attempts_exceeded(1, 3));
     assert!(!is_attempts_exceeded(3, 3));
     assert!(is_attempts_exceeded(4, 3));

@@ -1,4 +1,4 @@
-//! URL·시크릿 가림·길이 제한 단위 테스트입니다.
+//! URL·시크릿 가림·길이 제한 단위 시험.
 
 use crate::llm::error::redact::summarize_stream_error;
 
@@ -23,7 +23,7 @@ fn summarize_truncates_long_text() {
     assert!(summary.ends_with('…'));
 }
 
-// AC 2(D28)·AC 6: 서버 오류 본문에서 키·호스트를 가린 뒤에도 길이를 제한한다.
+// 서버 오류 본문에서 키·호스트를 가린 뒤에도 길이를 제한.
 #[test]
 fn rough_summary_is_length_limited() {
     let key = "sk-leak-key-value-1234567890abcd";
@@ -34,14 +34,14 @@ fn rough_summary_is_length_limited() {
     assert!(!summary.contains(key));
 }
 
-// AC 2(D28): 어림 규칙을 통과한 문구도, 이 요청에서 알고 있는 키·base_url이면 한 번 더 가린다.
+// 어림 규칙을 통과한 문구도, 알고 있는 키·base_url이면 한 번 더 가림.
 #[test]
 fn scrub_hides_known_key_and_host_after_rough_pass() {
     use crate::llm::error::scrub::SecretScrub;
     use crate::secrets::SecretValue;
 
-    // 키가 어림 규칙의 짧은 토큰 기준에 안 걸리고(16자 미만), host는 scheme이 없어
-    // 어림 가리기가 그대로 남기는 자리입니다. 확인 가리기가 한 번 더 지워야 합니다.
+    // 키가 어림 짧은 토큰 기준에 안 걸리고(16자 미만), host는 scheme이 없어 어림이 남기는 자리.
+    // 확인 가리기가 한 번 더 지워야 함.
     let key = SecretValue::new("sk-known-key");
     let echo = "upstream key sk-known-key at 127.0.0.1:6099 /v1 failed";
     let rough = summarize_stream_error(echo);
@@ -64,7 +64,7 @@ fn scrub_hides_known_key_and_host_after_rough_pass() {
         !cleaned.contains("127.0.0.1"),
         "확인 가리기 후 호스트: {cleaned}"
     );
-    // 가림 도구 자신의 Display·Debug에도 원문이 없습니다.
+    // 가림 도구 자신의 Display·Debug에도 원문이 없음.
     assert!(!format!("{scrub:?}").contains("sk-known-key"));
     assert!(!format!("{scrub}").contains("sk-known-key"));
 }

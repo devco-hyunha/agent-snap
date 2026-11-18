@@ -2,7 +2,7 @@ use snap_core::agent::{RecoverOutcome, recover_text_call, text_protocol_block};
 
 use crate::support::{FixedTool, registry_with_list_dir};
 
-/// AC 2: 2안 지시 블록에 등록 도구 이름·인자 형식 글자가 있고, 20개 초과 안내가 붙는다.
+/// 2안 지시 블록에 등록 도구 이름·인자 형식 글자가 있고, 20개 초과 안내가 붙음.
 #[test]
 fn text_protocol_block_lists_tool_names_and_arguments() {
     let block = text_protocol_block(&registry_with_list_dir());
@@ -25,7 +25,7 @@ fn text_protocol_block_lists_tool_names_and_arguments() {
     );
 }
 
-/// AC 3: Markdown 둘레·접두사·잘린 JSON 복원 3종과 모호한 객체 거부를 unit로 봅니다.
+/// Markdown 둘레·접두사·잘린 JSON 복원 3종과 모호한 객체 거부를 단위로 확인.
 #[test]
 fn text_recover_ladder_handles_three_shapes() {
     let markdown = "```json\n{\"name\":\"list_dir\",\"arguments\":{\"path\":\"docs\"}}\n```";

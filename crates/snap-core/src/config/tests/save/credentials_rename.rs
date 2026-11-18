@@ -1,8 +1,4 @@
-//! 자격 파일 키 이름 바꾸기·삭제 저장 시험(02-9 작업 3의 자격 쪽 책임).
-//!
-//! 설정 파일 쪽 이름 바꾸기·삭제 시험은 `config_rename.rs`로 나눕니다. 이 파일은 자격 파일만
-//! 다루는 이름 바꾸기·삭제 동작을 봅니다. 자격 파일 텍스트 견본은 자격 저장을 보는 여러 시험이
-//! 함께 쓰기 때문에 지원부(`support/credentials.rs`)에서 가져옵니다.
+//! 자격 파일 키 이름 바꾸기·삭제 저장 시험
 
 use crate::config::CREDENTIALS_FILE_NAME;
 use crate::config::KeyRename;
@@ -14,7 +10,7 @@ use super::super::support::{
     parse_credentials,
 };
 
-/// AC 3: 자격 파일의 이름을 바꾸면 키 이름이 새 이름으로 바뀌고 값은 그대로입니다.
+/// 자격 파일 키 이름 교체와 값 유지 확인
 #[test]
 fn renaming_key_moves_the_key_name_and_keeps_the_value() {
     let folder = TempDir::new("자격-이름-변경");
@@ -47,13 +43,12 @@ fn renaming_key_moves_the_key_name_and_keeps_the_value() {
     );
 }
 
-/// AC 3: 새 이름 키가 이미 있으면 값을 옮기고 이름이 겹치는 칸을 남기지 않습니다.
+/// 새 이름 키가 있는 자리로 옮기고 값 유지, 중복 칸 미생성 확인
 #[test]
 fn renaming_key_onto_existing_target_key_keeps_one_entry_with_moved_value() {
     let folder = TempDir::new("자격-이름-변경-선두");
     folder.write(CREDENTIALS_FILE_NAME, KEYS_ANNOTATED_FILE);
 
-    // `stage_ep` 칸이 이미 있는 자리로 `main` 키를 옮깁니다.
     rename_key(
         folder.path(),
         &KeyRename {
@@ -78,7 +73,7 @@ fn renaming_key_onto_existing_target_key_keeps_one_entry_with_moved_value() {
     );
 }
 
-/// AC 3의 경계: 이름이 겹치는 칸이 둘인 파일에서 이름을 바꾸면 칸 하나로 정리됩니다.
+/// 이름 중복 칸이 둘인 파일의 이름 바꾸기는 칸 하나로 정리 확인
 #[test]
 fn renaming_key_over_duplicate_names_collapses_to_one_entry() {
     let folder = TempDir::new("자격-이름-변경-중복");
@@ -95,7 +90,6 @@ fn renaming_key_over_duplicate_names_collapses_to_one_entry() {
 
     let text = folder.read(CREDENTIALS_FILE_NAME);
     let credentials = parse_credentials(&text);
-    // 02-1 해석 규칙(같은 이름은 마지막 칸)과 같은 마지막 값이 왕복으로 읽혀야 합니다.
     assert_eq!(
         key_value(&credentials, "main-새-이름").as_deref(),
         Some("last-value"),
@@ -104,7 +98,7 @@ fn renaming_key_over_duplicate_names_collapses_to_one_entry() {
     assert_eq!(key_value(&credentials, "main"), None);
 }
 
-/// AC 3의 경계: 자격 파일에 그 키가 없으면 이름을 바꾸지 않고 파일을 건드리지 않습니다.
+/// 자격 파일에 그 키가 없으면 이름 바꾸기 미실행과 파일 미변경 확인
 #[test]
 fn renaming_missing_key_leaves_file_untouched() {
     let folder = TempDir::new("자격-이름-변경-없음");
@@ -126,7 +120,7 @@ fn renaming_missing_key_leaves_file_untouched() {
     );
 }
 
-/// AC 3의 경계: trim한 이름이 같으면 파일을 건드리지 않습니다.
+/// 앞뒤 공백을 뺀 이름이 같으면 파일 미변경 확인
 #[test]
 fn renaming_same_name_leaves_file_untouched() {
     let folder = TempDir::new("자격-이름-변경-동일");
@@ -148,7 +142,7 @@ fn renaming_same_name_leaves_file_untouched() {
     );
 }
 
-/// AC 4: 엔드포인트를 삭제하면 자격 파일의 그 키가 지워집니다.
+/// 엔드포인트 삭제 시 자격 파일의 그 키 삭제 확인
 #[test]
 fn removing_key_deletes_the_endpoint_key() {
     let folder = TempDir::new("자격-키-삭제");
@@ -174,7 +168,7 @@ fn removing_key_deletes_the_endpoint_key() {
     );
 }
 
-/// AC 4: 그 키가 없으면 자격 파일은 그대로입니다.
+/// 그 키가 없으면 자격 파일 미변경 확인
 #[test]
 fn removing_missing_key_leaves_file_untouched() {
     let folder = TempDir::new("자격-키-삭제-없음");
@@ -189,7 +183,7 @@ fn removing_missing_key_leaves_file_untouched() {
     );
 }
 
-/// AC 4: 이름이 겹치는 칸이 둘인 파일에서 삭제하면 그 이름 칸을 함께 지웁니다.
+/// 이름 중복 칸이 둘인 파일의 삭제는 그 이름 칸 전체 삭제 확인
 #[test]
 fn removing_key_over_duplicate_names_removes_all_entries() {
     let folder = TempDir::new("자격-키-삭제-중복");
@@ -207,8 +201,7 @@ fn removing_key_over_duplicate_names_removes_all_entries() {
     );
 }
 
-/// 02-2 이름 규칙에 맞지 않는 이름 바꾸기·삭제는 파일을 건드리지 않고 거부합니다.
-/// (이동 전 `invalid_endpoint_name_rejects_before_touching_file`의 이름 바꾸기·삭제 부분)
+/// 이름 규칙 위반 이름 바꾸기·삭제는 파일 미변경, 검증 오류 반환
 #[test]
 fn invalid_endpoint_name_rejects_rename_and_remove_before_touching_file() {
     for (label, endpoint) in [("빈 이름", "   "), ("슬래시 이름", "a/b")] {

@@ -1,6 +1,6 @@
-//! 샘플링 칸(`sampling`) 읽기입니다. 루트와 모델별 `sampling`이 같은 규칙을 씁니다(D14).
+//! 샘플링 칸(`sampling`) 읽기. 루트와 모델별 `sampling`이 같은 규칙을 사용함.
 //!
-//! 오류에는 항목 이름과 모델 이름만 담고 입력 값은 담지 않습니다.
+//! 오류에는 항목 이름과 모델 이름만 담고 입력 값은 담지 않음.
 
 use std::str::FromStr;
 
@@ -11,10 +11,10 @@ use super::types::Sampling;
 use super::validate;
 use crate::jsonc::{WrongType, parse_number, pick_object, take_optional};
 
-/// 루트 `sampling` 오류에서 모델 이름 자리에 쓰는 표기입니다.
+/// 루트 `sampling` 오류에서 모델 이름 자리에 쓰는 표기.
 const ROOT_SAMPLING_OWNER: &str = "기본";
 
-/// 루트의 `sampling`을 읽습니다. 칸이 없으면 모든 항목이 비어 있는 기본값입니다.
+/// 루트의 `sampling`을 읽음. 칸이 없으면 모든 항목이 비어 있는 기본값.
 pub(super) fn read_root_sampling(root: &mut JsonObject<'_>) -> Result<Sampling, ConfigError> {
     take_optional(root, "sampling", pick_object)
         .map_err(|WrongType| ConfigError::invalid_field("sampling"))?
@@ -23,7 +23,7 @@ pub(super) fn read_root_sampling(root: &mut JsonObject<'_>) -> Result<Sampling, 
         .map(Option::unwrap_or_default)
 }
 
-/// 샘플링 객체를 읽습니다. `owner`는 오류에 밝힐 모델 이름(루트는 "기본")입니다.
+/// 샘플링 객체를 읽음. `owner`는 오류에 밝힐 모델 이름(루트는 "기본").
 pub(super) fn read_sampling(object: JsonObject<'_>, owner: &str) -> Result<Sampling, ConfigError> {
     let mut sampling = Sampling::default();
     for (key, value) in object {
@@ -58,7 +58,7 @@ pub(super) fn read_sampling(object: JsonObject<'_>, owner: &str) -> Result<Sampl
     Ok(sampling)
 }
 
-/// 숫자를 `T`로 읽고 범위 규칙을 확인합니다. 읽지 못하거나 규칙을 어기면 `out_of_range` 오류입니다.
+/// 숫자를 `T`로 읽고 범위 규칙을 확인함. 읽지 못하거나 규칙을 어기면 `out_of_range` 오류.
 fn read_checked<T: FromStr>(
     value: &JsonValue<'_>,
     is_valid: fn(&T) -> bool,

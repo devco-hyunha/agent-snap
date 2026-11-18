@@ -1,14 +1,14 @@
-//! 모델 칸 `tool_call_form` 읽기입니다(D50 결정 7).
+//! 모델 칸 `tool_call_form` 읽기.
 //!
-//! 설정에 적는 이름(`openai`·`text`·`auto`)만 받아들이고, 그 밖의 값은 모델 이름만 밝히고 거부합니다.
+//! 설정에 적는 이름(`openai`·`text`·`auto`)만 받아들이고, 그 밖의 값은 모델 이름만 밝히고 거부.
 
 use jsonc_parser::{JsonObject, JsonValue};
 
 use super::super::error::{ConfigError, ModelIssue};
 use super::types::{DEFAULT_TOOL_CALL_FORM, ToolCallForm};
 
-/// 모델의 `tool_call_form`을 읽습니다. 칸이 없으면 기본값(`openai`)이고, 값은 설정에 적는
-/// 이름(`openai`·`text`·`auto`)만 받아들이며 그 밖의 값은 모델 이름만 밝히고 거부합니다(D50 결정 7).
+/// 모델의 `tool_call_form`을 읽음. 칸이 없으면 기본값(`openai`)이고, 값은 설정에 적는
+/// 이름(`openai`·`text`·`auto`)만 받아들이며 그 밖의 값은 모델 이름만 밝히고 거부.
 pub(super) fn read_tool_call_form(
     model: &str,
     object: &mut JsonObject<'_>,

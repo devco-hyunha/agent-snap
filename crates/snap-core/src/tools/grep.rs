@@ -1,8 +1,6 @@
-//! `grep` 도구의 골격과 호출 배선입니다(03-3 T2).
+//! `grep` 도구의 골격과 호출 배선
 //!
-//! 결과 형식 3종(content·files·count) 모두 최대 200줄, 넘으면 잘림 표식을 붙입니다.
-//! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외합니다.
-//! 실제 찾기 두 갈래(ripgrep 연동·내장 검색)는 각각 `ripgrep.rs`·`search/builtin.rs`에 있습니다.
+//! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외
 
 use serde_json::{Value, json};
 
@@ -13,7 +11,7 @@ use super::search::builtin::search_builtin;
 use super::tool::{Tool, ToolCallFuture, ToolContext, ToolOutcome};
 use super::walk::resolve_dir;
 
-/// `grep` 도구입니다.
+/// `grep` 도구
 pub struct GrepTool;
 
 impl GrepTool {

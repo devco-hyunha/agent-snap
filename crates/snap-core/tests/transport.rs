@@ -1,7 +1,6 @@
-//! 전송 계층 통합 테스트 타깃의 루트입니다.
+//! 전송 계층 통합 시험 타깃의 루트.
 //!
-//! 함께 쓰는 지원(`common`)과 도우미 재내내기만 여기에서 하고,
-//! 실제 시험은 `cancel`·`restore`·`timeouts`·`usage` 파일에 분리해 둡니다.
+//! 지원(`common`)과 도우미 재내내기만 하고, 시험은 `cancel`·`restore`·`timeouts`·`usage` 파일에 분리.
 
 pub mod common;
 

@@ -1,15 +1,14 @@
-//! 재시도 포기 이유를 Display에 한 줄로 표기하는 책임입니다.
+//! 재시도 포기 이유를 Display에 한 줄로 표기.
 //!
-//! Display·Debug API 키와 base_url 호스트를 담지 않습니다. 판단을 거치지 않은
-//! 실패(`None`)는 아무 문장도 붙이지 않습니다(작업 07 SRP 분리).
+//! Display·Debug에 API 키와 base_url 호스트를 담지 않음. 판단 없는 실패(`None`)는 문장을 붙이지 않음.
 
 use std::fmt;
 
 use crate::llm::retry::{NotCandidateDetail, RetryGiveUpReason};
 
-/// Display에 포기 이유 한 줄만 얹는 표시 도우미입니다.
+/// Display에 포기 이유 한 줄만 얹는 표시 도우미.
 ///
-/// 판단을 거치지 않은 실패(`None`)는 아무 문장도 붙이지 않습니다. 헤더 원문·키·호스트는 밝히지 않습니다.
+/// 판단 없는 실패(`None`)는 문장을 붙이지 않음. 헤더 원문·키·호스트는 밝히지 않음.
 pub(crate) struct GiveUpNote(pub(crate) Option<RetryGiveUpReason>);
 
 impl fmt::Display for GiveUpNote {
@@ -21,10 +20,9 @@ impl fmt::Display for GiveUpNote {
     }
 }
 
-/// 02-4가 정한 포기 이유를 사람이 볼 한 문장으로 바꿉니다.
+/// 포기 이유를 사람이 볼 한 문장으로 바꿈.
 ///
-/// 상태 코드·대기 초 값만 밝히고 헤더 원문과 키·호스트는 밝히지 않습니다.
-/// 이 파일의 `GiveUpNote`만 쓰므로 파일 안에서만 부릅니다.
+/// 상태 코드·대기 초만 밝히고 헤더 원문·키·호스트는 밝히지 않음.
 fn format_give_up_reason(reason: &RetryGiveUpReason) -> String {
     match reason {
         RetryGiveUpReason::NotCandidate(detail) => {

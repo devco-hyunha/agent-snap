@@ -1,4 +1,4 @@
-//! SSE 줄 처리 단위 테스트(AC 2의 주석·줄 끝·data 결합·BOM·[DONE]·D12).
+//! SSE 줄 처리 단위 테스트
 
 use snap_core::llm::{SseItem, SseParser};
 

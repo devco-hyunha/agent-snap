@@ -1,55 +1,52 @@
-//! SSE 줄 처리: 바이트 조각을 data 페이로드와 `[DONE]`으로 바꿉니다.
+//! SSE 줄 처리. 바이트 조각을 data 페이로드와 `[DONE]`으로 바꿈.
 //!
-//! 스트림 입력 라인 디코더라 클라이언트 쪽 책임이고, 쓰는 곳은 `codec::decode`의
-//! `StreamDecoder` 하나뿐입니다. 이 디코더를 통과한 이벤트와 합친 응답을
-//! `client::stream`·`client::outcome`이 받아 쓰므로 줄 처리 정본은 여기만 씁니다(작업 08 2단계).
+//! 스트림 입력 라인 디코더. 줄 처리 정본은 여기만 씀.
 
 use crate::llm::error::{FormatErrorKind, StreamParseError};
 
-/// SSE 파서가 내보내는 한 항목입니다.
+/// SSE 파서가 내보내는 한 항목.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SseItem {
-    /// 한 이벤트의 `data` 필드를 개행으로 이은 본문입니다.
+    /// 한 이벤트의 `data` 필드를 개행으로 이은 본문.
     Data {
-        /// 1부터 세는 data 이벤트 번호입니다.
+        /// 1부터 세는 data 이벤트 번호.
         index: usize,
-        /// data 본문입니다.
+        /// data 본문.
         data: String,
     },
-    /// data 본문이 `[DONE]`인 정상 종료 표식입니다.
+    /// data 본문이 `[DONE]`인 정상 종료 표식.
     Done {
-        /// 1부터 세는 data 이벤트 번호입니다.
+        /// 1부터 세는 data 이벤트 번호.
         index: usize,
     },
 }
 
-/// 바이트 조각을 받아 SSE data 이벤트를 내보내는 파서입니다.
+/// 바이트 조각을 받아 SSE data 이벤트를 내보내는 파서.
 ///
-/// 줄 끝 CRLF·LF·CR, `:` 주석, 여러 `data` 결합, 맨 앞 BOM, 조각 경계·멀티바이트 잘림을
-/// 처리합니다. 빈 줄 없이 끝난 마지막 이벤트는 [`SseParser::finish`]에서 내보냅니다(D12).
+/// 줄 끝·`:` 주석·여러 `data` 결합·BOM·조각 경계를 처리. 빈 줄 없이 끝난 마지막은 [`SseParser::finish`]에서 내보냄.
 #[derive(Debug, Default)]
 pub struct SseParser {
     buffer: Vec<u8>,
     bom_checked: bool,
     /// 현재 이벤트에 쌓인 data 줄(아직 빈 줄로 내보내지 않음).
     data_lines: Vec<String>,
-    /// 지금까지 내보낸 data 이벤트 수입니다.
+    /// 지금까지 내보낸 data 이벤트 수.
     emitted_events: usize,
     finished: bool,
 }
 
 impl SseParser {
-    /// 빈 파서를 만듭니다.
+    /// 빈 파서를 만듦.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// 다음에 내보낼 data 이벤트의 번호(1부터)를 돌려줍니다.
+    /// 다음에 내보낼 data 이벤트 번호(1부터)를 반환.
     pub fn next_event_index(&self) -> usize {
         self.emitted_events + 1
     }
 
-    /// 바이트 조각을 넣고, 완성된 SSE 항목을 돌려줍니다.
+    /// 바이트 조각을 넣고, 완성된 SSE 항목을 반환.
     pub fn push(&mut self, bytes: &[u8]) -> Result<Vec<SseItem>, StreamParseError> {
         if self.finished {
             return Ok(Vec::new());
@@ -59,7 +56,7 @@ impl SseParser {
         self.drain_complete_lines(false)
     }
 
-    /// 남은 버퍼를 마지막 이벤트로 처리합니다(D12). 이후 `push`는 빈 결과를 냅니다.
+    /// 남은 버퍼를 마지막 이벤트로 처리. 이후 `push`는 빈 결과를 냄.
     pub fn finish(&mut self) -> Result<Vec<SseItem>, StreamParseError> {
         if self.finished {
             return Ok(Vec::new());
@@ -87,7 +84,7 @@ impl SseParser {
             self.bom_checked = true;
             return;
         }
-        // BOM이 아니면 확정. 1~2바이트만 와 UTF-8 BOM 접두일 수 있으면 대기.
+        // BOM이 아니면 확정. 1~2바이트만 와 BOM 접두일 수 있으면 대기.
         if self.buffer.len() >= 3 || !could_be_bom_prefix(&self.buffer) {
             self.bom_checked = true;
         }
@@ -157,7 +154,7 @@ fn could_be_bom_prefix(bytes: &[u8]) -> bool {
     matches!(bytes, [] | [0xEF] | [0xEF, 0xBB])
 }
 
-/// `(줄 바이트 길이, 줄 끝 바이트 수)`. `at_end`이면 버퍼 끝의 단독 CR도 줄 끝으로 본다.
+/// `(줄 바이트 길이, 줄 끝 바이트 수)`. `at_end`이면 버퍼 끝의 단독 CR도 줄 끝으로 봄.
 fn find_line_end(buffer: &[u8], at_end: bool) -> Option<(usize, usize)> {
     let mut i = 0;
     while i < buffer.len() {

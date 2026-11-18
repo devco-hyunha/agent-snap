@@ -1,4 +1,4 @@
-//! 오류 종류·모르는 필드 단위 테스트(AC 4). 가림 정책은 `redact` 테스트를 봅니다.
+//! 오류 종류·모르는 필드 단위 테스트. 가림 정책은 `redact` 테스트로 확인.
 
 mod common;
 use common::support::{data_line, decode_all};

@@ -1,30 +1,26 @@
-//! 폴더 순회와 자리 거르기를 한곳에 모은 자리입니다(03-3 T2·T3).
+//! 폴더 순회와 자리 거르기 자리
 //!
-//! 목록·glob·grep이 같은 순회를 각자 다시 만들지 않게 여기 한 파일에 둡니다(DRY).
-//! 숨김 자리는 요청 시에만 담고, 비밀 파일 자리는 늘 거릅니다.
-//! 심볼릭 링크 기준은 `path_guard`의 한 판정[`is_symlink_path`]·[`escapes_symlink`]를
-//! 그대로 쓰고, ripgrep 경로는 `--no-follow`(기본값)로 같은 순회 규칙을 맞춥니다
-//! (T2 리뷰 3항, spec AC 2 "작업 폴더 안에서 생성된 링크만 허용").
+//! 숨김 자리는 요청 시에만 담고, 비밀 파일 자리는 늘 거름
+//! 심볼릭 링크 기준은 `path_guard`의 [`is_symlink_path`]·[`escapes_symlink`]를 그대로 씀
 
 use std::path::{Path, PathBuf};
 
 use crate::tools::display::relative_path;
 use crate::tools::path_guard::{check_tool_path, escapes_symlink, is_secret_name, is_symlink_path};
 
-/// 순회로 줍은 자리 하나입니다.
+/// 순회로 줍은 자리 하나
 pub(crate) struct WalkEntry {
-    /// 실제 경로. 읽기 도구가 이 자리로 파일을 읽습니다.
+    /// 실제 경로. 읽기 도구가 이 자리로 파일을 읽음
     pub(crate) path: PathBuf,
-    /// 작업 폴더 기준 표시 경로(구분자는 `/`).
+    /// 작업 폴더 기준 표시 경로(구분자는 `/`)
     pub(crate) rel: String,
-    /// 폴더 여부.
+    /// 폴더 여부
     pub(crate) is_dir: bool,
 }
 
-/// 자리 인자를 실제 폴더 경로로 풉니다.
+/// 자리 인자를 실제 폴더 경로로 풂
 ///
-/// 없거나 비었거나 `.`이면 작업 폴더 자기자리입니다(목록·검색 기준 자리라 경계 밖이 아님).
-/// 그 밖의 경로는 `path_guard` 한 자리로 검사합니다.
+/// 없거나 비었거나 `.`이면 작업 폴더 자기자리(목록·검색 기준 자리라 경계 밖이 아님)
 pub(crate) fn resolve_dir(working_dir: &Path, path: Option<&str>) -> Result<PathBuf, &'static str> {
     let Some(raw) = path else {
         return Ok(working_dir.to_path_buf());
@@ -36,10 +32,9 @@ pub(crate) fn resolve_dir(working_dir: &Path, path: Option<&str>) -> Result<Path
     check_tool_path(working_dir, raw).map_err(|error| error.message())
 }
 
-/// 시작 폴더 아래 자리를 모아 표시 경로 오름차순으로 돌려줍니다.
+/// 시작 폴더 아래 자리를 모아 표시 경로 오름차순으로 반환
 ///
-/// `recursive`이면 하위 폴더까지, `include_hidden`이면 숨김 자리도 담습니다.
-/// 읽을 수 없는 자리·UTF-8이 아닌 이름·비밀 파일 이름은 건너뜁니다.
+/// `recursive`이면 하위 폴더까지, `include_hidden`이면 숨김 자리도 포함. 읽을 수 없는 자리·UTF-8이 아닌 이름·비밀 파일 이름은 건너뜀
 pub(crate) fn collect(
     working_dir: &Path,
     start: &Path,
@@ -64,7 +59,7 @@ pub(crate) fn collect(
             if is_secret_name(&path) {
                 continue;
             }
-            // 밖으로 나가는 링크 자리는 목록·검색 결과에 올리지 않습니다(spec AC 6).
+            // 밖으로 나가는 링크 자리는 목록·검색 결과에 올리지 않음
             if escapes_symlink(working_dir, &path) {
                 continue;
             }
@@ -73,9 +68,7 @@ pub(crate) fn collect(
             }
             let is_dir = meta.is_dir();
             let rel = relative_path(&path, working_dir);
-            // 링크 폴더는 어떤 방향이든 순회하지 않습니다. 안 링크의 내용도 결과에
-            // 안 나와야 AC 4·AC 6에 맞고, ripgrep 기본(`--no-follow`)과 같은 규칙입니다
-            // (T2 리뷰 3항: 두 순회를 한 규칙으로).
+            // 링크 폴더는 어떤 방향이든 순회하지 않음. ripgrep 기본(`--no-follow`)과 같은 규칙
             if recursive && is_dir && !is_symlink_path(&path) {
                 stack.push(path.clone());
             }

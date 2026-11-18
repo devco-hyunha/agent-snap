@@ -7,7 +7,7 @@ use crate::support::{
     cancel_token, content_stream, form_config, registry_with_fixed, registry_with_list_dir,
 };
 
-/// AC 4: 스키마에 안 맞는 인자는 도구 실행 전에 짧은 오류로 돌아가고, 2안 형식 기록 칸에 남는다.
+/// 스키마에 안 맞는 인자는 도구 실행 전에 짧은 오류로 돌아가고, 2안 형식 기록 칸에 남음.
 #[tokio::test]
 async fn schema_mismatch_returns_short_notice_before_running_tool() {
     let server = MockServer::spawn_queue(vec![
@@ -37,7 +37,7 @@ async fn schema_mismatch_returns_short_notice_before_running_tool() {
     assert_eq!(record.format, ToolCallFormat::Text);
 }
 
-/// AC 4: 등록에 없는 도구 이름은 도구 실행 전에 "등록되지 않은 도구야(사용 가능: …)" 안내로 돌아간다.
+/// 등록에 없는 도구 이름은 도구 실행 전에 "등록되지 않은 도구야(사용 가능: …)" 안내로 돌아감.
 #[tokio::test]
 async fn unregistered_tool_name_returns_notice_before_running_tool() {
     let server = MockServer::spawn_queue(vec![
@@ -90,7 +90,7 @@ async fn unregistered_tool_name_returns_notice_before_running_tool() {
     );
 }
 
-/// AC 3: JSON을 찾지 못한 왕복에는 짧은 오류를 한 번만 넘기고, 그 뒤 왕복에서 답으로 끝난다.
+/// JSON을 찾지 못한 왕복에는 짧은 오류를 한 번만 넘기고, 그 뒤 왕복에서 답으로 끝남.
 #[tokio::test]
 async fn missing_json_notices_once_and_then_stops() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(content_stream(

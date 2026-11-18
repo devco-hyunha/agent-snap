@@ -1,19 +1,19 @@
-//! `glob` 도구 시험: 패턴 글자, 숨김 기본 제외, 비밀 거르기, 경계.
+//! `glob` 도구 시험: 패턴 글자, 숨김 기본 제외, 비밀 거르기, 경계
 //!
-//! 패턴 매처는 파일명·상대 경로 문자열만 봅니다(구분자는 `/`).
+//! 패턴 매처는 파일명·상대 경로 문자열만 봄(구분자는 `/`)
 
 use crate::tools::glob::GlobTool;
 use crate::tools::tool::Tool;
 
 use super::support::TempFolder;
 
-/// 도구를 돌려 결과 텍스트를 돌려줍니다. 오류도 한 줄 문자열로 봅니다.
+/// 도구를 돌려 결과 텍스트를 수집. 오류도 한 줄 문자열로 봄
 async fn glob_out(folder: &TempFolder, args: &str) -> String {
     let ctx = super::support::context_of(folder);
     GlobTool.call(args, &ctx).await.text().to_owned()
 }
 
-/// `*`는 구분자를 넘지 않습니다: 상위 파일만 맞습니다.
+/// `*`는 구분자를 넘지 않음: 상위 파일만 만남
 #[tokio::test]
 async fn star_does_not_cross_folders() {
     let folder = TempFolder::new("glob-star");
@@ -27,7 +27,7 @@ async fn star_does_not_cross_folders() {
     );
 }
 
-/// `**`는 폴더 사이까지 건넙니다.
+/// `**`는 폴더 사이까지 만남
 #[tokio::test]
 async fn double_star_crosses_folders() {
     let folder = TempFolder::new("glob-double");
@@ -38,7 +38,7 @@ async fn double_star_crosses_folders() {
     assert!(text.contains("sub/deep/b.txt"), "{text}");
 }
 
-/// `?`는 한 글자만 맞습니다.
+/// `?`는 한 글자만 만남
 #[tokio::test]
 async fn question_mark_matches_one_char() {
     let folder = TempFolder::new("glob-question");
@@ -53,28 +53,25 @@ async fn question_mark_matches_one_char() {
     );
 }
 
-/// 숨김은 기본 제외, opt 포함. 비밀 이름은 어떤 opt에도 나오지 않습니다.
+/// 숨김은 기본 제외, opt 포함. 비밀 이름은 어떤 opt에도 나오지 않음
 #[tokio::test]
 async fn hidden_and_secret_entries() {
     let folder = TempFolder::new("glob-hidden");
     folder.write_file(".hidden.txt", "x");
     folder.write_file("shown.txt", "x");
     folder.write_file("agent-snap.jsonc", "{}");
-    // T4(AC 8): `.env` 계열도 숨김 opt를 켠 glob 결과에 나오지 않습니다.
     folder.write_file(".env", "value=1");
     folder.write_file(".env.local", "value=1");
     let text = glob_out(&folder, r#"{"pattern":"**","hidden":true}"#).await;
     assert!(text.contains("shown.txt"), "{text}");
     assert!(text.contains(".hidden.txt"), "opt 포함: {text}");
-    // 거르기 검증은 결과 줄 기준(부분 검사 금지)으로 통일합니다.
     assert!(
         !text
             .lines()
             .any(|line| line.trim().ends_with("agent-snap.jsonc")),
         "비밀 파일이 결과 줄에 없습니다: {text}"
     );
-    // T4: `.env` 계열은 결과 줄로 안 나온다. 부분 검사(contains)는 `.env.local` 안에
-    // `.env`가 부분 문자열로 잡히므로, 결과 줄 자체를 비교하는 `lines`로 확인한다.
+    // `.env` 계열은 결과 줄로 안 나옴. 부분 문자열 검사를 피하려 결과 줄로만 확인
     for secret in [".env", ".env.local"] {
         assert!(
             !text.lines().any(|line| line.trim() == secret),
@@ -87,7 +84,7 @@ async fn hidden_and_secret_entries() {
     );
 }
 
-/// 작업 폴더 밖 경로는 거부합니다(AC 2).
+/// 작업 폴더 밖 경로는 거부
 #[tokio::test]
 async fn outside_path_is_refused() {
     let folder = TempFolder::new("glob-outside");
@@ -97,7 +94,7 @@ async fn outside_path_is_refused() {
     assert_eq!(text.lines().count(), 1, "{text}");
 }
 
-/// 맞는 자리가 없으면 빈 결과입니다.
+/// 맞는 자리가 없으면 빈 결과
 #[tokio::test]
 async fn no_match_is_empty() {
     let folder = TempFolder::new("glob-none");
@@ -106,7 +103,7 @@ async fn no_match_is_empty() {
     assert!(text.is_empty(), "빈 결과여야 합니다: {text}");
 }
 
-/// 등록 규칙대로 이름·설명·필수 인자·읽기 전용 표식을 한 자리에서 확인합니다.
+/// 등록 규칙대로 이름·설명·필수 인자·읽기 전용 표식을 한 자리에서 확인
 #[test]
 fn tool_shape_is_ready_for_registration() {
     assert_eq!(GlobTool.name(), "glob");
@@ -116,7 +113,7 @@ fn tool_shape_is_ready_for_registration() {
     assert!(!GlobTool.executes_writes());
 }
 
-/// 패턴 종류가 틀리면 한 줄 오류입니다.
+/// 패턴 종류가 틀리면 한 줄 오류
 #[tokio::test]
 async fn wrong_pattern_type_is_one_line_error() {
     let folder = TempFolder::new("glob-args");

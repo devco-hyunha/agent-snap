@@ -1,4 +1,4 @@
-//! 선택 키 찾기 테스트(02-7 AC 2): 없는 키·형식 오류·모델 이름만 입력을 입력 키만 밝힌 오류로 확인합니다.
+//! 선택 키 찾기 시험: 없는 키·형식 오류·모델 이름만 입력을 입력 키만 밝힌 오류로 확인.
 
 use super::support::{HOST, KEY_VALUE};
 use super::support::{base_url, config_of, endpoint_object, model_object, models_tail, parse_ok};
@@ -7,7 +7,7 @@ use crate::config::{Config, SelectionError};
 /// 선택 키 오류에서 입력 키만 밝히고 호스트·키 값은 밝히지 않는지 보는 기준 문자열.
 const INPUT_MARK: &str = "selection-key-mark";
 
-/// 오류의 Display·Debug에 입력 키는 있고 가짜 호스트·가짜 키 값은 없는지 확인합니다.
+/// 오류의 Display·Debug에 입력 키는 있고 가짜 호스트·가짜 키 값은 없는지 확인.
 fn assert_only_key_leaks(key: &str, error: &SelectionError) {
     for (kind, text) in [
         ("Display", error.to_string()),
@@ -23,7 +23,7 @@ fn assert_only_key_leaks(key: &str, error: &SelectionError) {
     }
 }
 
-/// 선택 키 `pc1/fast`와 `pc2/fast`가 함께 있는 설정입니다. 같은 별칭 `fast`가 다른 엔드포인트에 있습니다.
+/// 선택 키 `pc1/fast`와 `pc2/fast`가 함께 있는 설정. 같은 별칭 `fast`가 다른 엔드포인트에 존재.
 fn two_endpoint_config() -> Config {
     let pc1 = endpoint_object(
         "pc1",
@@ -38,7 +38,7 @@ fn two_endpoint_config() -> Config {
     parse_ok(&config_of(&[pc1, pc2]))
 }
 
-/// AC 2 기준: 정상 선택 키는 엔드포인트와 그 아래 모델을 짝으로 돌려준다.
+/// 정상 선택 키는 엔드포인트와 그 아래 모델을 짝으로 반환.
 #[test]
 fn select_finds_endpoint_and_model() {
     let config = two_endpoint_config();
@@ -49,7 +49,7 @@ fn select_finds_endpoint_and_model() {
     assert_eq!(model.id, "id-one");
 }
 
-/// AC 1: 같은 모델 별칭이어도 선택 키가 다르면 다른 엔드포인트의 모델을 고른다.
+/// 같은 모델 별칭이어도 선택 키가 다르면 다른 엔드포인트의 모델을 선택.
 #[test]
 fn select_splits_same_alias_by_endpoint() {
     let config = two_endpoint_config();
@@ -62,7 +62,7 @@ fn select_splits_same_alias_by_endpoint() {
     assert_ne!(first.id, second_model.id);
 }
 
-/// AC 2: 설정에 없는 선택 키는 키만 밝힌 오류다. Display·Debug에 입력 키만 있고 호스트·키 값은 없다.
+/// 설정에 없는 선택 키는 키만 밝힌 오류로 반환.
 #[test]
 fn select_unknown_key_carries_only_input_key() {
     let config = two_endpoint_config();
@@ -80,7 +80,7 @@ fn select_unknown_key_carries_only_input_key() {
     assert_only_key_leaks(&key, &error);
 }
 
-/// AC 2: 구분자가 없는 입력(모델 이름만 넘긴 것)은 구분자 없음 오류다.
+/// 구분자가 없는 입력(모델 이름만 넘긴 것)은 구분자 없음 오류로 반환.
 #[test]
 fn select_model_name_only_is_no_separator() {
     let config = two_endpoint_config();
@@ -98,7 +98,7 @@ fn select_model_name_only_is_no_separator() {
     assert_only_key_leaks(&key, &error);
 }
 
-/// AC 2: 구분자가 둘인 입력과 빈 이름은 형식 오류다.
+/// 구분자가 둘인 입력과 빈 이름은 형식 오류로 반환.
 #[test]
 fn select_malformed_key_is_malformed() {
     let config = two_endpoint_config();
@@ -120,7 +120,7 @@ fn select_malformed_key_is_malformed() {
     }
 }
 
-/// AC 2: `endpoints`가 빈 설정은 고를 모델 없음 오류다. 안내만 담고 키와 주소는 담지 않는다.
+/// `endpoints`가 빈 설정은 고를 모델 없음 오류로 반환. 안내만 담고 키와 주소는 담지 않음.
 #[test]
 fn select_empty_endpoints_is_empty_list() {
     let config = parse_ok(&config_of(&[]));

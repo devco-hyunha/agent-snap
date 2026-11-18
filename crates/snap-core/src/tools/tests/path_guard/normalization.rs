@@ -1,6 +1,6 @@
-//! 경로 정규화 시험(`path_norm`의 `.` 지움, 03-3 T1).
+//! 경로 정규화 시험(`path_norm`의 `.` 지움)
 //!
-//! 상대 경로에 섞인 `.`를 지운 정규화 결과를 `check_tool_path`가 돌려주는지를 본다.
+//! 상대 경로에 섞인 `.`를 지운 정규화 결과를 `check_tool_path`가 반환하는지를 확인
 
 use crate::tools::path_guard::check_tool_path;
 

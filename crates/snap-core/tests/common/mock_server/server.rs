@@ -1,8 +1,4 @@
-//! 모의 서버의 수명(띄우기·접기)과 시험 조종 창구만 다룹니다.
-//!
-//! 응답 스크립트 규격은 `super::script`, 공유 상태는 `super::shared`, 연결 수 가드는
-//! `super::guard`, 본문 스트림 구현은 `super::body_stream`, 스크립트 대기열 규칙은
-//! `super::queue`에 있습니다(서버 수명 책임과 스크립트 대기열 책임 분리).
+//! 모의 서버의 수명(띄우기·접기)과 시험 조종 창구
 
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -21,7 +17,7 @@ use super::record::RecordedRequest;
 use super::script::MockResponseScript;
 use super::shared::Shared;
 
-/// 로컬에서 뜨는 모의 서버입니다. 채팅 완료(`/chat/completions`)와 모델 목록(`/models`) 경로를 함께 다룹니다.
+/// 로컬에서 뜨는 모의 서버. 채팅 완료와 모델 목록 경로를 함께 다룸
 pub struct MockServer {
     base_url: String,
     shared: Arc<Shared>,
@@ -30,7 +26,7 @@ pub struct MockServer {
 }
 
 impl MockServer {
-    /// `127.0.0.1`의 빈 포트에 모의 서버를 띄웁니다. 채팅 완료와 모델 목록 경로를 함께 등록합니다.
+    /// `127.0.0.1`의 빈 포트에 모의 서버를 띄움. 채팅 완료와 모델 목록 경로를 함께 등록
     pub async fn spawn(script: MockResponseScript) -> Self {
         Self::spawn_with(script, |shared| {
             Router::new()
@@ -41,12 +37,12 @@ impl MockServer {
         .await
     }
 
-    /// 왕복 여러 턴(에이전트 루프처럼 한 요청이 아닌 요청) 시험을 위해, 스크립트를 앞부터
-    /// 순서대로 써서 응답하는 서버를 띄웁니다. 대기열이 비면 마지막 스크립트를 그대로 씁니다.
-    /// 대기열 채우기 규칙은 `super::queue`에 있습니다(서버 수명 책임과 스크립트 대기열 책임 분리).
+    /// 왕복 여러 턴 시험용 서버. 스크립트를 앞부터 순서대로 써서 응답함
+    ///
+    /// 대기열이 비면 마지막 스크립트를 그대로 씀. 채우기 규칙은 `super::queue`
     pub async fn spawn_queue(scripts: Vec<MockResponseScript>) -> Self {
         let (tail, remaining) = queue::split(scripts);
-        // 서버가 요청받기 전에 대기열을 채운다. 띄운 뒤 채우면 첫 요청이 뒤 스크립트로 답할 수 있다(queue 경쟁 방지).
+        // 서버가 요청받기 전에 대기열을 채워 queue 경쟁을 방지
         let shared = Arc::new(Shared::new(tail));
         queue::fill(&shared, remaining).await;
         Self::spawn_shared(shared, |shared| {
@@ -58,8 +54,9 @@ impl MockServer {
         .await
     }
 
-    /// 라우트를 직접 정해서 띄우는 기본 만들기입니다. 라우트 등록 쪽만 바뀌면 서버 수명 코드를
-    /// 다시 적지 않습니다. `routes`는 서버가 쓸 공유 상태를 라우트에 붙인 값을 받습니다.
+    /// 라우트를 직접 정해서 띄우는 기본 만들기. 라우트 등록 쪽만 바뀌면 서버 수명 코드를 다시 적지 않음
+    ///
+    /// `routes`는 서버가 쓸 공유 상태를 라우트에 붙인 값을 받음
     async fn spawn_with(
         script: MockResponseScript,
         routes: impl FnOnce(Arc<Shared>) -> Router,
@@ -67,8 +64,7 @@ impl MockServer {
         Self::spawn_shared(Arc::new(Shared::new(script)), routes).await
     }
 
-    /// 공유 상태를 받아 라우트를 붙이고 포트에 뜨는 실제 만들기입니다. 대기열을 미리 채운
-    /// 상태를 넘길 수 있게 나눈 것입니다(`spawn_queue`의 경쟁 방지).
+    /// 공유 상태를 받아 라우트를 붙이고 포트에 뜨는 실제 만들기. 대기열을 미리 채운 상태를 넘길 수 있게 나눔
     async fn spawn_shared(shared: Arc<Shared>, routes: impl FnOnce(Arc<Shared>) -> Router) -> Self {
         let listener = TcpListener::bind(SocketAddr::from(([127, 0, 0, 1], 0)))
             .await
@@ -92,23 +88,24 @@ impl MockServer {
         }
     }
 
-    /// `http://127.0.0.1:포트` 형태의 주소입니다.
+    /// `http://127.0.0.1:포트` 형태의 주소
     pub fn base_url(&self) -> &str {
         &self.base_url
     }
 
-    /// `{base_url}/chat/completions` 경로입니다.
+    /// `{base_url}/chat/completions` 경로
     pub fn chat_completions_url(&self) -> String {
         format!("{}/chat/completions", self.base_url())
     }
 
-    /// `{base_url}/models` 경로입니다. 모델 목록 조회 시험이 씁니다.
+    /// `{base_url}/models` 경로
     pub fn models_url(&self) -> String {
         format!("{}/models", self.base_url())
     }
 
-    /// 모델 목록 라우트만 띄우는 서버입니다. `/models`와 `/v1`이 base_url에 붙어 있는 주소도 함께
-    /// 등록해서, base_url에 `/v1`이 있어도 경로가 `/v1/v1`로 이중으로 결합되지 않음을 보는 시험이 씁니다.
+    /// 모델 목록 라우트만 띄우는 서버. `/models`와 `/v1/models`를 함께 등록
+    ///
+    /// base_url에 `/v1`이 있어도 경로가 `/v1/v1`로 이중 결합되지 않음을 보는 시험용
     pub async fn spawn_models_only(script: MockResponseScript) -> Self {
         Self::spawn_with(script, |shared| {
             Router::new()
@@ -119,9 +116,9 @@ impl MockServer {
         .await
     }
 
-    /// `/models` 라우트 하나만 띄우고 스크립트 시점(헤더 지연·행·본문 조각 지연)을 그대로 따르는 서버입니다.
+    /// `/models` 라우트 하나만 띄우고 스크립트 시점(헤더 지연·행·본문 조각 지연)을 그대로 따르는 서버
     ///
-    /// 취소·시간 초과 시험이 채팅과 같은 스크립트 규격을 목록 전용 경로에서 그대로 쓰려고 엽니다.
+    /// 취소·시간 초과 시험이 채팅과 같은 스크립트 규격을 목록 전용 경로에서 쓰려고 열음
     pub async fn spawn_models_script(script: MockResponseScript) -> Self {
         Self::spawn_with(script, |shared| {
             Router::new()
@@ -131,22 +128,22 @@ impl MockServer {
         .await
     }
 
-    /// 다음 요청부터 쓸 응답 스크립트를 바꿉니다.
+    /// 다음 요청부터 쓸 응답 스크립트를 바꿈
     pub async fn set_script(&self, script: MockResponseScript) {
         *self.shared.script.lock().await = script;
     }
 
-    /// 지금까지 기록한 요청 목록을 복사해 돌려줍니다.
+    /// 지금까지 기록한 요청 목록을 복사해 반환
     pub async fn recorded_requests(&self) -> Vec<RecordedRequest> {
         self.shared.recorded.lock().await.clone()
     }
 
-    /// 지금 열려 있는 연결 수입니다.
+    /// 지금 열려 있는 연결 수
     pub fn open_connections(&self) -> usize {
         self.shared.open_connections()
     }
 
-    /// 열린 연결이 0이 될 때까지 기다립니다. 시간 안에 되면 true입니다.
+    /// 열린 연결이 0이 될 때까지 기다림. 시간 안에 되면 true
     pub async fn wait_until_idle(&self, timeout: Duration) -> bool {
         let deadline = tokio::time::Instant::now() + timeout;
         loop {

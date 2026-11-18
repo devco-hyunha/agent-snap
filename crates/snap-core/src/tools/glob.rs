@@ -1,8 +1,6 @@
-//! `glob` 도구: 이름 패턴에 맞는 자리를 찾습니다(03-3 T2).
+//! `glob` 도구: 이름 패턴에 맞는 자리를 찾음
 //!
-//! 패턴 글자: `*`는 이름 안 여러 글자, `?`는 한 글자, `**`는 폴더 사이까지 건넙니다.
-//! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외합니다.
-//! 이름은 작업 폴더 기준 상대 경로로 보여 줍니다.
+//! 숨김 자리는 기본 제외(opt로 포함), 비밀 파일 자리는 늘 제외
 
 use serde_json::{Value, json};
 
@@ -12,7 +10,7 @@ use super::glob_pattern::match_pattern;
 use super::tool::{Tool, ToolCallFuture, ToolContext, ToolOutcome};
 use super::walk::{collect, resolve_dir};
 
-/// `glob` 도구입니다.
+/// `glob` 도구
 pub struct GlobTool;
 
 impl GlobTool {

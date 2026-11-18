@@ -1,8 +1,6 @@
-//! 선택 키 클라이언트의 `GET /models` 형식 오류·가리기 통합 시험(02-7 AC 3, 작업 3).
+//! 선택 키 클라이언트의 `GET /models` 형식 오류·가리기 통합 시험
 //!
-//! 목록 응답이 정한 형식이 아닌 경우 형식 오류 종류만 알리고, Display·Debug에 키·주소·본문
-//! 원문이 없는지, 200 본문이 비면 빈 목록 성공이 아니라 형식 오류로 내는지 본다.
-//! 정상 조회는 `ids_read.rs`가 다룬다(SRP).
+//! 목록 응답이 정한 형식이 아닌 경우 형식 오류 종류만 알리고, Display·Debug에 키·주소·본문 원문이 없는지 확인
 
 use snap_core::config::Config;
 use snap_core::llm::CancellationToken;
@@ -12,12 +10,10 @@ use crate::common::mock_server::{MockResponseScript, MockServer};
 
 use super::support::{FAST_SELECTION_KEY, KEY_MARK, ac3_config_text, ac3_credentials, list_script};
 
-/// 작업 3(AC 3): 형식 오류마다 종류만 알리고, Display·Debug에 키·호스트·본문 조각이 없다.
+/// 형식 오류마다 종류만 알리고, Display·Debug에 키·호스트·본문 조각이 없는지 확인
 #[tokio::test]
 async fn list_models_format_errors_hide_key_host_and_body() {
-    // 본문에 자격 키 마킹 조각이 섞여 있어도 형식 오류 표기에선 가려지는지 본다.
-    // 본문 JSON을 온전하게 유지한 채로 키 마킹 키 한 개만 뒤에 붙여, 형식 오류 5종이 각 라벨대로
-    // 나는지(InvalidJson으로 뭉개지지 않는지)까지 함께 확인한다.
+    // 본문 JSON을 온전하게 유지한 채 키 마킹을 뒤에 붙여, 형식 오류 5종이 각 라벨대로 나는지 함께 확인
     let cases = [
         ("data 없음", "data 없음", r#"{"object":"list"}"#),
         ("data 배열 아님", "data가 배열 아님", r#"{"data":"one-id"}"#),
@@ -31,8 +27,7 @@ async fn list_models_format_errors_hide_key_host_and_body() {
     ];
 
     for (label, expected_kind, body_json) in cases {
-        // 본문 JSON의 끝 `}`를 잘라 낸 뒤에 키 마킹 키 한 개를 더 넣어, 본문은 유효한 JSON으로
-        // 유지하고 키 값만 섞인 상태로 만든다(형식 오류 5종이 각 라벨대로 나게 확인하기 위함).
+        // 본문 JSON의 끝 `}`를 잘라 낸 뒤에 키 마킹을 더 넣어 유효한 JSON으로 유지
         let head = body_json
             .strip_suffix('}')
             .expect("본문 JSON은 }로 닫혀야 합니다");
@@ -59,7 +54,7 @@ async fn list_models_format_errors_hide_key_host_and_body() {
             display.contains("모델 목록 형식 오류"),
             "{label}: 안내 말이 Display에 있어야 합니다"
         );
-        // 라벨마다 형식 오류 종류가 골고루 나야 한다(모두 InvalidJson으로 뭉개지면 안 됨).
+        // 라벨마다 형식 오류 종류가 골고루 남 (InvalidJson으로 뭉개지면 안 됨)
         let actual_kind = error
             .to_string()
             .rsplit_once(": ")
@@ -70,7 +65,7 @@ async fn list_models_format_errors_hide_key_host_and_body() {
             actual_kind, expected_kind,
             "{label}: 형식 오류 종류가 `{expected_kind}`여야 합니다: {display}"
         );
-        // 종류 표기 말에는 `data`·`id` 이름이 정상적으로 들어가므로, 본문 값과 키·주소 값만 가리는지 봅니다.
+        // 종류 표기에 `data`·`id` 이름이 정상적으로 들어가므로, 본문 값과 키·주소 값만 가리는지 확인
         for forbidden in [KEY_MARK, "leak", "127.0.0.1", "42", "object"] {
             assert!(
                 !display.contains(forbidden) && !debug.contains(forbidden),
@@ -80,7 +75,7 @@ async fn list_models_format_errors_hide_key_host_and_body() {
     }
 }
 
-/// 작업 3(AC 3): 200 응답의 본문이 비면 빈 목록 성공이 아니라 형식 오류로 낸다.
+/// 200 응답의 본문이 비면 빈 목록 성공이 아니라 형식 오류로 냄
 #[tokio::test]
 async fn list_models_rejects_empty_body_as_format_error() {
     let server = MockServer::spawn(MockResponseScript::empty_ok()).await;

@@ -1,7 +1,6 @@
-//! `edit_file` 도구 시험(spec AC 3).
+//! `edit_file` 도구 시험
 //!
-//! 일치가 하나인 교체, 일치가 없는 거부, 여러 곳에서 맞는 거부, 파일을 고치지 않고 두는
-//! 확인을 본다.
+//! 일치가 하나인 교체, 일치가 없는 거부, 여러 곳에서 맞는 거부, 파일을 고치지 않고 두는 확인을 봄
 
 use crate::tools::edit_file::EditFileTool;
 use crate::tools::tool::{Tool, ToolOutcome};
@@ -22,7 +21,7 @@ fn edit_args(path: &str, find: &str, replace: &str) -> String {
     .to_string()
 }
 
-/// 한 줄 오류 결과인지 확인하고 문장을 받아 온다(spec AC 3의 짧은 오류).
+/// 한 줄 오류 결과인지 확인하고 문장을 수집
 fn assert_one_line_error(outcome: ToolOutcome, expected: &str) {
     let ToolOutcome::Error(text) = outcome else {
         panic!("거부되어야 합니다");
@@ -32,7 +31,7 @@ fn assert_one_line_error(outcome: ToolOutcome, expected: &str) {
     assert_eq!(text.lines().count(), 1, "오류는 한 줄만: {text}");
 }
 
-/// AC 3: 일치가 하나만 있으면 그 자리만 바꿉니다.
+/// 일치가 하나만 있으면 그 자리만 교체
 #[tokio::test]
 async fn single_match_is_replaced() {
     let folder = TempFolder::new("edit-one");
@@ -48,7 +47,7 @@ async fn single_match_is_replaced() {
     assert!(!saved.contains("fn a()"));
 }
 
-/// AC 3: 일치가 둘 이상이면 교체하지 않고 이유만 알리고 파일을 그대로 둣니다.
+/// 일치가 둘 이상이면 교체하지 않고 이유만 알리고 파일을 그대로 둠
 #[tokio::test]
 async fn multiple_match_is_rejected_and_file_untouched() {
     let folder = TempFolder::new("edit-multi");
@@ -62,7 +61,7 @@ async fn multiple_match_is_rejected_and_file_untouched() {
     assert_eq!(after, original, "다중 일치면 파일을 고치지 않습니다");
 }
 
-/// AC 3: 일치가 없으면 이유만 알립니다.
+/// 일치가 없으면 이유만 알림
 #[tokio::test]
 async fn no_match_is_rejected() {
     let folder = TempFolder::new("edit-none");
@@ -73,7 +72,7 @@ async fn no_match_is_rejected() {
     );
 }
 
-/// AC 3: 바꿀 문자열이 찾을 문자열과 같아도 일치가 하나면 성공이고 파일은 그대로입니다.
+/// 바꿀 문자열이 찾을 문자열과 같아도 일치가 하나면 성공이고 파일은 그대로
 #[tokio::test]
 async fn same_find_and_replace_keeps_file() {
     let folder = TempFolder::new("edit-same");
@@ -84,7 +83,7 @@ async fn same_find_and_replace_keeps_file() {
     assert_eq!(saved, "고유", "바꿀 문자열이 같으면 파일은 그대로입니다");
 }
 
-/// AC 2: 작업 폴더 밖 경로는 거부합니다.
+/// 작업 폴더 밖 경로는 거부
 #[tokio::test]
 async fn out_of_boundary_is_rejected() {
     let folder = TempFolder::new("edit-guard");
@@ -94,7 +93,7 @@ async fn out_of_boundary_is_rejected() {
     );
 }
 
-/// AC 4: 비밀 파일 편집은 거부하고 파일을 고치지 않습니다.
+/// 비밀 파일 편집은 거부하고 파일을 고치지 않음
 #[tokio::test]
 async fn secret_file_is_blocked_and_untouched() {
     let folder = TempFolder::new("edit-secret");
@@ -107,7 +106,7 @@ async fn secret_file_is_blocked_and_untouched() {
     assert_eq!(saved, "{}", "비밀 파일은 고치지 않습니다");
 }
 
-/// AC 3: `.git` 아래 편집은 거부합니다(D49).
+/// `.git` 아래 편집은 거부
 #[tokio::test]
 async fn git_edit_is_blocked() {
     let folder = TempFolder::new("edit-git");
@@ -118,7 +117,7 @@ async fn git_edit_is_blocked() {
     );
 }
 
-/// AC 3: `find` 인자가 없으면 이유 한 줄만 돌려줍니다.
+/// `find` 인자가 없으면 이유 한 줄만 반환
 #[tokio::test]
 async fn missing_find_arg_is_one_line_error() {
     let folder = TempFolder::new("edit-args");
@@ -128,7 +127,7 @@ async fn missing_find_arg_is_one_line_error() {
     );
 }
 
-/// AC 3: 등록 규칙대로 이름과 필수 인자 목록을 한 자리에서 확인합니다.
+/// 등록 규칙대로 이름과 필수 인자 목록을 한 자리에서 확인
 #[test]
 fn tool_shape_is_ready_for_registration() {
     assert_eq!(EditFileTool.name(), "edit_file");

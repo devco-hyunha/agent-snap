@@ -1,4 +1,4 @@
-//! `tool_call` 프로파일 값 검사와 예약 키 거부 시험(D15, AC 7 뒷부분).
+//! `tool_call` 프로파일 값 검사와 예약 키 거부 시험.
 
 use snap_core::agent::ToolCallProfile;
 use snap_core::config::{ModelIssue, SectionIssue, ValidationError};
@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 
 use snap_core::config::{ExtraValue, Sampling};
 
-/// AC 7: 예약 키를 덮으려는 항목은 설정 오류로 내고, 덮지 않으면 온도만 합칩니다.
+/// 예약 키를 덮으려는 항목은 설정 오류로 내고, 덮지 않으면 온도만 합침.
 #[test]
 fn profile_rejects_reserved_keys_and_applies_temperature() {
     let profile = ToolCallProfile::new(0.1).expect("0.1은 프로파일 값");
@@ -31,7 +31,7 @@ fn profile_rejects_reserved_keys_and_applies_temperature() {
     assert_eq!(clean.sampling.temperature, Some(0.1));
 }
 
-/// AC 7: 범위를 벗난 온도는 프로파일 만들기에서 거부합니다(02-2 규칙 재사용).
+/// 범위를 벗난 온도는 프로파일 만들기에서 거부.
 #[test]
 fn profile_rejects_out_of_range_temperature() {
     let error = ToolCallProfile::new(2.5).expect_err("2.5는 범위 밖");
@@ -41,7 +41,7 @@ fn profile_rejects_out_of_range_temperature() {
     ));
 }
 
-/// 요청 골격에 `extra`를 채운 골격을 만듭니다.
+/// 요청 골격에 `extra`를 채운 골격 생성.
 fn request_with_extra(extra: BTreeMap<String, ExtraValue>) -> ChatRequest {
     ChatRequest {
         model: "loop-test-model".into(),

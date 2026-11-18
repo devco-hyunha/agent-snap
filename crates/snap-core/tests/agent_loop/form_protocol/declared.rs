@@ -9,7 +9,7 @@ use crate::support::{cancel_token, content_stream, form_config, registry_with_fi
 
 use super::tools_of;
 
-/// AC 7: `text` 선언은 감지 없이 첫 요청부터 2안 조립이고, `openai` 선언은 전환을 쓰지 않는다.
+/// `text` 선언은 감지 없이 첫 요청부터 2안 조립, `openai` 선언은 전환을 쓰지 않음.
 #[tokio::test]
 async fn declared_text_skips_detection_and_openai_stays_in_first_form() {
     let server = MockServer::spawn_queue(vec![
@@ -71,7 +71,7 @@ async fn declared_text_skips_detection_and_openai_stays_in_first_form() {
     );
 }
 
-/// AC 1 규칙: `auto` 선언의 4x는 2안으로 전환한 뒤 같은 자리에 1회를 쓰고, `text` 선언은 4x를 그대로 넘긴다.
+/// 선언 값은 감지를 쓰지 않으므로 4x에 2안 전환을 하지 않고 그대로 넘김.
 #[tokio::test]
 async fn declared_text_does_not_switch_on_4xx() {
     let script = MockResponseScript {

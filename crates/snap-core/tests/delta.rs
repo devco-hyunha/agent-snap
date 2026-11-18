@@ -1,4 +1,4 @@
-//! 델타 복원 단위 테스트(AC 2, AC 3, AC 5).
+//! 델타 복원 단위 테스트.
 
 mod common;
 use common::support::{
@@ -83,7 +83,7 @@ fn usage_absent_is_none() {
 
 #[test]
 fn one_delta_keeps_reasoning_field_insertion_order() {
-    // 사전순이면 reasoning이 먼저지만, 보낸 순서(reasoning_content → reasoning)를 유지한다.
+    // 보낸 순서를 그대로 유지.
     let body =
         data_line(r#"{"choices":[{"delta":{"reasoning_content":"먼저","reasoning":"나중"}}]}"#);
     let (events, assembled) = decode_all(body.as_bytes()).unwrap();
@@ -93,7 +93,7 @@ fn one_delta_keeps_reasoning_field_insertion_order() {
 
 #[test]
 fn one_delta_keeps_unknown_field_insertion_order() {
-    // 사전순이면 a_extra가 먼저지만, 보낸 순서(z_extra → a_extra)를 유지한다.
+    // 보낸 순서(z_extra → a_extra)를 그대로 유지.
     let body = data_line(r#"{"choices":[{"delta":{"z_extra":1,"a_extra":2,"content":"x"}}]}"#);
     let (_, assembled) = decode_all(body.as_bytes()).unwrap();
     assert_eq!(assembled.content, "x");

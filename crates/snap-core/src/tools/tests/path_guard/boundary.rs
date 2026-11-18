@@ -1,12 +1,12 @@
-//! 작업 폴더 경계 시험(`path_guard` 검사 순서, spec AC 2·AC 4, 03-3 T1·T3).
+//! 작업 폴더 경계 시험(`path_guard` 검사 순서)
 //!
-//! 바깥·`..`·절대경로·빈 경로·작업 폴더 자체 거부와 `.git` 아래 쓰기 거부를 확인한다.
+//! 바깥·`..`·절대경로·빈 경로·작업 폴더 자체 거부와 `.git` 아래 쓰기 거부를 확인
 
 use crate::tools::path_guard::{check_tool_path, check_write_path};
 
 use super::super::support::TempFolder;
 
-/// 거부에 이유 문장이 들어있는지 함께 본다.
+/// 거부에 이유 문장이 들어있는지 함께 확인
 pub(in crate::tools) fn assert_rejected(working_dir: &std::path::Path, path: &str, expected: &str) {
     let error = check_tool_path(working_dir, path).expect_err("거부되어야 한다");
     let reason = error.to_string();
@@ -64,7 +64,7 @@ fn work_folder_itself_is_rejected() {
 #[test]
 fn git_write_is_blocked_by_write_check() {
     let folder = TempFolder::new("guard-git");
-    // 쓰기 검사는 `.git` 아래를 막고, 읽기 검사는 막지 않는다(D49).
+    // 쓰기 검사는 `.git` 아래를 막고, 읽기 검사는 막지 않음
     assert!(check_tool_path(folder.path(), ".git/config").is_ok());
     assert!(check_write_path(folder.path(), ".git/config").is_err());
 }

@@ -1,14 +1,11 @@
-//! UTC 민간 달력 지식(요일·월 이름·윤년·일수)을 한 곳에 담은 자리입니다.
-//!
-//! LLM이나 HTTP에 묶이지 않은 달력 계산만 두고, 쓰는 쪽(`llm::retry::http_date`)에서 부릅니다.
-//! 달력을 고칠 이유가 HTTP 파싱과 다르므로 `llm` 아래가 아닌 crate 최상위에 둡니다.
+//! UTC 민간 달력 지식(요일·월 이름·윤년·일수)을 한곳에 담은 자리.
 
-/// IMF-fixdate 요일 이름(`Mon`~`Sun`)인지 확인합니다.
+/// IMF-fixdate 요일 이름(`Mon`~`Sun`) 확인.
 pub(crate) fn is_imf_day_name(name: &str) -> bool {
     matches!(name, "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun")
 }
 
-/// 월 약어(`Jan`~`Dec`)를 1~12 달 번호로 바꿉니다.
+/// 월 약어(`Jan`~`Dec`)를 1~12 달 번호로 변환.
 pub(crate) fn month_from_name(name: &str) -> Option<u32> {
     match name {
         "Jan" => Some(1),
@@ -27,7 +24,7 @@ pub(crate) fn month_from_name(name: &str) -> Option<u32> {
     }
 }
 
-/// `HH:MM:SS`를 시·분·초로 바꿉니다. 초는 윤초(60)까지 허용합니다.
+/// `HH:MM:SS`를 시·분·초로 변환. 초는 윤초(60)까지 허용.
 pub(crate) fn parse_time_of_day(value: &str) -> Option<(u32, u32, u32)> {
     let parts: Vec<&str> = value.split(':').collect();
     if parts.len() != 3 {
@@ -48,9 +45,9 @@ pub(crate) fn parse_time_of_day(value: &str) -> Option<(u32, u32, u32)> {
     Some((hour, minute, second))
 }
 
-/// UTC 민간 시각을 Unix 초(부호 있음)로 바꿉니다. 잘못된 날짜면 `None`입니다.
+/// UTC 민간 시각을 Unix 초(부호 있음)로 변환. 잘못된 날짜면 `None`.
 ///
-/// epoch 이전은 음수이며, 호출측이 과거(대기 0초)로 취급합니다(AC2/D14).
+/// epoch 이전은 음수이고 호출측이 과거(대기 0초)로 취급하는 제약.
 pub(crate) fn civil_utc_to_unix_secs(
     year: i32,
     month: u32,
@@ -74,7 +71,7 @@ pub(crate) fn civil_utc_to_unix_secs(
     Some(i64::from(days) * 86_400 + day_secs)
 }
 
-/// 주한 달의 날 수입니다. 달 번호가 1~12가 아니면 `None`입니다.
+/// 주한 달의 날 수. 달 번호가 1~12가 아니면 `None`.
 fn days_in_month(year: i32, month: u32) -> Option<u32> {
     match month {
         1 | 3 | 5 | 7 | 8 | 10 | 12 => Some(31),

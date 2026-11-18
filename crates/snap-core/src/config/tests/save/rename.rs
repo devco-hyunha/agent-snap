@@ -1,8 +1,6 @@
-//! 설정 파일 이름 바꾸기·삭제 저장 시험(02-9 작업 3의 설정 쪽 책임).
+//! 설정 파일 이름 바꾸기·삭제 저장 시험
 //!
-//! 자격 파일만 다루는 이름 바꾸기·삭제 시험은 `credentials_rename.rs`로 나눕니다. 이 파일은
-//! 두 파일을 함께 고치는 저장 진입점과 설정 파일 쪽 동작을 봅니다. 파일 텍스트 견본은 저장을
-//! 보는 여러 시험이 함께 쓰므로 지원부(`save_samples.rs`)에서 가져옵니다.
+//! 파일 텍스트 견본은 지원부(`support/save_samples.rs`)에서 함께 씀
 
 use crate::config::CONFIG_FILE_NAME;
 use crate::config::CREDENTIALS_FILE_NAME;
@@ -18,10 +16,7 @@ use super::super::support::{
     blocking_replacement, parse_ok,
 };
 
-/// AC 1(설정 파일 쪽 교체 실패): 설정 파일 교체만 막으면 설정 파일은 그대로이고 임시 파일이
-/// 남지 않습니다. D41 순서는 검증 후 자격 교체, 그다음 설정 교체이므로 자격 파일은 이미 바뀐
-/// 상태이고, 오류가 그 상태를 밝힙니다. 바뀐 자격 파일 상태와 오류 문구의 상세 확인은
-/// `config_only_replacement_failure_reports_key_side_already_changed`가 맡습니다.
+/// 설정 파일 교체 실패 시 설정 파일은 유지하고 임시 파일은 남기지 않음
 #[test]
 fn config_side_replacement_failure_keeps_config_file_and_leaves_no_temp_file() {
     let folder = TempDir::new("설정-교체-실패");
@@ -55,8 +50,7 @@ fn config_side_replacement_failure_keeps_config_file_and_leaves_no_temp_file() {
     assert_error_hides_secrets("설정 교체 실패", &error);
 }
 
-/// AC 1(자격 파일 쪽 교체 실패): 자격 파일 교체가 실패하면 두 파일이 그대로이고 설정 파일
-/// 교체가 일어나지 않습니다(D40 규칙 3의 앞쪽이 먼저 끝나지 않는 상태).
+/// 자격 파일 교체 실패 시 두 파일은 유지하고 설정 파일 교체는 실행하지 않음
 #[test]
 fn key_side_replacement_failure_stops_before_config_replacement() {
     let folder = TempDir::new("자격-교체-실패");
@@ -93,7 +87,7 @@ fn key_side_replacement_failure_stops_before_config_replacement() {
     );
 }
 
-/// AC 3: 이름 바꾸기 저장이 자격 파일 교체 뒤에 설정 파일 교체를 일으킵니다.
+/// 이름 바꾸기 저장이 자격 파일 교체 뒤에 설정 파일을 교체함
 #[test]
 fn renaming_endpoint_replaces_credentials_before_config() {
     let folder = TempDir::new("이름-변경-순서");
@@ -119,8 +113,7 @@ fn renaming_endpoint_replaces_credentials_before_config() {
     folder.assert_no_temp_files();
 }
 
-/// AC 3: 설정 파일 교체만 실패하면 자격 파일은 새 이름 키로 바뀐 상태이고, 오류가 어떤 쪽이
-/// 바뀐 상태인지를 밝힙니다.
+/// 설정 파일 교체만 실패한 상태가 오류에 자격 파일 교체 완료로 나타남
 #[test]
 fn config_only_replacement_failure_reports_key_side_already_changed() {
     let folder = TempDir::new("설정-교체-실패-상태");
@@ -149,8 +142,7 @@ fn config_only_replacement_failure_reports_key_side_already_changed() {
     folder.assert_no_temp_files();
 }
 
-/// AC 1, 3: 엔드포인트 삭제도 같은 순서를 따르고, 자격 파일 키만 지워진 채 설정 파일 교체가
-/// 실패하면 그 상태를 밝힙니다.
+/// 엔드포인트 삭제는 자격 파일 키를 먼저 지우고 설정 파일 교체 실패 시 그 상태를 오류에 담음
 #[test]
 fn removing_endpoint_replaces_credentials_before_config_and_reports_state() {
     let folder = TempDir::new("삭제-순서");
@@ -184,9 +176,7 @@ fn removing_endpoint_replaces_credentials_before_config_and_reports_state() {
     folder.assert_no_temp_files();
 }
 
-/// AC 2의 설정 파일 쪽 검증: 결과를 02-2 검증으로 다시 읽은 거부(같은 이름 항목이 있는
-/// 이름 바꾸기)는 파일을 건드리지 않습니다. 검증이 자격 교체보다 앞에서 끝나므로 자격 파일까지
-/// 그대로여야 합니다(D41).
+/// 이름 중복 항목이 있는 이름 바꾸기는 검증 거지로 두 파일 미변경
 #[test]
 fn duplicate_name_rename_rejects_before_touching_files() {
     let folder = TempDir::new("이름-중복-거부");
@@ -209,13 +199,11 @@ fn duplicate_name_rename_rejects_before_touching_files() {
     folder.assert_no_temp_files();
 }
 
-/// AC 3의 경계: 자격 파일에 그 키가 없으면 자격 파일 쪽은 값 없이 성공하고 설정 파일만
-/// 바뀝니다.
+/// 자격 파일에 그 키가 없으면 값 없이 성공하고 설정 파일만 변경
 #[test]
 fn rename_without_key_succeeds_and_only_changes_config() {
     let folder = TempDir::new("키-없는-이름-변경");
     folder.write(CONFIG_FILE_NAME, CONFIG_TEXT);
-    // 자격 파일에 `main` 키가 없는 상태입니다.
     folder.write(CREDENTIALS_FILE_NAME, r#"{ "api_keys": {} }"#);
 
     rename_endpoint(folder.path(), &rename_main_to_main2())
@@ -231,8 +219,7 @@ fn rename_without_key_succeeds_and_only_changes_config() {
     );
 }
 
-/// AC 3의 설정 파일 쪽 이름 바꾸기만 실패하는 상태를 확인합니다. 자격 파일 쪽 이름 바꾸기는
-/// 값 없이 성공하고, 설정 파일 교체만 실패합니다.
+/// 자격 파일 쪽은 값 없이 성공하고 설정 파일 교체만 실패하는 상태 확인
 #[test]
 fn config_only_rename_failure_reports_key_side_state_without_key_change() {
     let folder = TempDir::new("설정-이름-변경-교체실패");
@@ -260,8 +247,7 @@ fn config_only_rename_failure_reports_key_side_state_without_key_change() {
     );
 }
 
-/// 이름 바꾸기, 삭제가 한 번의 호출로 두 파일 저장을 처리하는 진입점임을 확인합니다(AC 4:
-/// 저장 API가 여러 함수를 섞지 않음, dev-principles 3절 DRY).
+/// 이름 바꾸기·삭제가 한 번의 호출로 두 파일을 저장하는 진입점
 #[test]
 fn entry_points_process_both_files_in_one_call() {
     let rename_folder = TempDir::new("진입점-이름-변경");
@@ -299,7 +285,7 @@ fn entry_points_process_both_files_in_one_call() {
     );
 }
 
-/// AC 2: 02-2 이름 규칙에 맞지 않는 이름 바꾸기 요청은 두 파일을 모두 건드리지 않습니다.
+/// 이름 규칙 위반 이름 바꾸기는 두 파일 미변경
 #[test]
 fn invalid_rename_leaves_both_files_untouched() {
     let folder = TempDir::new("이름-검증-실패");
@@ -329,7 +315,7 @@ fn invalid_rename_leaves_both_files_untouched() {
     );
 }
 
-/// 이름 바꾸기 정보(`main`에서 `main2`로 바꿈)입니다.
+/// `main`을 `main2`로 바꾸는 이름 바꾸기 정보
 fn rename_main_to_main2() -> KeyRename {
     KeyRename {
         from: "main".to_owned(),

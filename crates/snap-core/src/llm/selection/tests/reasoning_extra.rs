@@ -1,13 +1,13 @@
-//! `reasoning`과 `extra`가 그대로 담리는지 보는 시험 본문입니다(02-7 AC 1).
+//! `reasoning`과 `extra`가 그대로 담기는지 보는 시험 본문.
 //!
-//! 설정 골격은 `support.rs`를 재사용합니다(dev-principles 3절 DRY).
+//! 설정 골격은 `support.rs`를 재사용.
 
 use super::support::config_with_two_endpoints;
 use crate::config::ExtraValue;
 use crate::config::Reasoning;
 use crate::credentials::Credentials;
 
-/// AC 1: `reasoning`과 `extra`는 설정 값 그대로 준비 값에 담긴다.
+/// `reasoning`과 `extra`는 설정 값 그대로 준비 값에 담김.
 #[test]
 fn select_model_keeps_reasoning_and_extra() {
     let config = config_with_two_endpoints();

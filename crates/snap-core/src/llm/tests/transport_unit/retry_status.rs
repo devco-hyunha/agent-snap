@@ -1,8 +1,7 @@
-//! 서버 상태(429·503·400) 재시도 통합 시험(AC 1·2·3): 요청 수와 요청 간격과 포기 이유를 모의 서버로 확인합니다.
+//! 서버 상태(429·503·400) 재시도 통합 시험. 요청 수·간격·포기 이유를 모의 서버로 확인.
 //!
-//! 상한 이하의 `Retry-After` 429는 성공 재시도, 헤더 없는 503은 횟수 초과 포기,
-//! 상한 초과 `Retry-After` 429와 그 밖의 4xx(400)는 요청 한 번으로 포기합니다.
-//! 시험 값은 짧게 주고 백오프 난수는 1.0으로 고정해 간격이 흔들리지 않게 합니다.
+//! 상한 이하 429는 성공 재시도, 헤더 없는 503은 횟수 초과 포기, 상한 초과·그 밖의 4xx는 한 번 포기.
+//! 시험 값은 짧게, 백오프 난수는 1.0으로 고정.
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -19,17 +18,17 @@ use snap_core::llm::{
     CancellationToken, LlmClient, NotCandidateDetail, RetryGiveUpReason, TransportError,
 };
 
-/// 200과 내용 한 줄과 `[DONE]`으로 바로 답하는 성공 스크립트입니다.
+/// 200과 내용 한 줄과 `[DONE]`으로 바로 답하는 성공 스크립트.
 ///
-/// AC 1의 재시도 끝 성공 응답으로 씁니다.
+/// 재시도 끝 성공 응답으로 씀.
 fn success_script(content: &str) -> MockResponseScript {
     MockResponseScript::with_body_parts(body_parts_sse(&success_stream_body(&[content])))
 }
 
-/// 헤더 없이 주어진 상태 코드로 바로 답하는 스크립트입니다.
+/// 헤더 없이 주어진 상태 코드로 바로 답하는 스크립트.
 ///
-/// 조립하는 스크립트인지 읽는 쪽에서 바로 알게 칸을 적습니다.
-/// `header_delay`는 0이라 상태줄을 바로 보내고, `response_headers`는 비워 헤더를 붙이지 않습니다.
+/// 조립하는 스크립트인지 읽는 쪽에서 바로 알게 칸을 명시.
+/// `header_delay`는 0이라 상태줄을 바로 보내고, `response_headers`는 비워 헤더를 붙이지 않음.
 fn plain_status(status: StatusCode) -> MockResponseScript {
     MockResponseScript {
         status,
@@ -39,18 +38,18 @@ fn plain_status(status: StatusCode) -> MockResponseScript {
     }
 }
 
-/// 요청 기록에서 `at`번째 요청이 도착한 시각부터 다음 요청이 도착한 시각까지의 간격입니다.
+/// 요청 기록에서 `at`번째 요청이 도착한 시각부터 다음 요청이 도착한 시각까지의 간격.
 ///
-/// 요청 수와 간격은 서버에 도착한 시각으로만 재고, 확인은 넉넉한 하한으로만 합니다.
+/// 요청 수와 간격은 서버에 도착한 시각으로만 계산. 확인은 넉넉한 하한으로만 수행.
 fn gap_after(recorded: &[RecordedRequest], at: usize) -> Duration {
     recorded[at + 1]
         .received_at
         .duration_since(recorded[at].received_at)
 }
 
-/// 상태 코드까지 온 마지막 전송 오류의 포기 이유입니다.
+/// 상태 코드까지 온 마지막 전송 오류의 포기 이유.
 ///
-/// 서버 상태가 아닌 오류(연결 실패 등)는 시험 전제가 어긋난 것이라 즉시 멈춥니다.
+/// 서버 상태가 아닌 오류(연결 실패 등)는 시험 전제가 어긋난 것이라 즉시 중단.
 fn give_up_of(error: &TransportError) -> RetryGiveUpReason {
     match error {
         TransportError::ServerStatus {
@@ -61,8 +60,8 @@ fn give_up_of(error: &TransportError) -> RetryGiveUpReason {
     }
 }
 
-// AC 1: 상한 이하 2초짜리 `Retry-After`를 단 한 번의 429 뒤에 성공 — 요청 2회, 두 요청 사이 간격 ≥ `Retry-After`.
-// 모의 서버는 다음 요청부터 답을 바꿀 수 있어, 첫 429 뒤 재시도 요청 시각 안에 성공 응답으로 바꿉니다.
+// 상한 이하 2초짜리 `Retry-After`를 단 한 번의 429 뒤에 성공 — 요청 2회, 두 요청 사이 간격 ≥ `Retry-After`.
+// 모의 서버는 다음 요청부터 답을 바꿀 수 있어, 첫 429 뒤 재시도 요청 시각 안에 성공 응답으로 교체.
 #[tokio::test]
 async fn retry_after_within_cap_retries_once_and_succeeds() {
     let server = Arc::new(
@@ -102,7 +101,7 @@ async fn retry_after_within_cap_retries_once_and_succeeds() {
     );
 }
 
-// AC 2: 헤더 없는 503만 주는 서버 — 최초 1회 + 최대 재시도(시험 값 1) 요청 후 횟수 초과로 포기.
+// 헤더 없는 503만 주는 서버 — 최초 1회 + 최대 재시도(시험 값 1) 요청 후 횟수 초과로 포기.
 #[tokio::test]
 async fn plain_503_gives_up_after_attempt_limit() {
     let server = MockServer::spawn(plain_status(StatusCode::SERVICE_UNAVAILABLE)).await;
@@ -132,8 +131,8 @@ async fn plain_503_gives_up_after_attempt_limit() {
     );
 }
 
-// AC 3 앞부분: 상한(2초)을 넘는 3초짜리 `Retry-After` 429 — 요청 1회로 끝나고 대기 초를 밝힌 포기.
-// 뒤에도 같은 응답을 유지해, 요청이 그 자리에서 끊겨 대기(3초)를 세지 않는지 함께 봅니다.
+// 상한(2초)을 넘는 3초짜리 `Retry-After` 429 — 요청 1회로 종료, 대기 초를 밝힌 포기.
+// 뒤에도 같은 응답을 유지해, 요청이 그 자리에서 끊겨 대기(3초)를 세지 않는지 함께 확인.
 #[tokio::test]
 async fn retry_after_over_cap_ends_at_one_request() {
     let server = MockServer::spawn(MockResponseScript::status_with_retry_after(
@@ -165,7 +164,7 @@ async fn retry_after_over_cap_ends_at_one_request() {
     );
 }
 
-// AC 3 뒷부분: 그 밖의 4xx(400) — 요청 1회로 끝난다.
+// 그 밖의 4xx(400) — 요청 1회로 종료.
 #[tokio::test]
 async fn plain_400_ends_at_one_request() {
     let server = MockServer::spawn(plain_status(StatusCode::BAD_REQUEST)).await;

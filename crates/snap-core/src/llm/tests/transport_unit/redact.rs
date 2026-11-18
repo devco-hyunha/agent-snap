@@ -1,4 +1,4 @@
-//! 서버 오류 본문·연결 오류 표시에서 알고 있는 키·호스트 가리기 통합 테스트(AC 2·6).
+//! 서버 오류 본문·연결 오류 표시에서 알고 있는 키·호스트 가리기 통합 시험.
 
 use axum::http::StatusCode;
 
@@ -12,11 +12,11 @@ use snap_core::llm::{
     CancellationToken, LlmClient, PreHeaderConnectKind, TimeoutSegment, TransportError,
 };
 
-// AC 2(D28)·AC 6: 서버 오류 본문과 연결 실패에서 알고 있는 키·호스트를 한 번 더 가린다.
+// 서버 오류 본문과 연결 실패에서 알고 있는 키·호스트를 한 번 더 가림.
 #[tokio::test]
 async fn server_status_body_hides_known_key_and_host() {
     let key = "sk-leak-key-value-1234567890abcd";
-    // 어림 규칙을 통과하는 자리(구분 문자가 섞여 키 덩어리를 찾지 못함)에 키를 심습니다.
+    // 어림 규칙을 통과하는 자리(구분 문자가 섞여 키 덩어리를 찾지 못함)에 키를 심음.
     let body = format!("upstream echo: key {key} at 127.0.0.1:6009 /v1 chat completions failed");
     let server = MockServer::spawn(MockResponseScript {
         status: StatusCode::INTERNAL_SERVER_ERROR,
@@ -30,8 +30,8 @@ async fn server_status_body_hides_known_key_and_host() {
         .expect("로컬 주소")
         .to_owned();
 
-    // 본문 가리기 확인이라 재시도는 켜지 않는다(재시도는 retry 통합 시험이 본다).
-    // 어림 가리기(짧은 본문 앞·뒤 가림)를 유지하려면 본문이 짧아야 해 재시도 값을 0으로 둔다.
+    // 본문 가리기 확인이라 재시도는 켜지 않음.
+    // 어림 가리기 유지하려면 본문이 짧아야 해 재시도 값을 0으로 둠.
     let http = HttpSettings {
         retries: 0,
         ..test_http()
@@ -53,7 +53,7 @@ async fn server_status_body_hides_known_key_and_host() {
     assert!(display.contains("500"));
 }
 
-// AC 2: 오류의 Display·Debug에 키와 base_url 호스트가 없다(취소·본문 읽기 실패 포함).
+// 오류의 Display·Debug에 키와 base_url 호스트가 없음(취소·본문 읽기 실패 포함).
 #[test]
 fn transport_errors_hide_secrets_in_display_and_debug() {
     let key = "sk-hidden-key-value-1234567890abcdE";
@@ -85,7 +85,7 @@ fn transport_errors_hide_secrets_in_display_and_debug() {
     }
 }
 
-// 07 표기 분리(`transport/client_debug.rs`) 이후에도 클라이언트 Debug에서 키·호스트가 가려짐을 직접 확인합니다.
+// 클라이언트 Debug에서 키·호스트가 가려짐을 직접 확인.
 #[test]
 fn client_debug_hides_known_key_and_host() {
     let key = "sk-client-debug-key-0123456789abcdefg";

@@ -1,4 +1,4 @@
-//! 헤더 대기·스트림 유휴 시간 초과 통합 테스트(AC 3).
+//! 헤더 대기·스트림 유휴 시간 초과 통합 테스트.
 
 use std::time::{Duration, Instant};
 
@@ -7,7 +7,8 @@ use crate::common::mock_server::{MockBodyPart, MockResponseScript, MockServer};
 use crate::common::support::{content_events, delta_line, sample_request, success_stream_body};
 use snap_core::llm::{CancellationToken, LlmClient, TimeoutSegment, TransportError};
 
-// AC 3: 헤더가 유휴 설정보다 늦게 와도 헤더 대기 안에 오면 성공한다.
+// 헤더 지연을 유휴 설정보다 길게 두고 헤더 대기 안에 받아 성공을 확인하는 시험.
+// 설정 값끼리 길이가 겹치지 않는 관계를 보는 제약
 #[tokio::test]
 async fn header_later_than_idle_setting_succeeds() {
     let server = MockServer::spawn(MockResponseScript {
@@ -24,7 +25,8 @@ async fn header_later_than_idle_setting_succeeds() {
     assert_eq!(content_events(&events), "ok");
 }
 
-// AC 3: 헤더가 끝내 오지 않으면 헤더 대기 시간 초과로 끝난다.
+// 헤더가 끝내 안 오면 헤더 대기 시간 초과로 끝남.
+// 오류 문구에 서버 주소가 드러나지 않는 것도 함께 보는 제약
 #[tokio::test]
 async fn header_needing_timeout_is_header_wait_segment() {
     let server = MockServer::spawn(MockResponseScript::hang_headers()).await;
@@ -48,7 +50,8 @@ async fn header_needing_timeout_is_header_wait_segment() {
     assert!(!text.contains("127.0.0.1"));
 }
 
-// AC 3: 헤더 이후 본문이 멈추면 유휴 시간 초과로 끝난다.
+// 헤더 이후 본문이 멈추면 스트림 유휴 시간 초과로 끝남을 확인하는 시험.
+// 초과 시각과 경과 시간 상한을 함께 재는 제약
 #[tokio::test]
 async fn body_stall_is_stream_idle_segment() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(vec![

@@ -1,9 +1,6 @@
-//! `read_file` 도구: 텍스트 읽기 요청을 받아 경로 검사만 하고, 읽기 규칙은 `read_text`에 넘깁니다(03-3 T1, spec AC 1·1a).
+//! `read_file` 도구: 텍스트 읽기 요청. 경로 검사만 하고 읽기 규칙은 `read_text`에 넘김
 //!
-//! 경로 검사는 `path_guard`의 한 자리만 부르고, 잘림 표식과 4,000자 상한 정본은
-//! 03-2의 `agent/record/truncate.rs`·`agent/settings/config.rs`를 그대로 재사용합니다(DRY).
-//! 도구 스스로는 결과를 자르지 않습니다(03-1 결과 규격: 자르는 자리는 루프가 정본).
-//! 크기 기준 3층(256KB·앞 128KB·50KiB 구간)은 D49에서 정한 값이며 `read_text`에 있습니다.
+//! 도구 스스로는 결과를 자르지 않음. 자르는 자리는 루프가 정본
 
 use serde_json::{Value, json};
 
@@ -12,7 +9,7 @@ use super::path_guard::check_tool_path;
 use super::read_text::{FIRST_LINE, read_text};
 use super::tool::{Tool, ToolCallFuture, ToolContext, ToolOutcome};
 
-/// `read_file` 도구입니다.
+/// `read_file` 도구
 pub struct ReadFileTool;
 
 impl ReadFileTool {
@@ -49,7 +46,6 @@ impl Tool for ReadFileTool {
             let Some(path) = args.get("path").and_then(Value::as_str) else {
                 return ToolOutcome::error("path는 문자열이어야 합니다");
             };
-            // 경로 검사는 이 자리 한 곳에서만 부릅니다(spec AC 2·AC 4).
             let target = match check_tool_path(&ctx.working_dir, path) {
                 Ok(target) => target,
                 Err(guard) => return ToolOutcome::error(guard.message()),
@@ -67,7 +63,7 @@ impl Tool for ReadFileTool {
     }
 }
 
-/// 1부터 받는 정수 인자를 읽습니다. 없으면 `None`, 0 이하는 거부입니다.
+/// 1부터 받는 정수 인자 읽기. 없으면 `None`, 0 이하는 거부
 fn read_line_arg(args: &Value, key: &str) -> Result<Option<usize>, &'static str> {
     let Some(raw) = args.get(key) else {
         return Ok(None);

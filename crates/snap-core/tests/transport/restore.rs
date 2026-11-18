@@ -1,4 +1,4 @@
-//! 응답 스트림 복원·디코더 계약 통합 테스트(AC 1, D28).
+//! 응답 스트림 복원·디코더 계약 통합 테스트.
 
 use std::time::Duration;
 
@@ -9,7 +9,7 @@ use crate::common::support::{
 };
 use snap_core::llm::{CancellationToken, LlmClient, StreamEvent};
 
-// AC 1: 02-3 AC 1과 같은 형식을 모의 서버가 조각으로 나눠 보내면 같은 결과로 복원된다.
+// 모의 서버가 응답을 여러 조각으로 나눠 보내도 같은 결과로 복원하는지 확인하는 시험.
 #[tokio::test]
 async fn streams_restored_events_from_mock_sse() {
     let server = MockServer::spawn(MockResponseScript::with_body_parts(body_parts_sse(
@@ -29,16 +29,15 @@ async fn streams_restored_events_from_mock_sse() {
         outcome.usage.as_ref().expect("사용량").total_tokens,
         Some(8)
     );
-    // 서버가 연결을 닫은 뒤 종료하므로 연결이 남지 않습니다.
+    // 서버가 연결을 닫은 뒤 종료되어 연결이 남지 않음
     assert!(server.wait_until_idle(Duration::from_secs(3)).await);
 }
 
-// AC 1(D28): 스트림이 한 번 실패한 뒤 성공으로 보일 `Ok`를 내지 않는다.
+// 스트림이 한 번 실패한 뒤 성공으로 보일 `Ok`를 내지 않는지 확인.
 #[tokio::test]
 async fn transport_emits_no_success_after_first_decoder_error() {
     let bytes = mixed_stream_bytes();
     let mut script = MockResponseScript::with_body_parts(Vec::new());
-    // 앞의 정상 조각, 그 뒤 형식 오류를 만드는 조각, 마지막으로 정상 데이터를 둡니다.
     let mut parts = body_parts_sse(&bytes[..bytes.len() - 4]);
     parts.push(MockBodyPart::immediate(b"data: {broken\n\n".to_vec()));
     parts.push(MockBodyPart::immediate(delta_line("뒤").into_bytes()));

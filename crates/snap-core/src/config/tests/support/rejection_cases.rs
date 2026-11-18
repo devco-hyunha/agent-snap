@@ -1,6 +1,4 @@
-//! 거부 사례 표: 명세 AC 2의 거부 항목을 한 줄씩 모아 검증 시험과 가리기 시험이 함께 씁니다.
-//!
-//! 입력에는 가짜 호스트와 가짜 키 값만 넣고, 기대하는 오류는 닫힌 조건으로 밝힙니다.
+//! 거부 사례 표: 거부 항목을 한 줄씩 모아 검증 시험과 가리기 시험이 함께 사용. 입력에는 가짜 호스트와 가짜 키 값만 넣고, 기대하는 오류는 닫힌 조건으로 밝힘.
 
 use crate::config::{
     ConfigError, EndpointIssue, FieldIssue, ModelIssue, ReadingError, SectionIssue, ValidationError,
@@ -12,12 +10,12 @@ use super::config_text::{
     config_with_root_tail, endpoint_object, endpoint_object_with_kind, model_object,
 };
 
-/// 사례 라벨: 최상위 옛 `models` 거부입니다. 가리기 검사가 같은 사례를 찾을 때 씁니다.
+/// 최상위 옛 `models` 거부 사례 라벨.
 pub(crate) const LEGACY_MODELS_LABEL: &str = "최상위 옛 models";
-/// 사례 라벨: 모델의 `endpoint` 칸 거부입니다. 가리기 검사가 같은 사례를 찾을 때 씁니다.
+/// 모델의 `endpoint` 칸 거부 사례 라벨.
 pub(crate) const MODEL_ENDPOINT_FIELD_LABEL: &str = "모델의 endpoint 칸";
 
-/// 거부 사례 하나입니다. 같은 표를 검증 검사와 가리기 검사가 함께 씁니다.
+/// 거부 사례 하나.
 pub(crate) struct RejectionCase {
     pub(crate) label: &'static str,
     pub(crate) text: String,
@@ -40,8 +38,7 @@ fn endpoint_with_url(base_url: &str) -> String {
     config_of(&[endpoint_object("main", base_url, "")])
 }
 
-/// 모델 `fast`의 샘플링 항목 `item`에 `value`(JSON 값 텍스트)를 적은 범위 위반 사례입니다.
-/// 오류가 같은 항목 이름을 밝히는지 확인합니다.
+/// 모델 `fast`의 샘플링 항목 범위 위반 사례.
 fn sampling_case(label: &'static str, item: &'static str, value: &str) -> RejectionCase {
     case(
         label,
@@ -53,7 +50,7 @@ fn sampling_case(label: &'static str, item: &'static str, value: &str) -> Reject
     )
 }
 
-/// 모델 `fast`의 `extra`에 예약 키 `key`를 적은 사례입니다. 오류가 같은 키를 밝히는지 확인합니다.
+/// 모델 `fast`의 `extra`에 예약 키를 넣은 사례.
 fn reserved_key_case(key: &'static str) -> RejectionCase {
     case(
         "extra 예약 키",
@@ -65,7 +62,7 @@ fn reserved_key_case(key: &'static str) -> RejectionCase {
     )
 }
 
-/// 명세 AC 2의 거부 항목을 한 줄씩 담은 표입니다. 모든 입력에 가짜 호스트가 들어 있습니다.
+/// 거부 항목을 한 줄씩 담은 표.
 pub(crate) fn rejection_cases() -> Vec<RejectionCase> {
     let two_main = config_of(&[
         endpoint_object("main", &base_url(), ""),
@@ -171,7 +168,7 @@ pub(crate) fn rejection_cases() -> Vec<RejectionCase> {
             config_with_model_tail(&format!(r#","reasoning":"{KEY_VALUE}""#)),
             |e| matches!(e, ConfigError::Validation(ValidationError::Model(ModelIssue::InvalidReasoning{ model })) if model == "fast"),
         ),
-        // D29: `context_window`는 1 이상 정수만 받아들입니다. 값은 오류에 밝히지 않습니다.
+        // `context_window`는 1 이상 정수만 받아들임. 값은 오류에 밝히지 않음.
         case(
             "context_window가 0",
             config_with_model_tail(r#","context_window":0"#),
@@ -197,7 +194,7 @@ pub(crate) fn rejection_cases() -> Vec<RejectionCase> {
             config_with_model_tail(r#","context_window":18446744073709551616"#),
             |e| matches!(e, ConfigError::Validation(ValidationError::Model(ModelIssue::InvalidContextWindow{ model })) if model == "fast"),
         ),
-        // D50 결정 7: `tool_call_form`은 `openai`·`text`·`auto`만 받아들입니다. 값은 오류에 밝히지 않습니다.
+        // `tool_call_form`은 `openai`·`text`·`auto`만 받아들임. 값은 오류에 밝히지 않음.
         case(
             "tool_call_form이 지원 값 아님",
             config_with_model_tail(&format!(r#","tool_call_form":"{KEY_VALUE}""#)),
@@ -297,7 +294,7 @@ pub(crate) fn rejection_cases() -> Vec<RejectionCase> {
             },
         ),
     ];
-    // 명세 AC 2의 기대값이라 구현 상수와 따로 적습니다(구현 상수를 쓰면 순환 검증이 됩니다).
+    // 기대값이라 구현 상수와 별도. 구현 상수 사용 시 순환 검증이 되어 금지.
     cases.extend(
         ["model", "messages", "stream", "tools"]
             .into_iter()

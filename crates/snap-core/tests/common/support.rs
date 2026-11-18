@@ -1,6 +1,6 @@
 #![allow(dead_code, unreachable_pub)]
 
-//! SSE·델타·전송·요청 테스트 공통 도우미입니다.
+//! SSE·델타·전송·요청 시험 공통 도우미.
 
 use std::time::Duration;
 
@@ -61,10 +61,9 @@ pub fn reasoning_events(events: &[StreamEvent]) -> String {
     out
 }
 
-/// 모의 서버 주소로 테스트용 전송 클라이언트를 하나 만듭니다.
+/// 모의 서버 주소로 시험용 전송 클라이언트 생성.
 ///
-/// `kind`마다 요청 본문이 달라지므로 본문·헤더를 보는 테스트가 같은 조립 코드를 다시 쓰지 않게 합니다.
-/// 키를 주지 않으면 Authorization 헤더를 붙이지 않습니다.
+/// `kind`마다 요청 본문이 달라지므로 본문·헤더 시험이 같은 조립 코드를 다시 쓰지 않게 사용. 키 없으면 Authorization 헤더 미부착.
 pub fn client_at(
     base_url: &str,
     kind: EndpointKind,
@@ -80,7 +79,7 @@ pub fn client_at(
     .expect("클라이언트를 만들어야 합니다")
 }
 
-/// OpenAI 호환 기준으로 여는 짧은 이름의 도우미입니다.
+/// OpenAI 호환 기준으로 여는 짧은 이름의 도우미.
 pub fn client_at_with(
     base_url: &str,
     api_key: Option<&str>,
@@ -89,10 +88,9 @@ pub fn client_at_with(
     client_at(base_url, EndpointKind::OpenAi, api_key, http)
 }
 
-/// 백오프 난수를 고정하는 시험 전용 주입입니다(02-6 시험 계획의 시간 주입).
+/// 백오프 난수를 고정하는 시험 전용 주입.
 ///
-/// 제품 쪽의 `set_unit_sample`을 시험 지원 한 자리로만 감쌉니다.
-/// 값 두기는 제품 한 곳에서만 하고, 바깥 시험·라이브러리 안 시험·통합 시험이 같은 헬퍼를 씁니다.
+/// 제품 쪽 `set_unit_sample`을 시험 지원 한 자리로만 감쌈.
 pub fn set_unit_sample(client: OpenAiCompatClient, unit_sample: f64) -> OpenAiCompatClient {
     client.set_unit_sample(unit_sample)
 }
@@ -101,14 +99,14 @@ pub fn data_line(json: &str) -> String {
     format!("data: {json}\n\n")
 }
 
-/// 내용 전달 한 줄을 조립합니다. 내용 값만 자리에 끼웁니다.
+/// 내용 전달 한 줄 조립. 내용 값만 자리에 끼움.
 pub fn delta_line(content: &str) -> String {
     data_line(&format!(
         r#"{{"choices":[{{"delta":{{"content":"{content}"}}}}]}}"#
     ))
 }
 
-/// 정상 스트림의 마지막 줄입니다. 내용 줄 다음에 보냅니다.
+/// 정상 스트림의 마지막 줄. 내용 줄 다음에 보냄.
 pub fn done_line() -> String {
     String::from("data: [DONE]\n\n")
 }
@@ -155,8 +153,7 @@ pub fn mixed_stream_bytes() -> Vec<u8> {
 
 /// 시험용 시간 값: 연결 5초, 헤더 대기 2초, 유휴 1초.
 ///
-/// 연결 시간이 1초처럼 아주 짧으면 Windows가 닫힌 포트에 연결을 다시 시도하느라
-/// 라이브러리가 연결 시간 초과로 먼저 알립니다. 연결 세부 확인에 쓸 수 있게 연결만 넉넉히 뒀습니다.
+/// 연결이 1초처럼 아주 짧으면 닫힌 포트 재시도 구간에서 연결 시간 초과가 먼저 떠서 연결 세부를 못 봄.
 pub fn test_http() -> HttpSettings {
     HttpSettings {
         connect_seconds: Duration::from_secs(5),
@@ -166,10 +163,9 @@ pub fn test_http() -> HttpSettings {
     }
 }
 
-/// 헤더 전 연결 세부를 보는 시험용 시간 값입니다.
+/// 헤더 전 연결 세부를 보는 시험용 시간 값.
 ///
-/// Windows는 닫힌 포트에 대한 연결을 몇 초 다시 시도합니다. 헤더 대기(2초)가 먼저
-/// 끝나면 시간 초과로 보여 연결 세부를 못 봅니다. 헤더 대기를 넉넉히 둬 연결 실패가 먼저 오게 합니다.
+/// Windows는 닫힌 포트에 대한 연결을 몇 초 다시 시도함. 헤더 대기를 넉넉히 둬 연결 실패가 먼저 오게 함.
 pub fn connect_check_http() -> HttpSettings {
     HttpSettings {
         header_wait_seconds: Duration::from_secs(30),
@@ -177,12 +173,9 @@ pub fn connect_check_http() -> HttpSettings {
     }
 }
 
-/// 상태 재시도 통합 시험용 시간 값: 연결·헤더 대기는 `test_http`를 잇고, 백오프와 `Retry-After` 상한만 짧게 씁니다.
+/// 상태 재시도 통합 시험용 시간 값.
 ///
-/// 시험 값: 백오프 10~100밀리초, `Retry-After` 상한 2초, 헤더 대기 10초.
-/// 헤더 대기가 재시도 대기(백오프 10~100밀리초, `Retry-After`가 준 초)보다 길어야
-/// 재시도 도중 시간 초과의 신호로 잡히지 않습니다.
-/// `retries`는 매개변수로 받아 시험이 요청 수(AC 2)를 확인하는 기준으로 씁니다.
+/// 헤더 대기를 재시도 대기(백오프·`Retry-After`가 준 초)보다 길게 두고, `retries`는 매개변수로 받아 시험이 요청 수를 확인하는 기준으로 씀.
 pub fn retry_status_http(retries: u32) -> HttpSettings {
     HttpSettings {
         retries,
@@ -194,10 +187,9 @@ pub fn retry_status_http(retries: u32) -> HttpSettings {
     }
 }
 
-/// 본문·헤더·전송 확인에 쓰는 하나의 요청입니다.
+/// 본문·헤더·전송 확인에 쓰는 하나의 요청.
 ///
-/// 생각 옵션을 `None`으로 넣으면 도구·생각 항목이 없는 단순 요청입니다.
-/// 생각 옵션을 넣으면 그 옵션에 맞춰 본문에 생각 항목이 붙고, 본문 검사와 필요한 `echo` 도구가 함께 들어갑니다.
+/// 생각 옵션을 `None`으로 넣으면 도구·생각 항목이 없는 단순 요청. 넣으면 본문에 생각 항목이 붙고 `echo` 도구가 함께 들어감.
 pub fn sample_request(reasoning: Option<Reasoning>) -> ChatRequest {
     let mut extra = std::collections::BTreeMap::new();
     extra.insert("keep_alive".into(), ExtraValue::Number("0".into()));
@@ -237,7 +229,7 @@ pub fn sample_request(reasoning: Option<Reasoning>) -> ChatRequest {
     }
 }
 
-/// 바이트를 37개씩 잘라 즉시 보내는 본문 조각으로 만듭니다.
+/// 바이트를 37개씩 잘라 즉시 보내는 본문 조각으로 만듦.
 pub fn body_parts_sse(bytes: &[u8]) -> Vec<MockBodyPart> {
     bytes
         .chunks(37)
@@ -245,7 +237,7 @@ pub fn body_parts_sse(bytes: &[u8]) -> Vec<MockBodyPart> {
         .collect()
 }
 
-/// 지정한 내용 줄 뒤에 `data: [DONE]`을 붙여 성공 스트림 본문을 조립합니다.
+/// 지정한 내용 줄 뒤에 `data: [DONE]`을 붙여 성공 스트림 본문을 조립.
 pub fn success_stream_body(contents: &[&str]) -> Vec<u8> {
     let mut out = Vec::new();
     for content in contents {
@@ -255,7 +247,7 @@ pub fn success_stream_body(contents: &[&str]) -> Vec<u8> {
     out
 }
 
-/// 스트림을 끝까지 읽고 이벤트만 모읍니다.
+/// 스트림을 끝까지 읽고 이벤트만 모음.
 pub async fn drain(stream: &mut ChatStream) -> Vec<StreamEvent> {
     let mut events = Vec::new();
     while let Some(event) = stream.next_event().await {

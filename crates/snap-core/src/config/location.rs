@@ -1,43 +1,43 @@
-//! 사용자 설정 폴더 위치 계산입니다. 환경 정보를 주입받아 계산만 하고 파일은 건드리지 않습니다.
+//! 사용자 설정 폴더 위치 계산. 환경 정보를 주입받아 계산만 하고 파일은 건드리지 않음.
 
 use std::path::{Path, PathBuf};
 
 use super::error::{ConfigError, ReadingError};
 
-/// 설정 폴더 이름입니다.
+/// 설정 폴더 이름.
 const APP_DIR_NAME: &str = "agent-snap";
 
-/// 운영체제 관례를 가르는 종류입니다.
+/// 운영체제 관례를 가르는 종류.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum HostOs {
-    /// Windows. Roaming AppData 아래에 둡니다.
+    /// Windows. Roaming AppData 아래에 둠.
     Windows,
-    /// 그 밖의 운영체제. XDG 관례를 따릅니다.
+    /// 그 밖의 운영체제. XDG 관례를 따름.
     Other,
 }
 
-/// 설정 폴더 계산에 필요한 환경 정보입니다. 호출한 쪽이 실제 환경에서 읽어 넣습니다.
+/// 설정 폴더 계산에 필요한 환경 정보. 호출한 쪽이 실제 환경에서 읽어 넣음.
 #[derive(Debug, Clone)]
 pub struct ConfigEnv {
-    /// 운영체제 종류입니다.
+    /// 운영체제 종류.
     pub os: HostOs,
-    /// 환경 변수 `AGENT_SNAP_CONFIG_DIR` 값입니다.
+    /// 환경 변수 `AGENT_SNAP_CONFIG_DIR` 값.
     pub config_dir_override: Option<PathBuf>,
-    /// Windows의 Roaming AppData 폴더(`APPDATA`)입니다.
+    /// Windows의 Roaming AppData 폴더(`APPDATA`) 값.
     pub appdata: Option<PathBuf>,
-    /// `XDG_CONFIG_HOME` 값입니다.
+    /// `XDG_CONFIG_HOME` 값.
     pub xdg_config_home: Option<PathBuf>,
-    /// 홈 폴더입니다. `XDG_CONFIG_HOME`이 없을 때 `.config` 아래를 씁니다.
+    /// 홈 폴더 값. `XDG_CONFIG_HOME`이 없을 때 `.config` 아래를 씀.
     pub home: Option<PathBuf>,
 }
 
-/// 사용자 설정 폴더를 정합니다(DECISIONS D19).
+/// 사용자 설정 폴더를 정함.
 ///
 /// `AGENT_SNAP_CONFIG_DIR`에 값이 있으면 그 폴더를 쓰고, 없으면 Windows는 Roaming AppData
-/// 아래 `agent-snap`, 그 밖은 `$XDG_CONFIG_HOME/agent-snap`(없으면 `~/.config/agent-snap`)입니다.
+/// 아래 `agent-snap`, 그 밖은 `$XDG_CONFIG_HOME/agent-snap`(없으면 `~/.config/agent-snap`)임.
 ///
 /// # 오류
-/// 관례 폴더를 계산할 환경 정보가 없으면 [`ReadingError::ConfigDirUnknown`]입니다.
+/// 관례 폴더를 계산할 환경 정보가 없으면 [`ReadingError::ConfigDirUnknown`].
 pub fn resolve_config_dir(env: &ConfigEnv) -> Result<PathBuf, ConfigError> {
     if let Some(dir) = non_empty(&env.config_dir_override) {
         return Ok(dir.to_path_buf());

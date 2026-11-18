@@ -1,21 +1,21 @@
-//! 모델 목록 조회의 형식 오류 종류입니다(02-7 작업 3).
+//! 모델 목록 조회의 형식 오류 종류.
 //!
-//! Display·Debug에 본문 원문·API 키·base_url 호스트를 담지 않고 종류만 담는다(spec 51행).
+//! Display·Debug에 본문 원문·API 키·base_url 호스트를 담지 않고 종류만 담음.
 
 use std::fmt;
 
-/// `GET /models` 목록 응답의 형식 오류 종류입니다.
+/// `GET /models` 목록 응답의 형식 오류 종류.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ModelsListFormatKind {
-    /// 응답 본문을 JSON으로 읽지 못했습니다.
+    /// 응답 본문을 JSON으로 읽지 못함.
     InvalidJson,
-    /// 최상위에 `data`가 없습니다.
+    /// 최상위에 `data`가 없음.
     DataMissing,
-    /// `data`가 배열이 아닙니다.
+    /// `data`가 배열이 아님.
     DataNotArray,
-    /// `data` 항목에 `id`가 없습니다.
+    /// `data` 항목에 `id`가 없음.
     IdMissing,
-    /// `data` 항목의 `id`가 문자열이 아닙니다.
+    /// `data` 항목의 `id`가 문자열이 아님.
     IdNotString,
 }
 
@@ -32,10 +32,10 @@ impl fmt::Display for ModelsListFormatKind {
     }
 }
 
-/// `GET /models` 목록 응답의 형식 오류입니다. 종류만 담고 본문 원문·키·주소는 담지 않습니다.
+/// `GET /models` 목록 응답의 형식 오류. 종류만 담고 본문 원문·키·주소는 담지 않음.
 #[derive(thiserror::Error, Debug)]
 #[error("모델 목록 형식 오류: {kind}")]
 pub struct ModelsListFormatError {
-    /// 형식 오류 종류입니다. 본문 원문은 이 자리에 남지 않습니다.
+    /// 형식 오류 종류. 본문 원문은 이 자리에 남지 않음.
     pub kind: ModelsListFormatKind,
 }

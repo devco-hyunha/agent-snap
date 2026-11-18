@@ -1,8 +1,8 @@
-//! CST 편집의 값 변환(`ExtraValue`·`Sampling`을 CST 값으로)과 값 꺼내기: 저장 두 쪽이 함께 쓰는 자리입니다.
+//! CST 편집의 값 변환(`ExtraValue`·`Sampling`을 CST 값으로)과 값 꺼내기: 저장 두 쪽이 함께 쓰는 자리.
 //!
-//! 이 파일의 책임은 하나입니다. CST 편집이 받는 값으로 바꾸는 것. CST 트리를 찾고 바꾸는 자리는
-//! `save_cst`에 두고, 요청 본문 JSON으로 바꾸는 자리는 `extra_json`에 둡니다(dev-principles 2절 SRP).
-//! 숫자는 읽을 때 보관한 적힌 모양을 그대로 쓰므로 원본을 잃지 않습니다.
+//! CST 편집이 받는 값으로 바꾸는 것만 맡음. CST 트리를 찾고 바꾸는 자리는 `save_cst`에,
+//! 요청 본문 JSON으로 바꾸는 자리는 `extra_json`에 둠.
+//! 숫자는 읽을 때 보관한 적힌 모양을 그대로 쓰므로 원본을 잃지 않음.
 
 use std::collections::BTreeMap;
 
@@ -10,7 +10,7 @@ use jsonc_parser::cst::CstInputValue;
 
 use super::super::read::types::{ExtraValue, Sampling};
 
-/// 준 항목만 담은 `sampling` 값입니다. 항목이 하나도 없으면 `None`(칸을 안 씀).
+/// 준 항목만 담은 `sampling` 값. 항목이 하나도 없으면 `None`(칸을 안 씀).
 pub(super) fn sampling_value(sampling: Sampling) -> Option<CstInputValue> {
     let items: Vec<(String, CstInputValue)> = [
         ("temperature", sampling.temperature.map(CstInputValue::from)),
@@ -23,12 +23,12 @@ pub(super) fn sampling_value(sampling: Sampling) -> Option<CstInputValue> {
     (!items.is_empty()).then_some(CstInputValue::Object(items))
 }
 
-/// 준 값이 있을 때만 만드는 `extra` 값입니다. 비어 있으면 `None`이라 칸을 쓰지 않습니다.
+/// 준 값이 있을 때만 만드는 `extra` 값. 비어 있으면 `None`이라 칸을 쓰지 않음.
 pub(super) fn extra_value(extra: &BTreeMap<String, ExtraValue>) -> Option<CstInputValue> {
     (!extra.is_empty()).then(|| CstInputValue::Object(extra_to_cst(extra)))
 }
 
-/// `ExtraValue` 맵을 CST 편집이 받는 객체 값으로 바꿉니다.
+/// `ExtraValue` 맵을 CST 편집이 받는 객체 값으로 바꿈.
 fn extra_to_cst(extra: &BTreeMap<String, ExtraValue>) -> Vec<(String, CstInputValue)> {
     extra
         .iter()
@@ -36,7 +36,7 @@ fn extra_to_cst(extra: &BTreeMap<String, ExtraValue>) -> Vec<(String, CstInputVa
         .collect()
 }
 
-/// `ExtraValue` 하나를 CST 편집이 받는 값으로 바꿉니다. 숫자는 읽을 때 보관한 적힌 모양을 씁니다.
+/// `ExtraValue` 하나를 CST 편집이 받는 값으로 바꿈. 숫자는 읽을 때 보관한 적힌 모양을 사용.
 fn extra_to_cst_value(value: &ExtraValue) -> CstInputValue {
     match value {
         ExtraValue::Null => CstInputValue::Null,

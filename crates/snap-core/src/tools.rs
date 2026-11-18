@@ -1,7 +1,6 @@
-//! 에이전트가 쓰는 도구(Tool 트레이트 구현)를 모으는 모듈입니다.
+//! 에이전트 도구를 모으는 모듈. 도구 구현 하나 = 파일 하나, 등록은 `agent/record/registry.rs`.
 //!
-//! 도구 구현 하나 = 파일 하나(프로젝트 규칙 개발 규칙). 등록은 `agent/record/registry.rs`가 맡고,
-//! 이 모듈은 구현과 경로 검사·표시 헬퍼만 둡니다.
+//! 이 모듈은 구현과 경로 검사·표시 헬퍼만 둠.
 
 pub mod args;
 pub mod display;
@@ -20,8 +19,7 @@ pub(crate) mod run_command_settings;
 pub mod tool;
 pub mod write_file;
 
-// T6 F1 이동: 지원 파일을 폴더로 묶었다. 기존 경로(`tools::approver`·`tools::path_guard`·
-// `tools::walk`)를 창구로 다시 내보낸다. 폴더 안에서 직접 쓰는 헬퍼까지 넓혀 내보내지 않는다.
+// 지원 파일은 폴더로 묶음. 기존 경로(`tools::approver`·`tools::path_guard`·`tools::walk`)만 창구로 내보냄
 pub mod approval;
 pub use approval::approval_state;
 pub use approval::approver;

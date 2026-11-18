@@ -1,8 +1,6 @@
-//! `edit_file` 도구: 정확한 문자열 교체(03-3 T1, spec AC 3).
+//! `edit_file` 도구: 정확한 문자열 교체
 //!
-//! 경로는 `path_guard`를 호출만 하고, 일치가 하나일 때만 바꿉니다. 일치 없음·다중 일치는
-//! 짧은 오류 한 줄로 알립니다(SWE-agent 2405.15793의 편집 최소·짧은 오류 교훈).
-//! 쓰기는 승인 대상이 아닙니다(D49).
+//! 일치가 하나일 때만 바꿈
 
 use std::path::Path;
 
@@ -13,7 +11,7 @@ use super::display::relative_path;
 use super::path_guard::check_write_path;
 use super::tool::{Tool, ToolCallFuture, ToolContext, ToolOutcome};
 
-/// `edit_file` 도구입니다.
+/// `edit_file` 도구
 pub struct EditFileTool;
 
 impl Tool for EditFileTool {
@@ -46,7 +44,7 @@ impl Tool for EditFileTool {
         })
     }
 
-    /// 파일 쓰기는 03-8 승인 구분 기준입니다. L1 승인 대상은 `run_command`만 해당합니다(D49).
+    /// 쓰기 도구 표식. 파일 쓰기는 승인 대상 아님
     fn executes_writes(&self) -> bool {
         true
     }
@@ -77,10 +75,9 @@ impl Tool for EditFileTool {
     }
 }
 
-/// 파일을 읽고 찾을 문자열을 한 곳에서만 바꿔 씁니다(spec AC 3).
+/// 파일을 읽고 찾을 문자열을 한 곳에서만 바꿔 씀
 ///
-/// 바꿀 문자열이 찾을 문자열과 같아도 일치가 하나면 성공이고 파일은 그대로입니다.
-/// 일치가 없거나 둘 이상이면 파일을 고치지 않고 이유 한 줄만 돌려줍니다.
+/// 일치가 없거나 둘 이상이면 파일을 고치지 않고 이유 한 줄만 돌려줌
 fn replace_once(target: &Path, working_dir: &Path, find: &str, replace: &str) -> ToolOutcome {
     let Ok(text) = std::fs::read_to_string(target) else {
         return ToolOutcome::error("파일을 읽지 못했습니다");
@@ -99,7 +96,7 @@ fn replace_once(target: &Path, working_dir: &Path, find: &str, replace: &str) ->
     }
 }
 
-/// 교체 결과 표시 한 줄 문장입니다. 바꿀 문자열이 찾을 문자열과 같으면 그 사실을 더 적습니다.
+/// 교체 결과 표시 한 줄. 바꿀 문자열과 찾을 문자열이 같으면 그 사실만 더 적음
 fn edit_message(target: &Path, working_dir: &Path, find: &str, replace: &str) -> String {
     let same = if find == replace { "(같음)" } else { "" };
     let space = if same.is_empty() { "" } else { " " };

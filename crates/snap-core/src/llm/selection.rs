@@ -1,7 +1,6 @@
-//! 선택 키로 클라이언트를 만드는 준비(02-7 작업 1): 선택 키로 정한 값과 엔드포인트 정보를 모는다.
+//! 선택 키로 클라이언트를 만드는 준비. 선택 키로 정한 값과 엔드포인트 정보를 모음.
 //!
-//! 클라이언트 조립(`selection/client_build.rs`)과 값 채우기·전송 재사용(`selection/apply.rs`)은
-//! 바뀌는 이유가 다르므로 파일을 나눈다(프로젝트 개발 규칙 SRP).
+//! 조립(`selection/client_build.rs`)과 값 채우기·전송 재사용(`selection/apply.rs`)은 파일을 나눔.
 
 use std::collections::BTreeMap;
 
@@ -24,53 +23,49 @@ pub use client_build::SelectedClient;
 #[cfg(test)]
 mod tests;
 
-/// 선택 키로 클라이언트를 만드는 준비가 실패했습니다.
+/// 선택 키로 클라이언트를 만드는 준비 실패.
 ///
-/// Display와 Debug에 자격 키와 base_url 호스트가 드러나는 값은 없습니다(선택 오류는 입력 키만 담고,
-/// 조립 실패는 02-5 규칙을 따릅니다).
+/// Display·Debug에 자격 키와 base_url 호스트가 드러나는 값은 없음.
 #[derive(thiserror::Error, Debug)]
 pub enum SelectError {
-    /// 선택 키가 설정에 없거나 형식이 틀리거나 고를 모델이 없습니다.
+    /// 선택 키가 설정에 없거나 형식이 틀리거나 고를 모델이 없음.
     #[error(transparent)]
     Selection(#[from] SelectionError),
-    /// HTTP 클라이언트 조립에 실패했습니다.
+    /// HTTP 클라이언트 조립 실패.
     #[error("전송 클라이언트를 만들지 못했습니다")]
     ClientBuild,
 }
 
-/// 선택 키가 고른 모델과 요청 준비 값입니다.
+/// 선택 키가 고른 모델과 요청 준비 값.
 ///
-/// 샘플링은 모델별 값이 루트 기본값보다 앞서고(D14), `reasoning`과 `extra`는 설정 값 그대로입니다.
-/// 키는 02-2의 키 정하기(자격 파일 `api_keys`의 엔드포인트 이름 찾기)로 정했습니다.
+/// 샘플링은 모델별 값이 루트 기본보다 앞섬. `reasoning`·`extra`는 설정 값 그대로.
 pub struct SelectedModel {
-    /// 선택 키가 가리키는 엔드포인트 주소입니다.
+    /// 선택 키가 가리키는 엔드포인트 주소.
     pub base_url: SecretValue,
-    /// 엔드포인트 서버 종류입니다.
+    /// 엔드포인트 서버 종류.
     pub kind: EndpointKind,
-    /// 요청에 쓸 키입니다. 자격 파일에 없으면 없음(인증 헤더 없이 요청)입니다.
+    /// 요청에 쓸 키. 자격 파일에 없으면 없음(인증 헤더 없이 요청).
     pub api_key: Option<SecretValue>,
-    /// 요청 시간·재시도 값입니다. 설정의 `http` 값입니다.
+    /// 요청 시간·재시도 값. 설정의 `http` 값.
     pub http: HttpSettings,
-    /// 서버에 보낼 모델 id입니다.
+    /// 서버에 보낼 모델 id.
     pub model_id: String,
-    /// 모델별 값이 루트 기본값보다 앞선 샘플링입니다. 없는 항목은 본문에서 빼 서버 기본을 따릅니다.
+    /// 모델별 값이 루트 기본보다 앞선 샘플링. 없는 항목은 본문에서 빼 서버 기본을 따름.
     pub sampling: Sampling,
-    /// 생각 옵션입니다. 없으면 요청에 더하지 않습니다.
+    /// 생각 옵션. 없으면 요청에 더하지 않음.
     pub reasoning: Option<Reasoning>,
-    /// 요청 본문에 합칠 추가 값입니다. 없으면 빈 맵입니다.
+    /// 요청 본문에 합칠 추가 값. 없으면 빈 맵.
     pub extra: BTreeMap<String, ExtraValue>,
 }
 
 impl Config {
-    /// 선택 키(`엔드포인트이름/모델이름`)로 클라이언트 만들 준비를 합니다.
+    /// 선택 키(`엔드포인트이름/모델이름`)로 클라이언트 만들 준비를 함.
     ///
-    /// 설정에서 모델 찾기(`config/selection.rs`)와 키 정하기(02-2: 자격 파일 `api_keys`의 엔드포인트
-    /// 이름 찾기)를 함께 하고, 요청 본문에 쓸 값(서버용 id·샘플링·`reasoning`·`extra`)을 모아 돌려줍니다.
-    /// 모델 이름만으로는 고르지 않습니다(선택 키 필수, D20).
+    /// 모델 찾기와 키 정하기를 함께 하고, 본문에 쓸 값을 모아 반환. 모델 이름만으로는 고르지 않음.
     ///
     /// # 오류
-    /// - [`SelectError::Selection`]: 설정에 없는 키·형식이 틀린 키·고를 모델 없음. 오류에는 입력 키만 담습니다.
-    /// - [`SelectError::ClientBuild`]: HTTP 클라이언트 조립에 실패했습니다.
+    /// - [`SelectError::Selection`]: 설정에 없는 키·형식이 틀린 키·고를 모델 없음. 오류에는 입력 키만 담음.
+    /// - [`SelectError::ClientBuild`]: HTTP 클라이언트 조립 실패.
     pub fn select_model(
         &self,
         selection_key: &str,
@@ -89,14 +84,13 @@ impl Config {
         })
     }
 
-    /// 선택 키(`엔드포인트이름/모델이름`)로 요청 클라이언트를 만듭니다.
+    /// 선택 키(`엔드포인트이름/모델이름`)로 요청 클라이언트를 만듦.
     ///
-    /// [`Config::select_model`]로 준비하고 클라이언트를 조립니다. 요청은 그 선택 키의
-    /// 엔드포인트로만 가고, 본문에는 그 모델의 서버용 id와 샘플링·`reasoning`·`extra`가 실립니다(02-7 AC 1).
+    /// [`Config::select_model`]로 준비하고 조립. 요청은 그 엔드포인트로만 가고 본문에 모델 값이 실림.
     ///
     /// # 오류
     /// - [`SelectError::Selection`]: 설정에 없는 키·형식이 틀린 키·고를 모델 없음.
-    /// - [`SelectError::ClientBuild`]: HTTP 클라이언트 조립에 실패했습니다.
+    /// - [`SelectError::ClientBuild`]: HTTP 클라이언트 조립 실패.
     pub fn client_for(
         &self,
         selection_key: &str,

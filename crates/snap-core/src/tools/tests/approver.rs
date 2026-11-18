@@ -1,6 +1,6 @@
-//! 승인자 호출 시험(03-6 spec AC 1·AC 2·AC 4): 승인·거부·만료·미주입과 cancel 연결을 확인한다.
+//! 승인자 호출 시험: 승인·거부·만료·미주입과 cancel 연결을 확인
 //!
-//! 승인자는 가짜(mock)로 만들고, 시간 상한은 짧게 주며, 경과 시간은 하한·상한으로만 본다(테스트 계획).
+//! 승인자는 가짜로 만들고, 시간 상한은 짧게 주고, 경과 시간은 하한·상한으로만 봄
 
 use std::sync::Arc;
 use std::sync::atomic::AtomicUsize;
@@ -15,7 +15,7 @@ use crate::tools::run_command_settings::RunCommandSettings;
 
 use super::support::TempFolder;
 
-/// 즉시 돌려주는 가짜 승인자입니다. 응답을 `ApprovalReply`로 고정해 시험이 같은 조립을 다시 쓰지 않게 합니다.
+/// 즉시 돌려주는 가짜 승인자. 응답을 `ApprovalReply`로 고정해 시험이 같은 조립을 다시 쓰지 않게 함
 struct MockApprover {
     reply: ApprovalReply,
 }
@@ -26,7 +26,7 @@ impl CommandApprover for MockApprover {
     }
 }
 
-/// 응답을 기다리는 가짜 승인자입니다. 상한이 먼저 오는지 보는 만료 시험에 씁니다.
+/// 응답을 기다리는 가짜 승인자(만료 시험용)
 struct WaitingApprover;
 
 impl CommandApprover for WaitingApprover {
@@ -39,7 +39,7 @@ fn box_of(approver: impl CommandApprover + 'static) -> ApproverBox {
     Arc::new(approver)
 }
 
-/// 즉시 승인을 돌려주는 가짜 승인자 창구입니다(03-8 execute 시험에서 재사용).
+/// 즉시 승인을 돌려주는 가짜 승인자 창구
 #[must_use]
 pub(in crate::tools) fn approved_approver() -> ApproverBox {
     box_of(MockApprover {
@@ -47,10 +47,7 @@ pub(in crate::tools) fn approved_approver() -> ApproverBox {
     })
 }
 
-/// 승인자를 부른 횟수를 세고, 정한 응답을 순번대로 돌려주는 가짜 승인자입니다(03-8 AC 2·AC 5 확인).
-///
-/// 통합 시험 트리의 `counting_approver`와 같은 성질이지만 두 compile 단위(단위 시험·통합 시험)가
-/// 서로를 볼 수 없어, 이 트리에 한 번만 두고 필요한 시험이 다 씁니다(재사용, 한 정의).
+/// 승인자 호출 횟수를 세고 정한 응답을 순번대로 돌려주는 가짜 승인자
 #[must_use]
 pub(in crate::tools) fn counting_approver_with_reply(
     replies: &[ApprovalReply],
@@ -63,7 +60,7 @@ pub(in crate::tools) fn counting_approver_with_reply(
     (approver, calls)
 }
 
-/// 응답을 정해진 순번대로 돌려주고 불린 횟수를 세는 가짜 승인자입니다.
+/// 응답을 정해진 순번대로 돌려주고 부른 횟수를 세는 가짜 승인자
 struct CountingApprover {
     calls: Arc<AtomicUsize>,
     replies: Vec<ApprovalReply>,
@@ -81,7 +78,6 @@ impl CommandApprover for CountingApprover {
     }
 }
 
-/// 상한을 짧게 주입한 설정입니다(승인 대기 초, 실행 상한은 60초 — 시험 계획대로 값 주입).
 fn approval_settings(secs: u64) -> RunCommandSettings {
     RunCommandSettings::from_settings(&AgentSettings {
         run_command_seconds: Duration::from_secs(60),
@@ -89,7 +85,7 @@ fn approval_settings(secs: u64) -> RunCommandSettings {
     })
 }
 
-/// AC 1: 승인자 미주입은 기다리지 않고 즉시 거부로 봅니다.
+/// 승인자 미주입은 기다리지 않고 즉시 거부로 봄
 #[tokio::test]
 async fn missing_approver_is_immediately_rejected() {
     let folder = TempFolder::new("approval-missing");
@@ -105,7 +101,7 @@ async fn missing_approver_is_immediately_rejected() {
     assert!(!reply.is_approved());
 }
 
-/// AC 1: 승인자 mock의 승인은 실행 허용으로 이어집니다.
+/// 승인자 mock의 승인은 실행 허용으로 이어짐
 #[tokio::test]
 async fn approved_reply_is_accepted() {
     let ctx = super::support::context_of(&TempFolder::new("approval-ok"));
@@ -122,7 +118,7 @@ async fn approved_reply_is_accepted() {
     assert!(reply.is_approved());
 }
 
-/// AC 1: 승인자 mock의 거부는 그대로 거부로 봅니다.
+/// 승인자 mock의 거부는 그대로 거부로 봄
 #[tokio::test]
 async fn rejected_reply_is_rejected() {
     let ctx = super::support::context_of(&TempFolder::new("approval-reject"));
@@ -139,7 +135,7 @@ async fn rejected_reply_is_rejected() {
     assert_eq!(reply, ApprovalReply::Rejected);
 }
 
-/// AC 2: 응답이 상한 안에 없으면 만료로 보고, 그 시간 안에 돌아옵니다(넉넉한 상한만 확인).
+/// 응답이 상한 안에 없으면 만료로 보고, 넉넉한 상한 안에 돌아옴
 #[tokio::test]
 async fn approval_reply_expires_within_upper_bound() {
     let ctx = super::support::context_of(&TempFolder::new("approval-expire"));
@@ -163,7 +159,7 @@ async fn approval_reply_expires_within_upper_bound() {
     );
 }
 
-/// AC 4: 승인 대기 중 cancel은 사용자 거부와 구분해 `Cancelled`로 돌려준다.
+/// 승인 대기 중 cancel은 사용자 거부와 구분해 `Cancelled`로 돌려줌
 #[tokio::test]
 async fn cancel_during_approval_wait_is_cancelled() {
     let ctx = super::support::context_of(&TempFolder::new("approval-cancel"));
@@ -176,8 +172,6 @@ async fn cancel_during_approval_wait_is_cancelled() {
     assert!(!reply.is_approved());
 }
 
-/// 거부·만료·미주입은 `오류: 승인 거부`로 시작하고, cancel로 끊긴 대기은 `오류: 중단`으로 시작합니다
-/// (문구 정본 한 자리). 요약은 한 줄로 뒤에 붙습니다.
 #[test]
 fn rejection_phrase_starts_with_the_shared_prefix() {
     for reply in [

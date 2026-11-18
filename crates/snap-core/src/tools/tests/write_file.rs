@@ -1,6 +1,6 @@
-//! `write_file` 도구 시험(spec AC 2와 AC 4, D49).
+//! `write_file` 도구 시험
 //!
-//! 새로 쓰기·덮어쓰기 표시, 경계 밖 거부, 비밀 파일과 `.git` 쓰기를 막는 결과를 확인한다.
+//! 새로 쓰기·덮어쓰기 표시, 경계 밖 거부, 비밀 파일과 `.git` 쓰기를 막는 결과를 확인
 
 use crate::tools::tool::{Tool, ToolOutcome};
 use crate::tools::write_file::WriteFileTool;
@@ -16,7 +16,7 @@ fn write_args(path: &str, content: &str) -> String {
     serde_json::json!({ "path": path, "content": content }).to_string()
 }
 
-/// AC 4: 없는 파일을 쓰면 새로 쓰기 표시와 함께 경로를 보여줍니다.
+/// 없는 파일을 쓰면 새로 쓰기 표시와 함께 경로를 표시
 #[tokio::test]
 async fn new_file_is_written_with_new_marker() {
     let folder = TempFolder::new("write-new");
@@ -32,7 +32,7 @@ async fn new_file_is_written_with_new_marker() {
     );
 }
 
-/// AC 4: 기존 파일을 쓰면 덮어쓰기 표시를 결과에 담습니다.
+/// 기존 파일을 쓰면 덮어쓰기 표시를 결과에 담음
 #[tokio::test]
 async fn overwrite_marks_existing_file() {
     let folder = TempFolder::new("write-over");
@@ -48,20 +48,20 @@ async fn overwrite_marks_existing_file() {
     );
 }
 
-/// AC 4: 쓰기는 승인 요청을 만들지 않고 표시로만 알립니다(D49).
+/// 쓰기는 승인 요청을 만들지 않고 표시로만 알림
 #[tokio::test]
 async fn write_never_asks_for_approval() {
     let folder = TempFolder::new("write-flag");
     let outcome = write_out(&folder, &write_args("ok.txt", "내용")).await;
     assert!(
         !matches!(outcome, ToolOutcome::ApprovalRequired { .. }),
-        "쓰기는 승인 대상이 아닙니다(D49)"
+        "쓰기는 승인 대상이 아닙니다"
     );
-    // 03-8 승인 구분 기준에는 쓰기 도구로 표기됩니다.
+    // 승인 구분 기준에는 쓰기 도구로 표기됨
     assert!(WriteFileTool.executes_writes());
 }
 
-/// AC 2: 작업 폴더 밖 경로는 거부하고 파일을 만들지 않습니다.
+/// 작업 폴더 밖 경로는 거부하고 파일을 만들지 않음
 #[tokio::test]
 async fn out_of_boundary_is_rejected() {
     let folder = TempFolder::new("write-guard");
@@ -78,7 +78,7 @@ async fn out_of_boundary_is_rejected() {
     );
 }
 
-/// AC 4: 비밀 파일 쓰기는 거부하고 기존 내용을 건드리지 않습니다.
+/// 비밀 파일 쓰기는 거부하고 기존 내용을 건드리지 않음
 #[tokio::test]
 async fn secret_file_write_is_blocked() {
     let folder = TempFolder::new("write-secret");
@@ -99,7 +99,7 @@ async fn secret_file_write_is_blocked() {
     );
 }
 
-/// AC 4: 거부 오류에 비밀 파일 안 값(키 이름과 키 값)을 넣지 않습니다.
+/// 거부 오류에 비밀 파일 안 값(키 이름과 키 값)을 넣지 않음
 #[tokio::test]
 async fn secret_write_error_does_not_expose_values() {
     let folder = TempFolder::new("write-secret-text");
@@ -122,7 +122,7 @@ async fn secret_write_error_does_not_expose_values() {
     );
 }
 
-/// AC 2: `.git` 아래 쓰기는 거부합니다(D49).
+/// `.git` 아래 쓰기는 거부
 #[tokio::test]
 async fn git_write_is_blocked() {
     let folder = TempFolder::new("write-git");
@@ -133,7 +133,7 @@ async fn git_write_is_blocked() {
     assert!(text.contains(".git"), "{text}");
 }
 
-/// AC 4: `content` 인자가 없으면 이유 한 줄만 돌려줍니다.
+/// `content` 인자가 없으면 이유 한 줄만 반환
 #[tokio::test]
 async fn missing_content_arg_is_one_line_error() {
     let folder = TempFolder::new("write-args");
@@ -144,7 +144,7 @@ async fn missing_content_arg_is_one_line_error() {
     assert_eq!(text.lines().count(), 1, "한 줄만: {text}");
 }
 
-/// AC 4: 인자 JSON이 깨지면 이유 한 줄만 돌려줍니다.
+/// 인자 JSON이 깨지면 이유 한 줄만 반환
 #[tokio::test]
 async fn broken_args_is_one_line_error() {
     let folder = TempFolder::new("write-broken");
@@ -155,7 +155,7 @@ async fn broken_args_is_one_line_error() {
     assert_eq!(text.lines().count(), 1, "한 줄만: {text}");
 }
 
-/// AC 4: 등록 규칙대로 이름과 설명과 필수 인자 목록을 한 자리에서 확인합니다.
+/// 등록 규칙대로 이름과 설명과 필수 인자 목록을 한 자리에서 확인
 #[test]
 fn tool_shape_is_ready_for_registration() {
     assert_eq!(WriteFileTool.name(), "write_file");

@@ -1,4 +1,4 @@
-//! 칸 형식 검증(명세 AC 2): 필수 칸·모르는 칸의 처리를 본다.
+//! 칸 형식 검증: 필수 칸·모르는 칸의 처리를 확인
 
 use super::super::support::{
     base_url, config_without_kind, config_without_model_id, endpoint_object, model_object,
@@ -6,7 +6,7 @@ use super::super::support::{
 };
 use crate::config::{ConfigError, FieldIssue, ValidationError};
 
-/// AC 2: 필수 칸이 없거나 타입이 틀리면 칸 이름만 밝힌 오류로 거부된다.
+/// 필수 칸이 없거나 타입이 틀리면 칸 이름만 밝힌 오류로 거부
 #[test]
 fn missing_required_fields_are_rejected_with_field_names_only() {
     assert!(matches!(
@@ -26,7 +26,7 @@ fn missing_required_fields_are_rejected_with_field_names_only() {
     ));
 }
 
-/// AC 2: 알 수 없는 칸은 루트·엔드포인트·모델 어디에 있어도 무시된다.
+/// 알 수 없는 칸은 루트·엔드포인트·모델 어디에 있어도 무시
 #[test]
 fn unknown_fields_are_ignored() {
     let model = model_object("fast", "id-1", r#","note":"x""#);

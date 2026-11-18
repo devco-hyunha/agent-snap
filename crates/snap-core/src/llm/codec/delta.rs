@@ -1,4 +1,4 @@
-//! 델타 조립: 스트림 이벤트와 합친 응답을 누적합니다.
+//! 델타 조립. 스트림 이벤트와 합친 응답을 누적.
 
 use std::collections::BTreeMap;
 
@@ -8,16 +8,16 @@ use crate::llm::error::redact::summarize_stream_error;
 
 pub use crate::llm::codec::chunk::Usage;
 
-/// 스트림에서 나오는 한 조각 이벤트입니다.
+/// 스트림에서 나오는 한 조각 이벤트.
 #[derive(Debug, Clone, PartialEq)]
 pub enum StreamEvent {
-    /// content 델타 조각입니다.
+    /// content 델타 조각.
     Content(String),
-    /// 생각(`reasoning` / `reasoning_content`) 델타 조각입니다.
+    /// 생각(`reasoning` / `reasoning_content`) 델타 조각.
     Reasoning(String),
-    /// tool_calls 델타입니다. index별로 누적합니다.
+    /// tool_calls 델타. index별로 누적.
     ToolCallDelta {
-        /// 병렬 호출 구분 index입니다.
+        /// 병렬 호출 구분 index.
         index: u32,
         /// id 조각(있으면).
         id: Option<String>,
@@ -26,39 +26,39 @@ pub enum StreamEvent {
         /// 인자 JSON 문자열 조각(있으면).
         arguments: Option<String>,
     },
-    /// 사용량입니다.
+    /// 사용량.
     Usage(Usage),
-    /// `[DONE]`으로 정상 종료했습니다.
+    /// `[DONE]`으로 정상 종료.
     Done,
 }
 
-/// index별로 합친 도구 호출입니다.
+/// index별로 합친 도구 호출.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct ToolCall {
-    /// 도구 호출 id입니다.
+    /// 도구 호출 id.
     pub id: String,
-    /// 함수 이름입니다.
+    /// 함수 이름.
     pub name: String,
-    /// 인자 JSON 문자열입니다.
+    /// 인자 JSON 문자열.
     pub arguments: String,
 }
 
-/// 스트림을 끝까지 합친 응답입니다.
+/// 스트림을 끝까지 합친 응답.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct AssembledResponse {
-    /// 이어 붙인 content입니다.
+    /// 이어 붙인 content.
     pub content: String,
-    /// 이어 붙인 생각입니다.
+    /// 이어 붙인 생각.
     pub reasoning: String,
-    /// index별 도구 호출입니다.
+    /// index별 도구 호출.
     pub tool_calls: BTreeMap<u32, ToolCall>,
-    /// 모르는 델타 필드의 (이름, 원문 JSON) 목록입니다. JSON에 나온 삽입 순서를 유지합니다.
+    /// 모르는 델타 필드의 (이름, 원문 JSON) 목록. 삽입 순서를 유지.
     pub unknown_delta_fields: Vec<(String, String)>,
-    /// 사용량입니다. 없으면 [`None`](“없음”).
+    /// 사용량. 없으면 [`None`].
     pub usage: Option<Usage>,
 }
 
-/// 청크 data 문자열을 받아 이벤트와 합친 응답을 만드는 조립기입니다.
+/// 청크 data 문자열을 받아 이벤트와 합친 응답을 만드는 조립기.
 #[derive(Debug, Default)]
 pub struct DeltaAssembler {
     assembled: AssembledResponse,
@@ -67,24 +67,24 @@ pub struct DeltaAssembler {
 }
 
 impl DeltaAssembler {
-    /// 빈 조립기를 만듭니다.
+    /// 빈 조립기를 만듦.
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// 지금까지 합친 응답의 참조를 돌려줍니다.
+    /// 지금까지 합친 응답의 참조를 반환.
     pub fn assembled(&self) -> &AssembledResponse {
         &self.assembled
     }
 
-    /// 합친 응답을 꺼냅니다.
+    /// 합친 응답을 꺼냄.
     pub fn into_assembled(self) -> AssembledResponse {
         self.assembled
     }
 
-    /// SSE data 본문 하나를 해석해 이벤트를 돌려줍니다.
+    /// SSE data 본문 하나를 해석해 이벤트를 반환.
     ///
-    /// `event_index`는 1부터 세는 data 이벤트 번호입니다(형식 오류용).
+    /// `event_index`는 1부터 세는 data 이벤트 번호(형식 오류용).
     pub fn push_data(
         &mut self,
         data: &str,
@@ -127,7 +127,7 @@ impl DeltaAssembler {
             events.push(StreamEvent::Reasoning(text));
         }
         for piece in delta.tool_calls {
-            // `apply_tool_call_delta`가 누적하고 이벤트를 내므로, 여기서 `apply_event`를 다시 부르지 않습니다.
+            // `apply_tool_call_delta`가 누적·방출하므로 여기서 `apply_event`를 다시 부르지 않음.
             events.push(self.apply_tool_call_delta(piece));
         }
         for (key, raw) in delta.unknown_fields {
@@ -135,10 +135,9 @@ impl DeltaAssembler {
         }
     }
 
-    /// 스트림 이벤트 하나를 합친 응답에 누적합니다.
+    /// 스트림 이벤트 하나를 합친 응답에 누적.
     ///
-    /// 루프(03-2)처럼 이벤트를 이미 받은 쪽이 같은 누적 규칙을 다시 적지 않게 하는 창구입니다(DRY).
-    /// `unknown_delta_fields`는 원문 JSON이 필요해 이벤트에만 있고, 여기서는 다루지 않습니다.
+    /// `unknown_delta_fields`는 원문 JSON이 필요해 이벤트에만 있고 여기서는 다루지 않음.
     pub fn apply_event(&mut self, event: &StreamEvent) {
         match event {
             StreamEvent::Content(text) => self.assembled.content.push_str(text),

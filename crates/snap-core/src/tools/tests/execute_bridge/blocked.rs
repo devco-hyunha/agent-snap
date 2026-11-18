@@ -1,11 +1,11 @@
-//! 03-8 execute 브리지 차단 시험입니다(AC 2 게이트 전 차단·spec 1차 목록).
+//! execute 브리지 차단 시험.
 //!
-//! 결론: 1차 허용 목록 밖 이름과 쓰기·명령 이름이 JS에 걸리지 않는지 확인합니다.
+//! 1차 허용 목록 밖 이름과 쓰기·명령 이름이 JS에 걸리지 않는지 확인.
 
 use super::super::support::TempWorkdir;
 use super::shared::run_execute;
 
-/// 1차 허용 목록 밖 쓰기·명령 이름은 JS에 걸리지 않는다(spec.md 1차 목록).
+/// 1차 허용 목록 밖 쓰기·명령 이름은 JS에 걸리지 않음.
 #[tokio::test]
 async fn write_and_command_names_are_not_exposed() {
     let workdir = TempWorkdir::new("bridge-readonly-list");
@@ -20,7 +20,7 @@ async fn write_and_command_names_are_not_exposed() {
     );
 }
 
-/// AC 2: `run_tool` 창구도 1차 허용 목록 밖 이름은 같은 자리에서 막는다(승인 게이트 전 차단).
+/// `run_tool` 창구도 1차 허용 목록 밖 이름은 같은 자리에서 차단(승인 게이트 전).
 #[tokio::test]
 async fn run_tool_blocks_names_outside_readonly_list() {
     let workdir = TempWorkdir::new("bridge-runtool-block");
@@ -36,9 +36,7 @@ async fn run_tool_blocks_names_outside_readonly_list() {
     );
 }
 
-/// AC 2 연장(라운드 3 minor 11): 매개 얅개가 순환 객체의 `JSON.stringify` 예외를 잡는다.
-///
-/// 순환 객체를 매개로 주면 엔진이 멈추지 않고 짧은 오류 글자로 끝나는지 봅니다.
+/// 매개 얅개가 순환 객체의 `JSON.stringify` 예외를 잡아 엔진 정지 없이 짧은 오류 글자로 끝남 확인.
 #[tokio::test]
 async fn circular_arg_fails_as_short_error_not_engine_halt() {
     let workdir = TempWorkdir::new("bridge-circular-arg");

@@ -1,7 +1,6 @@
-//! OpenAI 호환 HTTP 스트리밍 전송입니다.
+//! OpenAI 호환 HTTP 스트리밍 전송.
 //!
-//! `reqwest`는 `llm/transport/` 안의 파일에서만 씁니다. `snap-core` 공개면으로
-//! 새지 않게 둡니다.
+//! `reqwest`는 `llm/transport/` 안의 파일에서만 씀. 공개면으로 새지 않게 둠.
 
 mod client;
 mod client_debug;

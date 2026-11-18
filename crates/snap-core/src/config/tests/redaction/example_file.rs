@@ -1,7 +1,6 @@
-//! 예시 파일 검사(명세 AC 5 3번째 줄): `agent-snap.example.jsonc`의 형태를 확인합니다.
+//! 예시 파일 검사: `agent-snap.example.jsonc`가 검증을 통과하고 자리표시자만 담는지 확인
 //!
-//! 가리기 확인과 다른 책임이라 따로 분리했습니다. 예시 파일은 설정 해석 지원부(`config_text.rs`)
-//! 로 읽고, 자리표시자만 쓰이는지 봅니다.
+//! 예시 파일은 설정 해석 지원부로 읽는 별도 책임의 시험
 
 use super::super::support::parse_ok;
 
@@ -10,7 +9,7 @@ const EXAMPLE_CONFIG: &str = include_str!(concat!(
     "/../../agent-snap.example.jsonc"
 ));
 
-/// AC 5(3): `agent-snap.example.jsonc`를 읽으면 검증을 통과하고 모델이 들어 있다.
+/// 예시 파일을 읽으면 검증을 통과하고 엔드포인트·모델이 들어 있는지 확인
 #[test]
 fn example_file_passes_validation() {
     let config = parse_ok(EXAMPLE_CONFIG);
@@ -19,7 +18,7 @@ fn example_file_passes_validation() {
     assert!(config.models().count() >= 2);
 }
 
-/// AC 5(3): 예시 파일에는 자리표시자만 있고 실제 키 칸과 알려진 로컬 주소가 없다.
+/// 예시 파일에 자리표시자만 있고 실제 키 칸이나 알려진 로컬 주소가 없는지 확인
 #[test]
 fn example_file_contains_placeholders_only() {
     let config = parse_ok(EXAMPLE_CONFIG);

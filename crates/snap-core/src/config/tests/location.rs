@@ -1,4 +1,4 @@
-//! 설정 폴더 위치 테스트(명세 AC 1): 환경 정보를 주입해 우선순위와 운영체제 관례를 확인한다.
+//! 설정 폴더 위치 시험: 환경 정보를 주입해 우선순위와 운영체제 관례 확인.
 
 use std::path::PathBuf;
 
@@ -7,7 +7,7 @@ use crate::config::{
     CONFIG_FILE_NAME, ConfigEnv, ConfigError, HostOs, ReadingError, load_config, resolve_config_dir,
 };
 
-/// AC 1: `AGENT_SNAP_CONFIG_DIR` 값이 있으면 운영체제와 관계없이 그 폴더를 쓴다.
+/// `AGENT_SNAP_CONFIG_DIR` 값이 있으면 운영체제와 관계없이 그 폴더 사용.
 #[test]
 fn override_dir_wins_over_os_convention() {
     for os in [HostOs::Windows, HostOs::Other] {
@@ -26,7 +26,7 @@ fn override_dir_wins_over_os_convention() {
     }
 }
 
-/// AC 1: 값이 비어 있는 `AGENT_SNAP_CONFIG_DIR`은 없는 것으로 보고 관례를 따른다.
+/// 값이 비어 있는 `AGENT_SNAP_CONFIG_DIR`은 없는 것으로 보고 관례 따름.
 #[test]
 fn empty_override_falls_back_to_convention() {
     let env = ConfigEnv {
@@ -41,12 +41,12 @@ fn empty_override_falls_back_to_convention() {
     );
 }
 
-/// AC 1: Windows는 Roaming AppData 아래 `agent-snap`이다.
+/// Windows는 Roaming AppData 아래 `agent-snap` 사용.
 #[test]
 fn windows_uses_roaming_appdata() {
     let env = ConfigEnv {
         appdata: Some(PathBuf::from("roaming")),
-        // Windows에서는 XDG 값이 있어도 쓰지 않는다.
+        // Windows에서는 XDG 값이 있어도 쓰지 않음.
         xdg_config_home: Some(PathBuf::from("xdg")),
         ..empty_env(HostOs::Windows)
     };
@@ -57,7 +57,7 @@ fn windows_uses_roaming_appdata() {
     );
 }
 
-/// AC 1: 그 밖의 운영체제는 `XDG_CONFIG_HOME`이 있으면 그 아래를 쓴다.
+/// 그 밖의 운영체제는 `XDG_CONFIG_HOME`이 있으면 그 아래 사용.
 #[test]
 fn other_os_uses_xdg_config_home_first() {
     let env = ConfigEnv {
@@ -72,7 +72,7 @@ fn other_os_uses_xdg_config_home_first() {
     );
 }
 
-/// AC 1: `XDG_CONFIG_HOME`이 없으면 홈 아래 `.config/agent-snap`이다.
+/// `XDG_CONFIG_HOME`이 없으면 홈 아래 `.config/agent-snap`.
 #[test]
 fn other_os_falls_back_to_home_dot_config() {
     let env = ConfigEnv {
@@ -86,7 +86,7 @@ fn other_os_falls_back_to_home_dot_config() {
     );
 }
 
-/// AC 1: 관례 폴더를 계산할 정보가 없으면 경로 없는 오류다.
+/// 관례 폴더를 계산할 정보가 없으면 경로 없는 오류.
 #[test]
 fn missing_environment_information_is_an_error() {
     for os in [HostOs::Windows, HostOs::Other] {
@@ -99,7 +99,7 @@ fn missing_environment_information_is_an_error() {
     }
 }
 
-/// AC 1: 지정한 폴더(임시 폴더)를 계산해 그 안의 설정을 읽는다. 위치 계산과 읽기가 독립이다.
+/// 지정한 폴더를 계산해 그 안의 설정 읽기. 위치 계산과 읽기가 독립임.
 #[test]
 fn resolved_override_dir_is_used_to_read_config() {
     let folder = TempDir::new("override");

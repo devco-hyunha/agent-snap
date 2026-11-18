@@ -1,8 +1,4 @@
-//! 선택 키 클라이언트의 `GET /models` 정상 조회 통합 시험(02-7 AC 3).
-//!
-//! 모의 서버가 준 목록 JSON에서 id만 순서대로 읽는지, 모르는 필드·`null`을 무시하는지,
-//! 설정 `models`와 자동 동기화하지 않는지, base_url 경로 결합을 한 번만 하는지 본다.
-//! 형식 오류와 본문 가리기는 `format_error.rs`가 따로 다룬다(SRP).
+//! 선택 키 클라이언트의 `GET /models` 정상 조회 통합 시험
 
 use snap_core::config::Config;
 use snap_core::llm::CancellationToken;
@@ -14,9 +10,7 @@ use super::support::{
     KEY_HEADER_NAME, KEY_MARK, SECOND_ID_MARK, ac3_config_text, ac3_credentials, list_script,
 };
 
-/// AC 3: 모의 서버가 준 응답의 id 목록을 순서대로 읽는다.
-///
-/// 기본 목록 스크립트(`models_list()`)로 조회한다. 조회는 설정의 모델 id를 건드리지 않는다.
+/// 모의 서버가 준 응답의 id 목록을 순서대로 읽는지 확인
 #[tokio::test]
 async fn list_models_reads_ids_from_server_response() {
     let server = MockServer::spawn(MockResponseScript::models_list()).await;
@@ -47,7 +41,7 @@ async fn list_models_reads_ids_from_server_response() {
     );
 }
 
-/// AC 3: 조회 결과를 설정의 모델 목록과 자동으로 맞추지 않음을 설정 값으로 확인한다.
+/// 조회 결과를 설정의 모델 목록과 자동으로 맞추지 않음 확인
 #[tokio::test]
 async fn list_models_does_not_sync_with_config_models() {
     let server = MockServer::spawn(MockResponseScript::models_list()).await;
@@ -62,7 +56,6 @@ async fn list_models_does_not_sync_with_config_models() {
         .await
         .expect("목록 조회 성공");
 
-    // 서버가 알려 준 id와 설정의 손쓴 id가 다르고, 조회 뒤에도 설정 값은 그대로다.
     assert_eq!(ids, DEFAULT_LIST_IDS);
     assert!(
         !ids.iter().any(|id| id == KEEPING_ID),
@@ -76,7 +69,7 @@ async fn list_models_does_not_sync_with_config_models() {
     assert_ne!(model.id, SECOND_ID_MARK);
 }
 
-/// AC 3: 모르는 필드·`null` 필드가 섞인 응답에서도 id만 읽고 무시한다.
+/// 모르는 필드·`null` 필드가 섞인 응답에서도 id만 읽고 무시
 #[tokio::test]
 async fn list_models_ignores_unknown_and_null_fields() {
     let body = r#"{
@@ -100,9 +93,9 @@ async fn list_models_ignores_unknown_and_null_fields() {
     assert_eq!(ids, EXTRA_IDS);
 }
 
-/// 작업 3(N5): base_url에 `/v1`이 있어도 `/models`를 한 번만 붙여 `/v1/models`로 요청한다.
+/// base_url에 `/v1`이 있어도 `/models`를 한 번만 붙여 `/v1/models`로 요청
 ///
-/// `/v1/v1`처럼 경로가 이중으로 결합되면 모의 서버가 그 경로를 몰라 요청이 닿지 않는다.
+/// 경로가 이중으로 결합되면 모의 서버가 그 경로를 몰라 요청이 닿지 않음
 #[tokio::test]
 async fn list_models_joins_path_once_when_base_url_has_v1() {
     let server = MockServer::spawn_models_only(MockResponseScript::models_list()).await;

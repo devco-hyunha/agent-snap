@@ -1,7 +1,6 @@
-//! 03-5 루프 계층 시험: `AGENTS.md`가 읽혀 첫 요청 system 앞머리에 규범 → 원문 순으로 들어가는지 봅니다(spec AC 1·AC 2·AC 4).
+//! 루프 계층 시험: `AGENTS.md`가 첫 요청 system 앞머리에 규범 → 원문 순으로 들어가는지 확인.
 //!
-//! 03-2 지원부 골격(`loop_config_base` 계층인 `agents_md_loop_config`)과 모의 서버 재료를 그대로 재사용하고,
-//! 작업 폴더만 임시 작업 폴더로 바꿉니다.
+//! 지원부 골격과 모의 서버 재료를 재사용하고 작업 폴더만 임시로 사용.
 
 use snap_core::agent::{
     AGENTS_MD_LONG_NOTICE, AgentLoop, DEFAULT_AGENTS_MD_MAX_BYTES, LoopEnd, LoopOutcome,
@@ -13,7 +12,7 @@ use crate::support::{
     LoopTempWorkdir, agents_md_loop_config, cancel_token, content_stream, registry_with_fixed,
 };
 
-/// AC 1: 작업 폴더 `AGENTS.md` 원문이 규범 앞머리 뒤에 조립된 첫 요청을 보냅니다.
+/// 작업 폴더 `AGENTS.md` 원문이 규범 앞머리 뒤에 조립된 첫 요청을 보냄.
 #[tokio::test]
 async fn agents_md_reaches_first_request_system_head() {
     let folder = LoopTempWorkdir::new("loop-agents-md");
@@ -55,7 +54,7 @@ async fn agents_md_reaches_first_request_system_head() {
     );
 }
 
-/// AC 2: `AGENTS.md`가 없는 작업 폴더에서는 규범 앞머리만 보냅니다(지시 없는 상태로 루프 계속).
+/// `AGENTS.md`가 없는 작업 폴더에서는 규범 앞머리만 보내 루프 계속.
 #[tokio::test]
 async fn loop_without_agents_md_keeps_only_norm_head() {
     let folder = LoopTempWorkdir::new("loop-no-agents-md");
@@ -81,7 +80,7 @@ async fn loop_without_agents_md_keeps_only_norm_head() {
     assert_eq!(body["messages"][0]["content"], "규범 앞머리");
 }
 
-/// AC 4: 상한을 넘는 지시 파일은 원문 그대로 가고 끝에 표시 한 줄만 붙습니다.
+/// 상한을 넘는 지시 파일은 원문 그대로 가고 끝에 표시 한 줄만 붙임.
 #[tokio::test]
 async fn long_agents_md_keeps_text_and_adds_notice_line() {
     let folder = LoopTempWorkdir::new("loop-long-agents-md");

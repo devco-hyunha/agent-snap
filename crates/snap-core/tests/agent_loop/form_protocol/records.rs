@@ -1,7 +1,6 @@
-//! 2안 왕복 기록의 잘림 상한 확인입니다(spec AC 5).
+//! 2안 왕복 기록의 잘림 상한 확인.
 //!
-//! 기본 4,000자 상수를 고정으로 쓰던 자리를 고쳤습니다(리뷰 1차 1번 지적 보정). 설정을 줄이면
-//! messages에 보내는 글자뿐 아니라 기록의 결과 칸도 같은 상한으로 잘립니다(spec AC 5, 1안 규칙과 동일).
+//! 설정을 줄이면 messages에 보내는 글자뿐 아니라 기록의 결과 칸도 같은 상한으로 잘림.
 
 use snap_core::agent::{AgentLoop, LoopEnd, LoopOutcome, TRUNCATION_MARK, ToolCallFormat};
 use snap_core::config::ToolCallForm;
@@ -10,7 +9,7 @@ use crate::common::mock_server::{MockResponseScript, MockServer};
 use crate::common::support::{client_at_with, test_http};
 use crate::support::{cancel_token, content_stream, form_config, registry_with_named_fixed};
 
-/// 2안 기록 잘림이 설정값(`with_tool_result_max_chars`)을 따지는지 확인합니다.
+/// 2안 기록 잘림이 설정값(`with_tool_result_max_chars`)을 따지는지 확인.
 #[tokio::test]
 async fn text_record_truncates_at_configured_max_chars() {
     let long_output = "0123456789".repeat(30);

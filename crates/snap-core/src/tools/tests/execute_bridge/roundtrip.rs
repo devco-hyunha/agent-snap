@@ -1,9 +1,9 @@
-//! 03-8 execute 브리지 왕복(읽기→가공→집계) 시험입니다(AC 1·AC 4).
+//! execute 브리지 왕복(읽기→가공→집계) 시험.
 
 use super::super::support::TempWorkdir;
 use super::shared::run_execute;
 
-/// AC 1 연장: `read_file` 뒤 `grep` 호출로 결과를 가공하는 흐름(읽기 → 검색 → 집계)을 왕복으로 확인한다.
+/// `read_file` 뒤 `grep` 호출로 결과를 가공하는 흐름(읽기 → 검색 → 집계) 왕복 확인.
 #[tokio::test]
 async fn readonly_script_roundtrip_returns_summary_and_log_line() {
     let workdir = TempWorkdir::new("bridge-roundtrip");
@@ -21,7 +21,7 @@ async fn readonly_script_roundtrip_returns_summary_and_log_line() {
     assert_eq!(text.lines().count(), 2, "요약 줄과 기록 줄만: {text}");
 }
 
-/// AC 1 연장: `read_file` → `grep` 가공 흐름을 왕복으로 확인한다. grep 결과의 개수를 세어 요약에 올린다.
+/// `read_file` → `grep` 가공 흐름 왕복. grep 결과의 개수를 세어 요약에 올림.
 #[tokio::test]
 async fn readonly_script_grep_roundtrip_counts_from_grep_result() {
     let workdir = TempWorkdir::new("bridge-grep-roundtrip");
@@ -42,7 +42,7 @@ async fn readonly_script_grep_roundtrip_counts_from_grep_result() {
     assert_eq!(text.lines().count(), 3, "요약 줄과 기록 줄 2개: {text}");
 }
 
-/// AC 4: 스크립트 안 중간 변수 값은 컨텍스트에 오르지 않고 요약(마지막 표현식)만 오른다.
+/// 스크립트 안 중간 변수 값은 컨텍스트에 오르지 않고 요약(마지막 표현식)만 오름.
 #[tokio::test]
 async fn script_middle_values_stay_out_of_summary() {
     let workdir = TempWorkdir::new("bridge-summary-only");
@@ -61,7 +61,7 @@ async fn script_middle_values_stay_out_of_summary() {
     assert!(!text.contains("middle-secret"), "중간 변수 제외: {text}");
 }
 
-/// AC 4 연장(보정 라운드 2 minor 3): 문자열이 아닌 값의 요약은 JSON 글자로만 나오고 엔진 표시가 걸리지 않는다.
+/// 문자열이 아닌 값의 요약은 JSON 글자로만 나오고 엔진 표시가 걸리지 않음.
 #[tokio::test]
 async fn non_string_values_sum_as_json_text_only() {
     let workdir = TempWorkdir::new("bridge-json-text");
@@ -89,7 +89,7 @@ async fn non_string_values_sum_as_json_text_only() {
     );
 }
 
-/// 1차 허용 목록 이름 4개가 JS 배열(`SNAP_TOOLS`)로 그대로 노출된다(AC 1).
+/// 1차 허용 목록 이름 4개가 JS 배열(`SNAP_TOOLS`)로 그대로 노출됨.
 #[tokio::test]
 async fn readonly_tool_names_are_exposed() {
     let workdir = TempWorkdir::new("bridge-names");

@@ -1,4 +1,4 @@
-//! snap-core: agent-snap의 모든 로직을 담는 라이브러리입니다.
+//! snap-core: agent-snap의 모든 로직을 담는 라이브러리.
 
 pub mod agent;
 mod civil_date;

@@ -1,10 +1,10 @@
-//! 경계값 통과 검증(명세 AC 2): 규칙의 가장자리 값이 통과하는지 본다.
+//! 경계값 통과 검증: 규칙의 가장자리 값이 통과하는지 확인
 
 use super::super::support::{
     config_of, config_with_model_tail, config_with_root_tail, endpoint_object, parse_ok,
 };
 
-/// AC 2(D29): `context_window`는 경계 값 1과 `u64` 상단이 통과한다.
+/// `context_window` 경계 값 1과 `u64` 상단 통과
 #[test]
 fn context_window_boundary_values_are_accepted() {
     let low = parse_ok(&config_with_model_tail(r#","context_window":1"#));
@@ -16,7 +16,7 @@ fn context_window_boundary_values_are_accepted() {
     assert_eq!(max.endpoints[0].models[0].context_window, u64::MAX);
 }
 
-/// AC 2: 경계 값(`temperature` 0과 2, `top_p` 1, `max_tokens` 1)은 통과한다.
+/// 경계 값(`temperature` 0과 2, `top_p` 1, `max_tokens` 1) 통과
 #[test]
 fn sampling_boundary_values_are_accepted() {
     let config = parse_ok(&config_with_model_tail(
@@ -31,7 +31,7 @@ fn sampling_boundary_values_are_accepted() {
     assert_eq!(upper.endpoints[0].models[0].sampling.temperature, Some(2.0));
 }
 
-/// AC 2(D21): `http` 시간 값은 아주 작은 양수, `backoff_min == backoff_max`, `retries` 0이 통과한다.
+/// `http` 시간 값 아주 작은 양수, `backoff_min == backoff_max`, `retries` 0 통과
 #[test]
 fn http_boundary_values_are_accepted() {
     let tiny = parse_ok(&config_with_root_tail(
@@ -51,7 +51,7 @@ fn http_boundary_values_are_accepted() {
     assert_eq!(no_retry.http.retries, 0);
 }
 
-/// AC 2: `base_url`은 `/v1` 경로를 검사하지 않고 `http`와 `https`를 모두 받는다.
+/// `base_url`은 `/v1` 경로를 검사하지 않고 `http`와 `https`를 모두 받음
 #[test]
 fn base_url_accepts_http_and_https_without_checking_path() {
     for url in ["http://host", "https://host/v1", "HTTP://host/api/v2"] {

@@ -1,10 +1,10 @@
-//! 청크 JSON 스키마 해석: choices·delta·usage·error 필드를 읽습니다.
+//! 청크 JSON 스키마 해석. choices·delta·usage·error 필드를 읽음.
 
 use serde_json::{Map, Value};
 
 use crate::llm::error::{FormatErrorKind, StreamParseError};
 
-/// 토큰 사용량입니다. 청크 `usage` 스키마와 같습니다.
+/// 토큰 사용량. 청크 `usage` 스키마와 같음.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Usage {
     /// 프롬프트 토큰 수(있으면).
@@ -15,7 +15,7 @@ pub struct Usage {
     pub total_tokens: Option<u64>,
 }
 
-/// 청크 JSON에서 읽은 tool_calls 한 조각입니다.
+/// 청크 JSON에서 읽은 tool_calls 한 조각.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct ParsedToolCallDelta {
     pub index: u32,
@@ -24,32 +24,32 @@ pub(super) struct ParsedToolCallDelta {
     pub arguments: Option<String>,
 }
 
-/// 청크 JSON의 `delta` 객체에서 읽은 필드입니다.
+/// 청크 JSON의 `delta` 객체에서 읽은 필드.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub(super) struct ParsedDelta {
     pub content: Option<String>,
-    /// `reasoning` / `reasoning_content`를 문서 순서대로 담습니다.
+    /// `reasoning` / `reasoning_content`를 문서 순서대로 담음.
     pub reasonings: Vec<String>,
     pub tool_calls: Vec<ParsedToolCallDelta>,
     pub unknown_fields: Vec<(String, String)>,
 }
 
-/// data 본문 JSON을 해석한 결과입니다. `[DONE]`은 호출 전에 걸러집니다.
+/// data 본문 JSON을 해석한 결과. `[DONE]`은 호출 전에 걸러짐.
 #[derive(Debug, Clone, PartialEq)]
 pub(super) enum ParsedChunk {
-    /// 최상위 `error` 필드가 있습니다. 요약용 원문 문구만 담습니다(가리기는 호출측).
+    /// 최상위 `error` 필드. 요약용 원문만 담음(가리기는 호출측).
     StreamError {
         /// 서버 오류 문구(가리기 전).
         message: String,
     },
-    /// 정상 청크입니다.
+    /// 정상 청크.
     Ok {
         usage: Option<Usage>,
         delta: Option<ParsedDelta>,
     },
 }
 
-/// data 본문 문자열을 청크 스키마로 해석합니다.
+/// data 본문 문자열을 청크 스키마로 해석.
 pub(super) fn parse_data_chunk(
     data: &str,
     event_index: usize,
@@ -119,7 +119,7 @@ fn parse_delta(delta: &Map<String, Value>) -> Result<ParsedDelta, FormatErrorKin
     {
         parsed.content = Some(content.to_string());
     }
-    // preserve_order 기능으로 Map이 삽입 순서를 유지한다. 두 생각 필드가 같이 와도 보낸 순서가 남는다.
+    // Map이 삽입 순서를 유지. 두 생각 필드가 같이 와도 보낸 순서가 남음.
     for (key, value) in delta {
         if key.as_str() != "reasoning" && key.as_str() != "reasoning_content" {
             continue;
@@ -191,6 +191,6 @@ fn error_summary_text(value: &Value) -> String {
     if let Some(text) = value.as_str() {
         return text.to_string();
     }
-    // 원문 JSON 전체를 오류에 넣지 않도록 짧은 고정 문구만 쓴다.
+    // 원문 JSON 전체를 오류에 넣지 않도록 짧은 고정 문구만 씀.
     "서버가 오류 청크를 보냈습니다".to_string()
 }

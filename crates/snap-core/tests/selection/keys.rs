@@ -1,4 +1,4 @@
-//! 선택 키 클라이언트 통합 테스트(02-7 AC 1): 모의 서버 두 개로 요청의 행선지와 본문 값을 확인합니다.
+//! 선택 키 클라이언트 통합 테스트. 모의 서버 두 개로 요청의 행선지와 본문 값을 확인
 
 use std::collections::BTreeMap;
 
@@ -13,9 +13,9 @@ use crate::common::support::{body_parts_sse, drain, success_stream_body};
 
 const KEY_MARK: &str = "key-ac1-integration";
 
-/// AC 1에서 쓰는 설정 골격입니다. 엔드포인트 이름 `pc1`·`pc2`와 같은 별칭 `fast`를 모의 서버 주소로 잇습니다.
+/// 설정 골격. 엔드포인트 이름 `pc1`·`pc2`와 같은 별칭 `fast`를 모의 서버 주소로 연결
 ///
-/// 같은 별칭 `fast`가 두 엔드포인트에 있고, 모델별 샘플링과 루트 기본 샘플링이 함께 들어가 있습니다.
+/// 같은 별칭 `fast`가 두 엔드포인트에 있고, 모델별 샘플링과 루트 기본 샘플링이 함께 들어감
 fn ac1_config_text(pc1_url: &str, pc2_url: &str) -> String {
     format!(
         r#"{{"endpoints":[
@@ -28,7 +28,7 @@ fn ac1_config_text(pc1_url: &str, pc2_url: &str) -> String {
     )
 }
 
-/// AC 1에서 쓰는 요청 골격입니다. 선택 키가 정한 값에 가리도록 본문 골격만 넘겼습니다.
+/// 요청 골격. 선택 키가 정한 값에 가리도록 본문 골격만 넘김
 fn ac1_request() -> ChatRequest {
     ChatRequest {
         model: "caller-model".into(),
@@ -44,12 +44,12 @@ fn ac1_request() -> ChatRequest {
     }
 }
 
-/// 본문 JSON에서 숫자 값을 꺼냅니다. 본문 필드가 기대 값과 같은지 비교하는 데 쓰입니다.
+/// 본문 JSON에서 숫자 값을 추출. 필드 비교에 사용
 fn body_number(body: &serde_json::Value, field: &str) -> Option<f64> {
     body.get(field).and_then(serde_json::Value::as_f64)
 }
 
-/// 스트림을 끝까지 읽고 내용만 모습니다. 본문이 채워졌는지 확인하는 데 쓰입니다.
+/// 스트림을 끝까지 읽고 내용만 모음
 async fn read_stream(stream: &mut ChatStream) -> String {
     drain(stream)
         .await
@@ -61,9 +61,9 @@ async fn read_stream(stream: &mut ChatStream) -> String {
         .collect()
 }
 
-/// AC 1: 선택 키가 가리키는 모의 서버로만 요청이 가고, 본문에 그 모델의 id와 샘플링이 실립니다.
+/// 선택 키가 가리키는 모의 서버로만 요청이 가고, 본문에 그 모델의 id와 샘플링이 실림
 ///
-/// 같은 별칭 `fast`가 서로 다른 엔드포인트에 있어도 선택 키가 다르면 다른 서버로 갑니다.
+/// 같은 별칭 `fast`가 서로 다른 엔드포인트에 있어도 선택 키가 다르면 다른 서버로 감
 #[tokio::test]
 async fn selection_key_routes_to_its_endpoint_only() {
     let server_pc1 = MockServer::spawn(MockResponseScript::with_body_parts(body_parts_sse(
