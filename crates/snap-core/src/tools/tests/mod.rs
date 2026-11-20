@@ -2,8 +2,10 @@
 //!
 //! 이 트리는 크레이트 안 항목을 보는 시험이라 `crate` 경로로만 봄
 
-#[path = "approver.rs"]
+mod approved_context;
 mod approver;
+mod args;
+mod background;
 #[path = "edit_file.rs"]
 mod edit_file;
 mod execute_bridge;
@@ -20,8 +22,8 @@ mod process_tree;
 mod read_file;
 #[path = "ripgrep.rs"]
 mod ripgrep;
-#[path = "run_command.rs"]
 mod run_command;
+mod shell;
 pub mod support;
 #[path = "write_file.rs"]
 mod write_file;

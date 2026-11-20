@@ -47,9 +47,8 @@ pub(in crate::tools) fn run_script(bridge: EngineBridge, script: &str) -> String
         let worker =
             scope.spawn(move || drive_engine(code, bridge, cancel, run_limit_secs, sender));
         let watchdog = scope.spawn(move || watch_outcome(run_limit_secs, &receiver));
-        // 워치독 판정을 먼저 기다림: 엔진 스레드가 결과를 안 보내는 스크립트도
-        // 시간 상한 안에 끝나야 함. 엔진 스레드는 안에서 상한을 지키므로
-        // 스레드 합치기 대기에 걸리지 않음.
+        // 워치독 판정을 먼저 기다림: 엔진 스레드가 결과를 안 보내도 시간 상한 안에 끝나야 함.
+        // 엔진 스레드는 안에서 상한을 지키므로 스레드 합치기 대기에 걸리지 않음.
         let watchdog_verdict = watchdog
             .join()
             .unwrap_or_else(|_| Err("execute 감시 창구가 예상 밖으로 멈췄습니다".to_owned()));

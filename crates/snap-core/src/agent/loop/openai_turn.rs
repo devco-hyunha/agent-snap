@@ -2,7 +2,7 @@
 
 use crate::llm::{ChatMessage, ToolCall};
 
-use crate::agent::fallback::connector::{
+use crate::agent::fallback::switch::{
     FallbackPoint, first_turn_fallback_point, is_text_switch_streak,
 };
 use crate::agent::prompt::assemble::assistant_turn_message;

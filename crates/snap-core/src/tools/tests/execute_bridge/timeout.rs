@@ -4,7 +4,7 @@
 
 use std::time::Duration;
 
-use crate::tools::approver::ApprovalReply;
+use crate::tools::approval::approver::ApprovalReply;
 
 use super::super::support::TempWorkdir;
 use super::shared::execute_text;
@@ -71,7 +71,7 @@ async fn cancel_during_approval_gate_ends_within_limit() {
     let workdir = TempWorkdir::new("bridge-gate-cancel");
     let mut ctx = short_limit_context(&workdir, 300);
     let (approver, counted) =
-        super::super::approver::counting_approver_with_reply(&[ApprovalReply::Cancelled]);
+        super::super::approver::mocks::counting_approver_with_reply(&[ApprovalReply::Cancelled]);
     ctx.approver = Some(approver);
     let started = std::time::Instant::now();
     let text = execute_text(

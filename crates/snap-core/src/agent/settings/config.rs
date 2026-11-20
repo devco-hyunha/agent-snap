@@ -99,19 +99,20 @@ impl LoopConfig {
         self
     }
 
-    /// `run_command`의 승인 대기·실행 시간 상한을 설정 값(`agent` 섹션)에서 받아 채움
+    /// `run_command`의 승인 대기·실행 시간 상한과 백그라운드 확인 주기를 설정 값(`agent` 섹션)에서 받아 채움
     ///
     /// 설정 읽기 자리(`config::AgentSettings`)를 그대로 재사용하고, 도구 실행 판 한 곳에만 넣음
     #[must_use]
     pub fn with_run_command_deadline(mut self, settings: &crate::config::AgentSettings) -> Self {
         self.context.run_command =
-            crate::tools::run_command_settings::RunCommandSettings::from_settings(settings);
+            crate::tools::command::settings::RunCommandSettings::from_settings(settings);
+        self.context.wake_interval = settings.wake_interval_seconds;
         self
     }
 
     /// CLI에서 주입하는 승인자를 도구 실행 판에 채움
     #[must_use]
-    pub fn with_approver(mut self, approver: crate::tools::approver::ApproverBox) -> Self {
+    pub fn with_approver(mut self, approver: crate::tools::approval::request::ApproverBox) -> Self {
         self.context.approver = Some(approver);
         self
     }

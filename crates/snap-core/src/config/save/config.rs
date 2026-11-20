@@ -15,11 +15,12 @@ use super::values::{extra_value, sampling_value};
 
 /// 설정 파일에 엔드포인트를 추가하고, 같은 이름이 있으면 그 항목을 고침
 ///
-/// 검증에 걸리면 파일을 건드리지 않음. CST 편집이라 주석과 손대지 않은 항목은 원문대로 남음, 파일이 없으면 새로 만듦
+/// 검증에 걸리면 파일을 건드리지 않고, CST 편집이라 기존 주석은 원문대로 남음
 ///
 /// # 오류
-/// 읽기·쓰기 실패는 [`super::super::error::SaveError::SaveIo`], 규칙 위반은 [`EndpointSave::validate`]가 밝히는 검증 오류, 읽을 수 없는 파일은
-/// [`ReadingError::RootNotObject`]
+/// - [`super::super::error::SaveError::SaveIo`]: 읽기·쓰기 실패.
+/// - [`EndpointSave::validate`]가 밝히는 검증 오류: 규칙 위반.
+/// - [`ReadingError::RootNotObject`]: 읽을 수 없는 파일.
 pub fn save_endpoint(folder: &Path, save: &EndpointSave) -> Result<(), ConfigError> {
     save_endpoint_with(folder, save, &replace_file)
 }

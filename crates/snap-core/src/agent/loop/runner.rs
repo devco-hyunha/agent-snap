@@ -5,7 +5,7 @@
 use crate::llm::{CancellationToken, ChatRequest, LlmClient, ToolCall};
 
 use crate::agent::executor::run_tool_calls;
-use crate::agent::fallback::connector::FallbackPoint;
+use crate::agent::fallback::switch::FallbackPoint;
 use crate::agent::fallback::tool_call_form::{ToolCallFormat, detects_switch};
 use crate::agent::fallback::unsupported::{transport_failure, unsupported_point};
 use crate::agent::prompt::assemble::tool_result_messages;
@@ -44,8 +44,6 @@ impl<C: LlmClient> AgentLoop<C> {
     }
 
     /// 왕복을 반복하며 messages를 키우고, 같은 요청을 다시 보내지 않음
-    ///
-    /// 판단 갈래는 `LoopState` 메서드와 `openai_turn`의 작은 함수들이 담당
     async fn run_turns(&self, first: ChatRequest, config: &LoopConfig) -> LoopOutcome {
         let mut state = LoopState::start(first, config.tool_call_form);
         // 1안 왕복에서 도구 호출 없이 이어진 텍스트 횟수(2안 전환 확정 계산)

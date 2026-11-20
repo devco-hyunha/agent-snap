@@ -1,6 +1,6 @@
 //! 1안 왕복 진행 상태: 왕복마다 바뀌는 값과 2안 전환 조립 한 자리 담당
 
-use crate::agent::fallback::connector::FallbackPoint;
+use crate::agent::fallback::switch::FallbackPoint;
 use crate::agent::fallback::tool_call_form::{ToolCallFormat, start_format};
 use crate::agent::record::registry::ToolRegistry;
 use crate::agent::schema::types::ToolCallRecord;

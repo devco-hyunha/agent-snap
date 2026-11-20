@@ -6,7 +6,7 @@
 use std::sync::Arc;
 
 use crate::tools::approval::approver::ApprovalReply;
-use crate::tools::approval::approver::request_approval;
+use crate::tools::approval::request::request_approval;
 use crate::tools::tool::ToolContext;
 
 /// 호출 전용 승인 대기 창구.
@@ -29,7 +29,7 @@ impl ScriptApproval {
         request_approval(
             self.context.approver.as_ref(),
             summary,
-            &self.context.run_command,
+            &self.context.approval,
             &self.context.cancel_token(),
         )
         .await

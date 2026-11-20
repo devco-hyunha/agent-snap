@@ -14,7 +14,8 @@ pub use executor::{ToolRun, run_tool_calls};
 pub use text::*;
 
 pub use fallback::args::{self, recover_arguments};
-pub use fallback::connector::{FallbackConnector, FallbackPoint, first_turn_fallback_point};
+pub use fallback::connector::FallbackConnector;
+pub use fallback::switch::{FallbackPoint, first_turn_fallback_point, is_text_switch_streak};
 pub use fallback::tool_call_form::{
     self, ToolCallFormat, UNSUPPORTED_STATUS_CANDIDATES, is_unsupported_status,
 };

@@ -8,17 +8,18 @@ use super::support::{
 };
 use crate::config::{AgentSettings, ConfigError, FieldIssue, SectionIssue, ValidationError};
 
-/// `agent` 섹션의 두 초 값 읽기, 둘 다 적지 않으면 기본값(600초·300초) 사용.
+/// `agent` 섹션의 세 초 값 읽기, 셋 다 적지 않으면 기본값(600초·300초·30초) 사용.
 #[test]
-fn agent_section_reads_both_values_and_defaults() {
-    let with_both = parse_ok(&config_with_root_tail(
-        r#","agent":{"run_command_deadline":7,"approval_deadline":3}"#,
+fn agent_section_reads_all_values_and_defaults() {
+    let with_all = parse_ok(&config_with_root_tail(
+        r#","agent":{"run_command_deadline":7,"approval_deadline":3,"wake_interval_seconds":21}"#,
     ));
     assert_eq!(
-        with_both.agent,
+        with_all.agent,
         AgentSettings {
             run_command_seconds: Duration::from_secs(7),
             approval_seconds: Duration::from_secs(3),
+            wake_interval_seconds: Duration::from_secs(21),
         }
     );
 
@@ -32,6 +33,7 @@ fn agent_section_reads_both_values_and_defaults() {
     assert_eq!(empty.agent, AgentSettings::default());
     assert_eq!(empty.agent.run_command_seconds, Duration::from_secs(600));
     assert_eq!(empty.agent.approval_seconds, Duration::from_secs(300));
+    assert_eq!(empty.agent.wake_interval_seconds, Duration::from_secs(30));
 }
 
 /// 0과 음수, 숫자가 아닌 값, 초거대·무한대, 나노초 미만 값을 항목 이름을 밝혀 거부.
@@ -68,6 +70,18 @@ fn agent_section_rejects_zero_negative_and_non_number() {
         (
             "approval_deadline",
             r#","agent":{"approval_deadline":1e-10}"#,
+        ),
+        (
+            "wake_interval_seconds",
+            r#","agent":{"wake_interval_seconds":0}"#,
+        ),
+        (
+            "wake_interval_seconds",
+            r#","agent":{"wake_interval_seconds":-3}"#,
+        ),
+        (
+            "wake_interval_seconds",
+            r#","agent":{"wake_interval_seconds":1e999}"#,
         ),
     ] {
         let error = parse_err(&config_with_root_tail(tail));

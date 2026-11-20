@@ -10,14 +10,14 @@
 - `run_command`: 셸 명령 실행, 표준 출력·표준 오류 수집, 종료 코드 전달, 출력 4,000자 잘림(03-2 공유).
 - 승인자 인터페이스: CLI가 주입한다. M1 기본은 명령마다 확인(L1). 승인자 미주입·비대화형은 즉시 거부.
 - 승인 응답 deadline 기본 300초(D22). 만료는 거부.
-- 실행 deadline 기본 600초(D22). 만료는 미완료로 결과를 알린다.
+- 실행 deadline 기본 600초(D22). 만료 결과는 03-9에서 백그라운드로 옮기는 표시 한 줄로 바뀜(2026-11-18).
 - 명령 중단(cancel) 시 실행 중지·자식 정리로 이어진다.
 - 작업 폴더 안에서만 실행한다(작업 폴더 밖 명령 거부).
 
 ## 비범위(Out)
 - 프로세스 트리 종료(Job Object): [03-7](../03-07-process-tree/plan.md).
 - L2·L3 자동화 단계·세션 허용 UI: 04 배치. 3단계 승인 규칙 표(allow/ask/deny)는 03-11에 배치(D43 2차 개정, 2026-11-09).
-- timeout→백그라운드: [03-9](../03-09-timeout-background/plan.md) 후보.
+- 실행 시간 상한이 지난 명령의 백그라운드 전환과 주기 확인은 [03-9](../03-09-timeout-background/plan.md)에서 완료했습니다(2026-11-19).
 - 실행 격리(D9).
 
 ## 선행 세부 작업
@@ -28,7 +28,7 @@
 - DECISIONS D22(실행 600초·승인 300초·L1 기본), D9(격리 보류), D17(비밀 파일 우회 한계).
 
 ## 리서치 및 설계 근거 (2026-11-11 조사)
-- Prospero: 셸 timeout 후 백그라운드 이동(`job_timeout` 1800초), 미응답 승인은 timeout 후 거부(`ask_timeout` 60초). 03-6은 D22 값(실행 600초·승인 300초)을 그대로 두고, `0`(무한 대기)은 허용하지 않는다. timeout→백그라운드는 03-9 후보로 유지.
+- Prospero는 셸 실행 시간이 지나면 백그라운드로 옮기고(`job_timeout` 1800초), 응답이 없는 승인은 거부합니다(`ask_timeout` 60초). 03-6은 D22의 실행 600초·승인 300초를 적용합니다. `0`(무한 대기)은 허용하지 않습니다. 백그라운드 전환은 [03-9](../03-09-timeout-background/plan.md)에서 적용했습니다.
 - tokio::process: `Child::kill`은 SIGKILL+대기, `kill_on_drop` 기본 false라 드롭만으로는 프로세스가 산다. `wait()`은 cancel-safe, stdout·stderr는 별도 태스크로 읽어야 파이프 데드락을 피한다. → 채택: `tokio::select!`+`timeout`+`kill`, 출력은 파이프 태스크 분리.
 - Job Object: `TerminateJobObject`와 `KILL_ON_JOB_CLOSE`로 트리 종료, `BREAKAWAY_OK` 옵션은 트리를 깬다. → 03-7 배치로 유지, 03-6은 kill만.
 - Codex: 승인(`approval_policy`)과 샌드박스는 별개 레이어, 승인 대기 timeout 수치 없음, 비대화형은 승인 없이 실행하는 경로를 별도 플래트로만 허용. → 03-6의 승인자 인터페이스 교체 지점(Codex reviewer식)과 비대화형 즉시 거부 유지.

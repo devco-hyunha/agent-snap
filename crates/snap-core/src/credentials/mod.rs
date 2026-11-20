@@ -13,8 +13,7 @@ mod error;
 
 /// 자격 파일에서 읽은 엔드포인트 이름별 비밀 값.
 ///
-/// 해석한 결과를 담고, 이름으로 키를 찾음. 이름은 적힌 그대로 비교하며 대소문자와
-/// `-`·`_`를 서로 다른 글자로 봄.
+/// 이름을 적힌 그대로 비교해 대소문자와 `-`·`_`가 서로 다른 이름으로 갈림.
 #[derive(Debug, Default)]
 pub struct Credentials {
     keys: BTreeMap<String, SecretValue>,
@@ -23,9 +22,7 @@ pub struct Credentials {
 impl Credentials {
     /// 자격 파일 텍스트를 JSONC로 해석함.
     ///
-    /// 주석(`//`, `/* */`)과 마지막 쉼표를 허용하고, 최상위 객체 아래 `api_keys`의
-    /// `"<엔드포인트 이름>": "<키>"`만 읽음. `api_keys` 밖의 최상위 항목은 읽지 않고
-    /// 무시함. `api_keys`가 없거나 비어 있으면 키가 하나도 없는 상태임(오류 아님).
+    /// `api_keys` 밖의 최상위 항목은 무시하고, `api_keys`가 없으면 키가 하나도 없는 상태로 봄(오류 아님).
     ///
     /// # 오류
     /// - [`CredentialsError::JsoncSyntax`]: JSONC 문법 오류(줄 번호만 담음).
@@ -62,8 +59,7 @@ impl Credentials {
 
     /// 엔드포인트 이름으로 비밀 값을 찾음.
     ///
-    /// 이름이 적혀 있고 값이 빈 문자열이 아니면 그 값을 돌려주고, 이름이 없거나 값이 빈
-    /// 문자열이면 `None`('없음', 오류 아님)을 돌려줌.
+    /// 값이 빈 문자열이면 `None`(없음, 오류 아님)으로 봄.
     pub fn find_key(&self, endpoint_name: &str) -> Option<&SecretValue> {
         self.keys
             .get(endpoint_name)

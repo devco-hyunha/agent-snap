@@ -2,7 +2,7 @@
 
 - 상위 문서: [plan.md](plan.md), [spec.md](spec.md)
 - 검증 명령과 공통 DoD는 [상위 문서](../../03-agent-loop-tools.md)의 '세부 작업 공통 기준'을 따른다.
-- 선행: 03-2(루프 골격·`FallbackPoint`·`LoopError::Unsupported` 지점) 완료 상태에서 착수한다(2026-11-10 정정: 문서의 옛 `ToolsUnsupported`라는 이름은 코드에 없고 `agent/fallback/connector.rs`가 그 자리다).
+- 선행: 03-2(루프 골격·`FallbackPoint`·`LoopError::Unsupported` 지점) 완료 상태에서 착수한다(옛 `ToolsUnsupported`라는 이름은 코드에 없으며 판단 값은 `agent/fallback/switch.rs`에 있다).
 
 ## 구현 단계
 - [x] 1. 감지 함수를 만든다. 4xx 코드 수신, 도구 호출 없는 텍스트 2회 연속 기준을 순수 함수로 구현한다. 텍스트 1회는 전환 후보 표시로만 남기고 전환 확정은 2회 연속에서 한다(03-2 루프의 `ToolCallFormat` 상태를 소비하는 자리, spec 감지 기준). 확인: 모의 서버가 4xx를 낼 때 2안으로 전환되고, 텍스트 1회는 후보로만 기록되는 통합 테스트(spec AC 1).

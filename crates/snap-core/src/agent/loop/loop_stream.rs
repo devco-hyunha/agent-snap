@@ -2,7 +2,7 @@
 
 use crate::llm::{AssembledResponse, ChatStream};
 
-use crate::agent::fallback::connector::FallbackPoint;
+use crate::agent::fallback::switch::FallbackPoint;
 use crate::agent::schema::types::{LoopResult, ToolCallRecord};
 
 /// 스트림을 끝까지 읽고 합친 응답을 받아옴

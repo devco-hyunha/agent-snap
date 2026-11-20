@@ -1,16 +1,16 @@
-//! 승인 흐름이 쓰는 시간 상한 값 타입
+//! 명령 시간 상한 값 타입
+//!
+//! 승인 대기 상한은 `approval/settings`가 따로 봄
 
 use std::time::Duration;
 
 use crate::config::AgentSettings;
 
-/// 승인 흐름이 쓰는 두 시간 상한(승인 대기·명령 실행)
+/// 명령 상한 값
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RunCommandSettings {
-    /// 명령 실행 시간 상한. 만료는 미완료로 봄
+    /// 명령 상한. 만료는 백그라운드로 옮김
     pub run_limit: Duration,
-    /// 승인 응답을 기다리는 시간 상한. 만료는 거부로만 봄
-    pub approval_limit: Duration,
 }
 
 impl RunCommandSettings {
@@ -19,11 +19,10 @@ impl RunCommandSettings {
     pub const fn from_settings(settings: &AgentSettings) -> Self {
         Self {
             run_limit: settings.run_command_seconds,
-            approval_limit: settings.approval_seconds,
         }
     }
 
-    /// 기획 기본값(실행 600초·승인 300초)으로 맞춤
+    /// 기획 기본값(600초)으로 맞춤
     #[must_use]
     pub fn with_defaults() -> Self {
         Self::from_settings(&AgentSettings::default())

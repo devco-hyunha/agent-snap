@@ -92,6 +92,10 @@ async fn empty_answer_fails_with_unsupported_reason() {
         snap_core::agent::FallbackConnector::FALLBACK_CONNECTOR
     );
     assert_eq!(point, FallbackPoint::NoToolCallText);
+    assert_eq!(
+        LoopError::unsupported(point).to_string(),
+        "모델이 도구 호출을 처리하지 못했습니다. 폴백 연결 지점: 03-4 폴백 연결 지점(호출 없는 첫 턴 텍스트)"
+    );
 }
 
 /// 승인이 필요한 도구는 즉시 거부로 알고 멈추며, 같은 호출을 되풀이하지 않음.

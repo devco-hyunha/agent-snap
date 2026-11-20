@@ -5,7 +5,7 @@
 - 근거: [12번 문서](../../../research/12-tool-calling-forms.md) 2절 2갈래, 5절 llama.cpp 기록, 8절(2026-11-10 추가 조사: 업계 관례·TSCG·감사 주의). 2026-11-08 사용자 결정(3형식 조합)의 2안. 설계 확정: D46·[D50 정본](../../../decisions/D50-form-switch-detection.md).
 
 ## 목적
-OpenAI `tools`/`tool_calls`를 쓰지 못하는 로컬 모델(llama.cpp 템플릿 미지원, 4xx로 떨어지는 서버)에서 도구 호출이 계속 이어지게 한다. 03-2가 남긴 폴백 연결 지점(`agent/fallback/connector.rs`의 `FallbackPoint`·`LoopError::Unsupported`, 2026-11-10 정정: 문서의 옛 `ToolsUnsupported`라는 이름은 코드에 없다)을 2안 경로로 잇는다.
+OpenAI `tools`/`tool_calls`를 쓰지 못하는 로컬 모델(llama.cpp 템플릿 미지원, 4xx로 떨어지는 서버)에서 도구 호출이 계속 이어지게 한다. 03-2가 남긴 폴백 연결 지점(`agent/fallback/switch.rs`의 `FallbackPoint`·`LoopError::Unsupported`, 2026-11-10 정정: 문서의 옛 `ToolsUnsupported`라는 이름은 코드에 없다)을 2안 경로로 잇는다.
 
 ## 범위(In)
 - 폴백 트리: 03-2 루프가 1안으로 요청을 보냈을 때 4xx나 도구 호출 없는 일반 텍스트가 오면 2안 경로로 전환한다. 텍스트 1회는 전환 후보로만 남기고 2회 연속에서 전환을 확정한다(03-2이 남긴 `FallbackPoint`·`ToolCallFormat`을 03-4가 소비하고, 형식 전환은 루프 안의 상태로 둔다 — D50).

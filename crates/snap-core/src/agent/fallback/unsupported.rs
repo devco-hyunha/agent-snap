@@ -3,7 +3,7 @@
 use crate::agent::schema::types::LoopError;
 use crate::llm::TransportError;
 
-use super::connector::FallbackPoint;
+use super::switch::FallbackPoint;
 use super::tool_call_form::is_unsupported_status;
 
 /// 4x 미지원 코드를 받았는지 확인해 판단 값을 뽑음. 폴백 판단이 아닌 전송 실패는 None
