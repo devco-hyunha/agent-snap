@@ -20,6 +20,9 @@ pub(in crate::config) const DEFAULT_RUN_COMMAND_DEADLINE_SECONDS: u64 = 600;
 /// `approval_deadline` 기본값(초). 0(무한 대기)는 허용하지 않음.
 pub(in crate::config) const DEFAULT_APPROVAL_DEADLINE_SECONDS: u64 = 300;
 
+/// `wake_interval_seconds` 기본값(초). 0(즉시 확인)은 허용하지 않음.
+pub(in crate::config) const DEFAULT_WAKE_INTERVAL_SECONDS: u64 = 30;
+
 /// `target_language` 기본값.
 pub(in crate::config) const DEFAULT_TARGET_LANGUAGE: &str = "ko";
 

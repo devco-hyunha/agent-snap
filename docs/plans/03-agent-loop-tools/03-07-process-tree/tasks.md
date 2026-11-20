@@ -6,7 +6,7 @@
 ## 구현 단계
 - [x] 1. Windows Job Object 래퍼를 만든다(`#[cfg(windows)]`). CreateObject·AssignProcessToJobObject·TerminateJobObject 경로를 OS 문서로 확인해 쓴다. 확인: 자식 포함 트리가 끝나 남지 않는 것을 확인하는 통합 테스트(AC 1).
 - [x] 2. Unix process group 래퍼를 만든다(`#[cfg(unix)]`, setsid·killpg). 확인: 같은 확인 테스트(AC 1).
-- [x] 3. 03-6의 deadline·cancel 지점에서 트리 종료 헬퍼를 부르게 연결한다. 확인: 03-6 deadline 테스트가 트리 종료와 이어지는지 확인(AC 1).
+- [x] 3. 03-7에서는 실행 시간 상한이 지났거나 명령을 취소했을 때 프로세스를 정리하도록 연결했습니다. 확인: 당시 실행 시간 상한 시험(명세의 인수 조건 1). 현재 실행 시간이 지나면 [03-9](../03-09-timeout-background/plan.md)에서 명령을 백그라운드로 옮깁니다.
 - [x] 4. 프로그램 종료 시 정리를 걸린다. 확인: 종료 후 자식 없음(AC 2).
 - [x] 5. Windows·Linux 경로를 같은 커밋에서 확인한다. Linux는 CI 매트릭스로 확인한다(PROJECT_RULES 머지 규칙).
 - [x] 6. `docs/RESEARCH.md` 작업 03 절 적용 위치를 갱신한다.

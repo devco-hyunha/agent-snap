@@ -1,6 +1,6 @@
 # 03 에이전트 루프와 도구
 
-- 상태: planned (본문 정리됨, 세부 plan은 03 세부 작업 착수 시 작성)
+- 상태: 진행 (03-9를 완료했습니다. 03-10 단발 실행 검증은 남아 있습니다.)
 
 ## 목적
 도구를 써서 실제 코딩 작업을 끝까지 수행하는 에이전트 루프를 만든다.
@@ -29,7 +29,7 @@
 대화형 화면, 세션 저장, 감시.
 - L2·L3 자동화 단계·세션 동안 허용·패턴 자동 허용·Prospero식 기본 무인.
 - 실행 격리(AppContainer 등, D9).
-- timeout→백그라운드+주기 wake는 03에서 설계만 적거나 세부 작업으로 분리 가능(구현 범위는 세부 작업 착수 시 AC로 확정).
+- 실행 시간 상한이 지난 명령의 백그라운드 전환과 주기 확인은 03-9에서 완료했습니다(2026-11-19). 대화형 세션에서 이어지는 상태 관리는 04에서 다룹니다.
 
 ## 조사
 - 주제: 언어 모델용 도구 인터페이스 설계(에이전트-컴퓨터 인터페이스), 코드 편집 형식별 성공률, 작은 모델의 도구 호출 안정성.
@@ -44,7 +44,7 @@ D22 **정책 정본**은 `docs/decisions/D22-execution-reliability-autonomy.md`�
 - 도구는 최소·구조화하고 실패 시 짧은 오류를 돌려준다(SWE-agent 2405.15793).
 - 도구 호출 파서는 JSON 복구와 재시도를 하고, 도구 호출 턴은 낮은 온도로 둔다(2609.07370).
 - 편집은 검색-치환을 기본으로 하고, 형식별 실패율은 06에서 잰다(2604.27296).
-- Prospero(RESEARCH Prospero 절): 셸·승인 deadline, 프로세스 트리 종료(Job Object). timeout→백그라운드는 후보.
+- Prospero 조사에서 셸·승인 시간 상한, 프로세스 트리 종료(Job Object), 백그라운드 전환 방식을 참고했습니다. 백그라운드 전환은 03-9에서 적용했습니다.
 - 실행 신뢰성·승인자 주입·L1 기본(D22).
 
 ## AC
@@ -55,7 +55,7 @@ D22 **정책 정본**은 `docs/decisions/D22-execution-reliability-autonomy.md`�
 5. RESEARCH.md에 조사 항목과 적용 위치가 있다. 검증 명령(`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`)을 통과한다.
 6. 단발 호출 작업 명세에 사용자 원문이 보존되고 목표·입력·완료 조건만 담김을 테스트로 확인한다.
 7. 작업 명세의 완료 조건에 검증 명령이 있으면 에이전트가 끝난 뒤 그 명령을 실행하고, 실패하면 0이 아닌 종료 코드와 실패 이유를 낸다(모의 서버 테스트).
-8. `run_command`가 deadline 만료 시 미완료로 끝나고, 자식 프로세스가 테스트에서 남지 않음을 확인한다(플랫폼 가능 범위, 기본값 600초·설정 가능).
+8. `run_command`가 deadline 만료 시 명령을 끝내지 않고 백그라운드로 옮겼다는 표시를 도구 결과로 내고, wake로 완료 결과를 받음을 확인한다. 백그라운드 명령도 프로그램 종료에 자식 프로세스가 테스트에서 남지 않음을 확인한다(플랫폼 가능 범위, 기본값 600초·설정 가능, 03-9 2026-11-18).
 9. 승인 응답 deadline 만료 시 명령이 실행되지 않고 거부로 기록됨을 테스트로 확인한다(기본값 300초·설정 가능). 승인자 미주입/비대화형은 즉시 거부.
 
 ## 테스트 계획
@@ -99,7 +99,7 @@ AC 충족, 검증 통과, 리뷰 PASS.
 | 6 | 03-6 | run_command·승인자 주입·승인/실행 deadline | 03-2, 03-3 | [03-06-run-command](03-agent-loop-tools/03-06-run-command/plan.md) |
 | 7 | 03-7 | 프로세스 트리 종료(Job Object 등) | 03-6 | [03-07-process-tree](03-agent-loop-tools/03-07-process-tree/plan.md) |
 | 8 | 03-8 | 호출 형식 3안 execute 브리지(읽기 전용 도구부터) | 03-3, 03-6 | [03-08-execute-bridge](03-agent-loop-tools/03-08-execute-bridge/plan.md) |
-| 9 | 03-9 | (후보) timeout→백그라운드·주기 wake | 03-7 | [03-09-timeout-background](03-agent-loop-tools/03-09-timeout-background/plan.md) |
+| 9 | 03-9 | 실행 시간 상한 후 백그라운드 전환과 주기 확인 (완료, 2026-11-19) | 03-6, 03-7 | [03-09-timeout-background](03-agent-loop-tools/03-09-timeout-background/plan.md) |
 | 11 | 03-11 | (a)(b) 배치 이관 1차(계획 모드·3단계 승인 규칙·ask_user) | 03-2, 03-6 | [03-11-a-b-tools](03-agent-loop-tools/03-11-a-b-tools/plan.md) |
 | 12 | 03-12 | (a)(b) 배치 이관 2차(웹 도구·체크포인트) | 03-11 | [03-12-a-b-tools-2](03-agent-loop-tools/03-12-a-b-tools-2/plan.md) |
 | 13 | 03-13 | (a)(b) 배치 이관 3차(심볼 도구·훅·MCP) | 03-12 | [03-13-a-b-tools-3](03-agent-loop-tools/03-13-a-b-tools-3/plan.md) |

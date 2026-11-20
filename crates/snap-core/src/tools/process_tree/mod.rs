@@ -4,9 +4,8 @@
 
 use std::io;
 use std::path::Path;
-use std::process::Stdio;
 
-use tokio::process::{Child, ChildStderr, ChildStdout, Command};
+use tokio::process::{Child, ChildStderr, ChildStdout};
 
 #[cfg(windows)]
 mod windows_tree;
@@ -15,8 +14,11 @@ mod windows_tree;
 mod unix_tree;
 
 mod group_handle;
+mod shell_command;
+mod terminate;
 
 use group_handle::GroupHandle;
+use shell_command::shell_command;
 
 /// 셸 명령 프로세스 트리를 감싸는 실행 판
 ///
@@ -58,18 +60,9 @@ impl ProcessTree {
 
     /// 트리 묶음째 한 번에 끝냄(deadline 만료·cancel·프로그램 종료)
     ///
-    /// 이미 끝나면 요청만 보내고 대기. 요청 결과를 붙이는 자리에서 이 결과를 적음
+    /// 요청 결과를 붙이는 자리에서 이 결과를 적음. 종료 경로는 [`terminate`]가 담당
     pub async fn terminate(&mut self) -> io::Result<()> {
-        #[cfg(windows)]
-        let result = {
-            let result = self.group.terminate();
-            // 셸 종료 확인은 묶음이 트리를 끝낸 뒤에 함. 결과 표기는 `run_command`가 담당
-            let _ = self.child.wait().await;
-            result
-        };
-        #[cfg(unix)]
-        let result = self.group.terminate_shell_first(&mut self.child).await;
-        result
+        terminate::terminate(self).await
     }
 
     /// 표준 출력·표준 오류를 한 번만 뽑아냄. 읽기 태스크가 파이프를 따로 읽게 함
@@ -82,45 +75,15 @@ impl ProcessTree {
         self.child.wait().await
     }
 
-    /// 묶음을 닫는 자리(프로그램 종료)
-    /// 드롭은 async가 아니라 종료 요청만 백그라운드로 발송(Windows는 Job Object 핸들, Unix는 `pgid` 시그널)
-    #[cfg(windows)]
-    fn close_group_on_drop(&mut self) {
-        let _ = self.group.terminate();
-    }
-
-    /// 묶음을 닫는 자리(프로그램 종료)
-    #[cfg(unix)]
-    fn close_group_on_drop(&mut self) {
-        self.group.terminate_background();
+    /// 셸 프로세스의 식별 번호. 백그라운드 목록이 확인 결과를 가르는 데 씀
+    #[must_use]
+    pub fn pid(&self) -> Option<u32> {
+        self.child.id()
     }
 }
 
 impl Drop for ProcessTree {
     fn drop(&mut self) {
-        self.close_group_on_drop();
+        terminate::close_group_on_drop(self);
     }
-}
-
-/// 셸을 두 운영체제에서 같은 의미로 시작하는 `Command` 생성
-/// Windows는 `cmd.exe /C`, 그 밖의 운영체제는 `sh -c`를 쓰고 명령 문자열은 승인 화면에 그대로 보이는 값이므로 신뢰 창구는 승인자
-fn shell_command(command: &str, root: &Path) -> Command {
-    #[cfg(windows)]
-    let mut cmd = {
-        let mut cmd = Command::new("cmd.exe");
-        cmd.arg("/C").arg(command);
-        cmd
-    };
-    #[cfg(not(windows))]
-    let mut cmd = {
-        let mut cmd = Command::new("sh");
-        cmd.arg("-c").arg(command);
-        cmd
-    };
-    cmd.current_dir(root)
-        .stdin(Stdio::null())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .kill_on_drop(true);
-    cmd
 }

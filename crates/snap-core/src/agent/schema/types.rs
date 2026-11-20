@@ -2,7 +2,8 @@
 //!
 //! 루프 동작(`loop/runner.rs`)이 왕복 결과로 받는 타입만 한 파일에 모아 순서 없는 참조를 피함
 
-use crate::agent::fallback::connector::{FallbackConnector, FallbackPoint};
+use crate::agent::fallback::connector::FallbackConnector;
+use crate::agent::fallback::switch::FallbackPoint;
 use crate::agent::fallback::tool_call_form::ToolCallFormat;
 use crate::llm::TransportError;
 

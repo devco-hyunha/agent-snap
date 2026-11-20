@@ -8,7 +8,7 @@ use crate::agent::record::registry::ToolRegistry;
 use crate::agent::schema::types::ToolCallRecord;
 use crate::llm::ToolCall;
 use crate::time::now_unix_secs;
-use crate::tools::approver::request_approval;
+use crate::tools::approval::request::request_approval;
 use crate::tools::tool::{Tool, ToolContext, ToolOutcome};
 
 /// 도구 호출 한 바퀴가 만든 기록 목록
@@ -79,7 +79,7 @@ async fn run_one(
         let reply = request_approval(
             context.approver.as_ref(),
             &summary,
-            &context.run_command,
+            &context.approval,
             &context.cancel_token(),
         )
         .await;

@@ -2,13 +2,14 @@
 //!
 //! 중복 이름 검사는 `find_duplicate_name` 한 곳에 정본으로 둠
 
+use crate::tools::check_background::CheckBackgroundTool;
+use crate::tools::command::tool::RunCommandTool;
 use crate::tools::edit_file::EditFileTool;
 use crate::tools::execute::ExecuteTool;
 use crate::tools::glob::GlobTool;
 use crate::tools::grep::GrepTool;
 use crate::tools::list_dir::ListDirTool;
 use crate::tools::read_file::ReadFileTool;
-use crate::tools::run_command::RunCommandTool;
 use crate::tools::tool::Tool;
 use crate::tools::write_file::WriteFileTool;
 
@@ -25,7 +26,7 @@ impl ToolRegistry {
         Self { tools: Vec::new() }
     }
 
-    /// 파일 읽기·쓰기·편집·목록·검색 도구와 `run_command`·`execute` 도구를 등록한 목록 생성
+    /// 파일 읽기·쓰기·편집·목록·검색 도구, `run_command`·`execute`·`check_background` 도구를 등록한 목록 생성
     ///
     /// 조립 코드를 여러 곳에 두면 이름과 순서가 갈라지므로 이 한 곳에서만
     #[must_use]
@@ -39,6 +40,7 @@ impl ToolRegistry {
         registry.register(Box::new(GrepTool));
         registry.register(Box::new(RunCommandTool));
         registry.register(Box::new(ExecuteTool));
+        registry.register(Box::new(CheckBackgroundTool));
         registry
     }
 

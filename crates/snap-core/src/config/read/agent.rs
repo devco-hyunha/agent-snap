@@ -1,4 +1,4 @@
-//! `agent` 섹션의 시간 칸 두 개(`run_command_deadline`·`approval_deadline`)를 읽음.
+//! `agent` 섹션의 시간 칸 세 개(`run_command_deadline`·`approval_deadline`·`wake_interval_seconds`)를 읽음.
 
 use std::time::Duration;
 
@@ -34,6 +34,7 @@ fn duration_slot<'a>(agent: &'a mut AgentSettings, item: &str) -> Option<&'a mut
     match item {
         "run_command_deadline" => Some(&mut agent.run_command_seconds),
         "approval_deadline" => Some(&mut agent.approval_seconds),
+        "wake_interval_seconds" => Some(&mut agent.wake_interval_seconds),
         _ => None,
     }
 }

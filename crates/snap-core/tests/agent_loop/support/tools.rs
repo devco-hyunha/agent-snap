@@ -10,7 +10,8 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 use snap_core::agent::{DEFAULT_TOOL_RESULT_MAX_CHARS, LoopConfig, ToolRegistry};
-use snap_core::tools::approver::{ApprovalFuture, ApprovalReply, ApproverBox, CommandApprover};
+use snap_core::tools::approval::request::{ApprovalFuture, ApproverBox};
+use snap_core::tools::approver::{ApprovalReply, CommandApprover};
 use snap_core::tools::tool::{ToolCallFuture, ToolContext, ToolOutcome};
 
 use super::setup::loop_config_base;

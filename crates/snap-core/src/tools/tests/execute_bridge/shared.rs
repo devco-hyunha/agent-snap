@@ -7,8 +7,8 @@
 use std::time::Duration;
 
 use crate::config::AgentSettings;
+use crate::tools::command::settings::RunCommandSettings;
 use crate::tools::execute::ExecuteTool;
-use crate::tools::run_command_settings::RunCommandSettings;
 use crate::tools::tool::{Tool, ToolContext};
 
 use super::super::support::TempWorkdir;
@@ -34,6 +34,7 @@ pub fn short_limit_context(workdir: &TempWorkdir, run_limit_ms: u64) -> ToolCont
     ctx.run_command = RunCommandSettings::from_settings(&AgentSettings {
         run_command_seconds: Duration::from_millis(run_limit_ms),
         approval_seconds: Duration::from_secs(5),
+        ..AgentSettings::default()
     });
     ctx
 }

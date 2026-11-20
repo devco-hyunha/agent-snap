@@ -48,7 +48,8 @@ fn agent_tools_registry_has_the_agent_tools() {
             "glob",
             "grep",
             "run_command",
-            "execute"
+            "execute",
+            "check_background"
         ]
     );
     assert!(registry.find_duplicate_name().is_none());
@@ -61,6 +62,7 @@ fn agent_tools_registry_has_the_agent_tools() {
         "grep",
         "run_command",
         "execute",
+        "check_background",
     ] {
         assert!(registry.contains(name), "{name}이 등록되어 있어야 합니다");
     }

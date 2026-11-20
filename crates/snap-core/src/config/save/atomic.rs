@@ -1,4 +1,4 @@
-//! 설정 파일·자격 파일의 원자적 교체: 같은 폴더 임시 파일에 전체를 쓰고, 반영한 뒤 기존 파일을 바꿈.
+//! 설정 파일·자격 파일의 원자적 교체: 같은 폴더 임시 파일에 전체를 쓰고, 반영한 뒤 기존 파일을 바꿈
 //!
 //! 저장이 교체 지점을 함수로 받아 교체 실패 시험이 자기 파일 이름으로 교체를 막을 수 있게 함.
 
@@ -24,8 +24,7 @@ pub(crate) fn replace_file(from: &Path, target: &Path) -> Result<(), std::io::Er
 /// 교체에 실패하면 기존 파일은 그대로 두고 이번 저장이 만든 임시 파일만 지움.
 ///
 /// # 오류
-/// 임시 파일 쓰기·교체 실패는 [`SaveError::SaveIo`]로 대상 파일 종류와
-/// 오류 종류만 밝힘. 파일 경로·키 값·base_url은 밝히지 않음.
+/// 임시 파일 쓰기·교체 실패는 [`SaveError::SaveIo`]로 대상 파일 종류와 오류 종류만 밝힘. 파일 경로·키 값·base_url은 밝히지 않음.
 ///
 /// [`SaveError::SaveIo`]: super::super::error::SaveError::SaveIo
 pub(crate) fn write_replacing(

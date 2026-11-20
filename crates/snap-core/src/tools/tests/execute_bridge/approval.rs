@@ -1,7 +1,7 @@
 //! execute 브리지 승인 게이트 시험.
 
 use crate::llm::ToolCall;
-use crate::tools::approver::ApprovalReply;
+use crate::tools::approval::approver::ApprovalReply;
 
 use super::super::support::TempWorkdir;
 use super::shared::execute_text;
@@ -36,7 +36,7 @@ async fn write_call_without_approver_is_rejected_and_logged() {
 async fn approved_write_call_runs_through_gate() {
     let workdir = TempWorkdir::new("bridge-write-approved");
     let mut ctx = workdir.context();
-    ctx.approver = Some(super::super::approver::approved_approver());
+    ctx.approver = Some(super::super::approver::mocks::approved_approver());
     let text = execute_text(
         &ctx,
         "await run_tool('write_file', JSON.stringify({path: 'made.txt', content: '만들림'})); 'ok';",
@@ -55,7 +55,7 @@ async fn repeated_write_calls_each_gate_the_same_place() {
     let workdir = TempWorkdir::new("bridge-write-repeat");
     let mut ctx = workdir.context();
     let (approver, counted) =
-        super::super::approver::counting_approver_with_reply(&[ApprovalReply::Approved]);
+        super::super::approver::mocks::counting_approver_with_reply(&[ApprovalReply::Approved]);
     ctx.approver = Some(approver);
     let script = "const files = ['a.txt','b.txt','c.txt']; for (const f of files) { await run_tool('write_file', JSON.stringify({path: f, content: f})); } 'ok';";
     let text = execute_text(&ctx, script).await;
@@ -82,7 +82,7 @@ async fn repeated_write_calls_each_gate_the_same_place() {
 async fn full_execute_call_counts_two_approvals() {
     let workdir = TempWorkdir::new("bridge-ac5-two-approvals");
     let mut ctx = workdir.context();
-    let (approver, counted) = super::super::approver::counting_approver_with_reply(&[
+    let (approver, counted) = super::super::approver::mocks::counting_approver_with_reply(&[
         ApprovalReply::Approved,
         ApprovalReply::Approved,
     ]);

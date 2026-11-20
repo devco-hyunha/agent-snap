@@ -13,18 +13,7 @@ use super::support::TempFolder;
 #[cfg(unix)]
 const SPAWN_GRACE: Duration = Duration::from_secs(1);
 
-/// 손자가 3초 뒤에 마커를 쓰는 2단 명령(자식의 자식까지 확인)
-///
-/// Windows는 `start`로 만든 자식의 `ping`이 자식의 자식, 그 밖은 백그라운드 `sleep`과 `echo` 순
-#[cfg(windows)]
-fn grandchild_marker_command(marker: &str) -> String {
-    format!(r#"start /b cmd /c "ping -n 4 -w 1000 127.0.0.1 >nul && echo leak > {marker}""#)
-}
-
-#[cfg(not(windows))]
-fn grandchild_marker_command(marker: &str) -> String {
-    format!("sleep 3; echo leak > {marker}")
-}
+use super::shell::grandchild_marker_command;
 
 /// 그룹 밖으로 나가는 경로 시험 재료(Unix만, `setsid`)
 #[cfg(unix)]
