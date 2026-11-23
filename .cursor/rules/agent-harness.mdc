@@ -1,0 +1,13 @@
+---
+description: 하네스 핵심 가드레일 브리지
+alwaysApply: true
+---
+
+정본은 AGENTS.md 하네스 블록. 전원이 지킵니다.
+
+- 언어·존댓말·eli5-clarity·원문. 한자·외국어·U+FFFD 금지.
+- 6원칙: 승인전 코드금지, 커밋·푸시·병합 허락, 비밀·.env금지, 리뷰없이 PASS금지, 미지시·임시스크립트금지, 삭제시 대상·이유·근거.
+- 커밋 메시지·절차는 skills/dev-principles/leaves/commit.md.
+- 라우터→harness-router/playbooks. 동시멀티서브금지·순차허용. 마커·HARNESS 읽기전용. 절차는 플레이북.
+- 위임 자기점검에 하네스 준수 칸 필수.
+- 질문 배치이어서·선택지무제한·답만으로 구현금지. 문서연쇄.

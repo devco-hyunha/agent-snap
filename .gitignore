@@ -1,0 +1,12 @@
+.env
+*.env
+snap.jsonc
+target/
+models/
+logs/
+.agent-snap/
+.local/
+docs/reviews/
+docs/tasks/
+docs/notes/
+__pycache__/
