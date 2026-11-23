@@ -35,6 +35,7 @@
 - 크레이트: `snap-core`(라이브러리, 모든 로직)와 `snap-cli`(입출력만 맡는 얇은 실행 파일).
 - 모듈은 하나의 책임만 맡는다: config, llm, agent, tools, monitor, session, context, server(04-4에서 추가 예정, HTTP 전용 코드만 다룬다). 도구는 `Tool` 트레이트 구현 하나당 파일 하나.
 - 작업 전·중에 관련 `docs/plans/`·`docs/tasks/`를 확인한다. 착수 때 `in-progress`, 단계 끝에 plans `tasks.md`·T-파일 상태, 작업 단위 전체 리뷰 PASS 뒤 `done`(또는 완료)으로 맞춘다.
+- 착수 전 기록 문서 확인: `docs/PLAN.md`, 결정 인덱스 `docs/DECISIONS.md`(및 `docs/decisions/` 정본), 조사 인덱스 `docs/RESEARCH.md`(및 `docs/research/` 상세), 관련 `docs/plans/`를 읽고 작업에 반영한다. 반영할 것은 이전 결정의 제약, 연구의 적용 위치, 선행 계획의 인계·잔여 항목이다. 새 작업이 이전 결정과 충돌하면 멈추고 사용자에게 승인 요청한다. 새 결정은 결정 인덱스·정본에 번호·결정·근거·다시 볼 점·상태로 남기고, 연구 적용은 조사 인덱스에 적용 위치(또는 미적용 이유)로 함께 남긴다. 리뷰는 이 반영 여부는 문서 연쇄 목록으로 확인한다.
 - 오류: 라이브러리는 `thiserror`, 실행 파일만 `anyhow`. 테스트 밖 `unwrap`/`expect` 금지.
 - 비밀 값은 Debug 출력에서 가리는 래퍼 타입으로 다룬다.
 - 공개 항목 문서 주석은 한국어. 코드 주석·독스트링 어체 정본은 `.agents/skills/eli5-clarity/SKILL.md`.
@@ -52,6 +53,7 @@
 - 커밋 메시지는 먼저 `.local/commit-message.txt`(git 제외)에 파일로 작성한다. 그 파일을 읽어서 오타·한자·외국어·U+FFFD·번호 포함·유형 접두 여부를 확인한 뒤, 확인된 내용을 `git commit -F`로 그대로 사용한다. 커밋이 끝난 뒤에는 그 파일을 삭제한다.
 - 커밋 개수는 사용자가 지시한 대로 따른다. 지시 없이 임의로 나누거나 합치지 않는다.
 - 커밋 전에 리뷰 PASS 기록을 먼저 확인한다. 코드뿐 아니라 `.md`만 바뀐 문서 변경도 독립 리뷰 대상이다. 순서: 리뷰 PASS → 지시한 커밋 개수 → 메시지 파일 → `git commit -F`.
+- 커밋하기 전 단계에서 계획 문서를 먼저 정리한다. 커밋에 담기는 계획 문서(`docs/plans/`)는 커밋 시점에 상태가 참이어야 한다. 계획 문서를 정리하기 전에 커밋하면 그 문서가 커밋에 다시 실리므로 추가 커밋이 생긴다. 커밋 직전 정리 순서는 계획 문서 상태 갱신 → 계획 문서 정리 → 게이트 4종 → 메시지 파일 → `git commit -F`다. 커밋 뒤에 계획 문서를 고치면 그 문서 변경을 독립 리뷰하고 별도 커밋으로 남긴다.
 - 브랜치 흐름: `feature/<작업명>` → `develop` 병합(PASS·CI 초록), `develop` → `main` 승격은 계획 단위 작업이 모두 끝난 시점에만 한다. 기획 문서는 `main`을 기준으로 삼고, 코드는 `develop`에서 이어간다.
 - PR CI 매트릭스 전체가 초록이 아니면 머지하지 않는다. `ubuntu-latest`·`windows-latest` 모두 초록이어야 한다.
 - 로컬은 현재 OS에서 검증하고, 나머지 OS는 다음 커밋 전 CI로 확인한다.
@@ -80,4 +82,5 @@
 
 ## 검사 명령
 
-`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`
+- 게이트 3종: `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, `cargo test`
+- 게이트 4종: 게이트 3종에 `cargo deny check`를 더한다. 세부 작업과 작업 단위 검증은 게이트 3종, 커밋 직전과 저장소 전체 확인은 게이트 4종을 쓴다.

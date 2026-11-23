@@ -1,0 +1,4 @@
+# 금지·남용 린트 기준. 시험 안의 unwrap·expect만 허용한다.
+allow-unwrap-in-tests = true
+allow-expect-in-tests = true
+msrv = "1.99"
