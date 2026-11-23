@@ -1,0 +1,19 @@
+[workspace]
+resolver = "2"
+members = ["crates/snap-core", "crates/snap-cli"]
+
+[workspace.package]
+version = "0.0.0"
+edition = "2024"
+rust-version = "1.99"
+license = "Apache-2.0"
+publish = false
+
+# 워크스페이스 공통 린트 기준. 크레이트가 같은 규칙을 따라 쓴다.
+[workspace.lints.rust]
+unsafe_code = "forbid"
+missing_docs = "warn"
+
+[workspace.lints.clippy]
+unwrap_used = "warn"
+expect_used = "warn"
