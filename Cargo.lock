@@ -48,10 +48,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3bd1574e617a9a6c1f8f8181bd7e841e1f20e4277607ef28945765188d6284d4"
 
 [[package]]
-name = "json_comments"
-version = "0.2.2"
+name = "jsonc-parser"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9dbbfed4e59ba9750e15ba154fdfd9329cee16ff3df539c2666b70f58cc32105"
+checksum = "0ecded084f9b9a718d39668a42657c32253663d1f6afb3fbb9134f0305f73f48"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "libc"
@@ -121,6 +124,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4148590afebada386688f18773da617792bf2ef03ffc1e4cbd2b1d45b023e0ba"
 dependencies = [
  "serde_core",
+ "serde_derive",
 ]
 
 [[package]]
@@ -167,7 +171,8 @@ dependencies = [
 name = "snap-core"
 version = "0.0.0"
 dependencies = [
- "json_comments",
+ "jsonc-parser",
+ "serde",
  "serde_json",
  "tempfile",
  "thiserror",

@@ -1,6 +1,7 @@
 .env
 *.env
 snap.jsonc
+credentials.jsonc
 target/
 models/
 logs/

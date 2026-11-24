@@ -1,4 +1,4 @@
-//! T3 자격 파일 거부 시험. api_keys 누락·값 타입·파일 없음·값 비노출을 같은 책임으로 묶는다.
+//! T3 자격 파일 거부 시험. api_keys 누락·값 타입·파일 없음·값 비노출을 같은 책임으로 묶음.
 use std::path::Path;
 
 use snap_core::config::credentials_from_str;

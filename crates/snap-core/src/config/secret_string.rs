@@ -23,3 +23,13 @@ impl std::fmt::Debug for SecretString {
         write!(f, "SecretString({SECRET_REDACTED})")
     }
 }
+
+impl<'de> serde::Deserialize<'de> for SecretString {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let value = String::deserialize(deserializer)?;
+        Ok(Self(value))
+    }
+}
