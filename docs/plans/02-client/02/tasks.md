@@ -1,6 +1,6 @@
 # 02-2 작업 계획
 
-- 상태: 완료 (T1~T5 완료·전체 리뷰 PASS 2026-11-24. R 값 검증·자격 파일·이름 규칙 SRP 분리 R1~R4 리뷰 PASS. T6 구조 점검 완료. 커밋 허락 대기)
+- 상태: 완료 (T1~T5 완료·전체 리뷰 PASS 2026-11-24. R 값 검증·자격 파일·이름 규칙 SRP 분리 R1~R4 리뷰 PASS. T6 구조 점검 완료. 커밋 `0090f3a`, PR #4 병합으로 `feature/client` 반영 완료)
 - 상위 문서: [plan.md](plan.md), [spec.md](spec.md)
 - 하네스 전달: T-파일 `읽을 파일`에 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 색인(`.agents/skills/dev-principles/SKILL.md`, Cursor·Claude는 `.claude/skills/…`)을 넣는다.
 - 지정 잎(build·review): solid·dry·kiss-yagni·separation·naming·errors·security·testing·comments·workflow.
@@ -37,7 +37,7 @@
 - 검증: 게이트 3종.
 
 ### R 값 검증·자격 파일·이름 규칙 SRP 분리
-- 상태: 완료 (R1 리뷰 PASS 2026-11-24(2차). R2 리뷰 PASS 2026-11-24(2차). R3 리뷰 PASS 2026-11-24(5차). R4 리뷰 PASS 2026-11-24(2차). 커밋 허락 대기)
+- 상태: 완료 (R1 리뷰 PASS 2026-11-24(2차). R2 리뷰 PASS 2026-11-24(2차). R3 리뷰 PASS 2026-11-24(5차). R4 리뷰 PASS 2026-11-24(2차). 커밋 `0090f3a`, PR #4 병합으로 `feature/client` 반영 완료)
 - 범위·검증·산출물: [refactor-srp.md](refactor-srp.md) R1~R4 절을 따른다.
 - 확인: 이동만(동작·오류 문구 무변경), 기존 공개 경로 유지, 게이트 3종 Windows·WSL.
 - 검증: 게이트 3종. R1 로그 `.local/gate-02-2-r1.log`·`.local/gate-02-2-r1-wsl.log`, R2 로그 `.local/gates/r2-gates.md`, R3 로그 `.local/gate-02-2-r3.log`·`.local/gate-02-2-r3-wsl.log`. R4 로그 `.local/r4-win-{fmt,clippy,test}.log`·`.local/r4-wsl-{fmt,clippy,test}.log`.
