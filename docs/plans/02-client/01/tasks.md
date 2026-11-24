@@ -1,6 +1,6 @@
 ﻿# 02-1 작업 계획
 
-- 상태: 완료 (T1~T5 완료, 6차 5차 리뷰 PASS. 커밋은 사용자 허락 대기)
+- 상태: 완료 (T1~T5 완료, 6차 5차 리뷰 PASS. 커밋 `1f535fb`, PR #2 병합으로 `feature/client` 반영 완료)
 - 하네스 전달: T-파일 `읽을 파일`에 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 색인(`.agents/skills/dev-principles/SKILL.md`, Cursor·Claude는 `.claude/skills/…`)을 넣는다.
 - 지정 잎(build·review): solid·dry·kiss-yagni·separation·naming·errors·security·testing·comments·workflow.
 - 작업 방식: 세부 작업 하나는 한 번 위임하고 한 번 코드 리뷰로 끝낸다.

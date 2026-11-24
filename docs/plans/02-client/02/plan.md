@@ -1,6 +1,6 @@
 # 02-2 설정 읽기와 검증
 
-- 상태: 완료 (T1~T5 리뷰 PASS. R SRP 분리 R1~R4 리뷰 PASS. T6 구조 점검은 3차 PASS 무효 → 5차 전수 점검 → 6차 시험 분리 PASS → 7차 잔여 2건 보정 PASS → 8차 잔여 1건(`tests/credentials/lookup.rs`의 jsonc 해석 시험 2개) 해소 PASS 2026-11-24. T6 잔여 없음. 커밋 허락 대기)
+- 상태: 완료 (T1~T5 리뷰 PASS. R SRP 분리 R1~R4 리뷰 PASS. T6 구조 점검은 3차 PASS 무효 → 5차 전수 점검 → 6차 시험 분리 PASS → 7차 잔여 2건 보정 PASS → 8차 잔여 1건(`tests/credentials/lookup.rs`의 jsonc 해석 시험 2개) 해소 PASS 2026-11-24. T6 잔여 없음. 커밋 `0090f3a`, PR #4 병합으로 `feature/client` 반영 완료)
 
 ## 근거
 - 기획 정본: `docs/plans/02-client.md` 범위(In) 02-2와 설계 요약의 설정·`language`·`http` 항목, AC 2·3.

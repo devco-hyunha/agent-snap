@@ -1,6 +1,6 @@
 # 02-2-R SRP 파일 분리
 
-- 상태: 완료 (R1 리뷰 PASS 2026-11-24, R2 리뷰 PASS 2026-11-24, R3 리뷰 PASS 2026-11-24(5차), R4 리뷰 PASS 2026-11-24. 커밋 허락 대기)
+- 상태: 완료 (R1 리뷰 PASS 2026-11-24, R2 리뷰 PASS 2026-11-24, R3 리뷰 PASS 2026-11-24(5차), R4 리뷰 PASS 2026-11-24. 커밋 `0090f3a`, PR #4 병합으로 `feature/client` 반영 완료)
 - 상위 문서: [plan.md](plan.md), [spec.md](spec.md), [tasks.md](tasks.md)
 - 근거: 02-2 T3·T4 리뷰에서 파일 내 중복만 고치고 파일 분리는 범위 밖이었다. 값 규칙 검증이 02-5·02-7로 커지기 전에 책임 단위로 나눈다.
 - 하네스 전달: T-파일 `읽을 파일`에 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 색인(`.agents/skills/dev-principles/SKILL.md`, Cursor·Claude는 `.claude/skills/…`)을 넣는다.
