@@ -1,4 +1,4 @@
-//! LLM 연결 자리. SSE 줄 처리 파일을 한자리로 올리고, 델타 복원만 하위 폴더로 둠.
+//! LLM 연결 자리. SSE 줄 처리 파일을 한자리로 올리고, 델타 복원·재시도 판단만 하위 폴더로 둠.
 
 mod delta;
 mod error;
@@ -6,6 +6,7 @@ mod event;
 mod lines;
 mod redact;
 mod redacted;
+mod retry;
 mod split_error;
 mod stream;
 mod summary;
@@ -27,6 +28,20 @@ pub use event::SseEvent;
 pub use lines::LineState;
 pub use lines::Lines;
 pub use redacted::RedactedSummary;
+pub use retry::FailureInput;
+pub use retry::PreHeaderConnectKind;
+pub use retry::RandomSource;
+pub use retry::RetryAfterOutcome;
+pub use retry::RetryCandidate;
+pub use retry::RetryDecision;
+pub use retry::RetryReason;
+pub use retry::RetrySettings;
+pub use retry::backoff_cap;
+pub use retry::decide_retry;
+pub use retry::full_jitter_wait;
+pub use retry::interpret_retry_after;
+pub use retry::is_attempt_limit_exceeded;
+pub use retry::is_candidate;
 pub use split_error::SplitError;
 pub use stream::StreamState;
 pub use summary::SUMMARY_MAX_CHARS;
