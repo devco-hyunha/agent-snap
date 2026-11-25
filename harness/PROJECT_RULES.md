@@ -50,7 +50,7 @@
 - 공개 항목 문서 주석은 한국어. 코드 주석·독스트링 어체 정본은 `.agents/skills/eli5-clarity/SKILL.md`.
 - 모든 기능에 단위 테스트를 두고, 네트워크 경로는 모의 서버 통합 테스트로 확인한다.
 - 지시·리뷰에 스킬 경로를 명시한다: `.agents/skills/dev-principles/SKILL.md`(Claude Code·Cursor는 `.claude/skills/…`). 본문은 플레이북 호출 표의 지정 잎만 Read한다.
-- 리뷰 확인 단위는 정합 항목 목록(확인 단위 표 + review-harness 체크리스트 7항목)을 기준으로 삼는다. 미기록 시 major. 메인은 리뷰 근거의 파일·식별자·수치를 직접 확인하고, minor까지 고칠지 판단한 뒤 재리뷰한다. 리뷰 좌표는 파일 경로와 식별자·원문 인용으로 적고 줄 번호는 쓰지 않는다.
+- 리뷰 확인 단위는 정합 항목 목록(확인 단위 표 + review-harness 체크리스트 7항목)을 기준으로 삼는다. 미기록 시 major. 메인은 리뷰 근거의 파일·식별자·수치를 직접 확인하고, minor까지 고칠지 판단한 뒤, 코드·시험·AC·계획 정본 지적이면 재리뷰한다. 라운드 보고·리뷰 기록 문구만이면 고치고 재리뷰하지 않는다(HARNESS 9절). 리뷰 좌표·동일 지적은 HARNESS 7절·review-harness(경로·식별자·원문, 줄 번호 금지)를 따른다.
 - 경로·이름·참조를 옮긴 뒤에는 옮긴 자리의 설명(주석·독스트링·문서 참조·작업 지시)을 함께 고친다. 옮기기만 하고 설명을 안 고치면 major.
 - 문서 연쇄 확인 대상: `docs/INDEX.md`, `docs/PLAN.md`, `docs/DECISIONS.md`, `docs/RESEARCH.md`, `docs/plans/**`, `docs/tasks/**`, `harness/PROJECT_RULES.md`, `.cursor/rules/*.mdc`, `AGENTS.md`(마커 바깥 오버레이). 길어지면 `docs/decisions/` 또는 `docs/plans/<기획>/`로 분리한다.
 
@@ -61,12 +61,18 @@
 - 커밋 메시지 형식과 절차 정본은 하네스 잎 `.agents/skills/dev-principles/leaves/commit.md`를 따른다 (유형 접두·왜 초점·허락 후 실행).
 - 커밋 메시지는 먼저 `.local/commit-message.txt`(git 제외)에 파일로 작성한다. 그 파일을 읽어서 오타·한자·외국어·U+FFFD·번호 포함·유형 접두 여부를 확인한 뒤, 확인된 내용을 `git commit -F`로 그대로 사용한다. 커밋이 끝난 뒤에는 그 파일을 삭제한다.
 - 커밋 개수는 사용자가 지시한 대로 따른다. 지시 없이 임의로 나누거나 합치지 않는다.
-- 커밋 전에 리뷰 PASS 기록을 먼저 확인한다. 코드뿐 아니라 `.md`만 바뀐 문서 변경도 독립 리뷰 대상이다. 순서: 리뷰 PASS → 지시한 커밋 개수 → 메시지 파일 → `git commit -F`.
+- 커밋 전에 리뷰 PASS 기록을 먼저 확인한다. 코드뿐 아니라 `.md`만 바뀐 문서 변경도 독립 리뷰 대상이다. 예외: 라운드 보고·`docs/reviews/`만 고친 경우는 HARNESS 9절 재리뷰 금지에 따르며, 그 변경만으로 새 독립 리뷰를 열지 않는다. 순서: 리뷰 PASS → 지시한 커밋 개수 → 메시지 파일 → `git commit -F`.
 - 커밋하기 전 단계에서 계획 문서를 먼저 정리한다. 커밋에 담기는 계획 문서(`docs/plans/`)는 커밋 시점에 상태가 참이어야 한다. 계획 문서를 정리하기 전에 커밋하면 그 문서가 커밋에 다시 실리므로 추가 커밋이 생긴다. 커밋 직전 정리 순서는 계획 문서 상태 갱신 → 계획 문서 정리 → 게이트 4종 → 메시지 파일 → `git commit -F`다. 게이트 4종과 WSL 검증은 코드(`.rs`·`Cargo.toml`·빌드 설정)를 바꾼 커밋만 돌린다. `.md`만 바꾼 커밋은 게이트를 돌리지 않고 문서·언어 리뷰와 문서 연쇄로 확인한다.
 - 브랜치 흐름: `feature/<작업명>` → `develop` 병합(PASS·CI 초록), `develop` → `main` 승격은 계획 단위 작업이 모두 끝난 시점에만 한다. 기획 문서는 `main`을 기준으로 삼고, 코드는 `develop`에서 이어간다.
 - PR CI 매트릭스 전체가 초록이 아니면 머지하지 않는다. `ubuntu-latest`·`windows-latest` 모두 초록이어야 한다.
 - 로컬은 현재 OS에서 검증하고, 나머지 OS는 WSL로 검증한다. Windows에서는 `wsl -d Ubuntu -- bash -lc`로 게이트 3종을 실행하고, Linux에서는 `wsl`을 쓰지 않고 로컬 게이트로 확인한다. OS별 실경로 시험(`config_dir` 같은 OS 고유 경로 확인)이 한쪽 OS에만 있으면 같은 책임을 양쪽에서 확인하도록 시험을 함께 둔다. CI는 최종 확인으로 두고, 로컬 검증은 커밋 전에 마친다.
 - `git merge --no-ff` 또는 PR 머지로 병합 커밋을 남긴다. 트리를 대상 브랜치에 그대로 복사해 붙이지 않는다. `git merge-base --is-ancestor <PR head SHA> <대상 SHA>`로 확인한다.
+
+## 리뷰 루프 차단 (스냅 보충)
+
+- HARNESS 9절 「작업 진행 보고」= T-파일 라운드 보고, 「리뷰 기록」= `docs/reviews/` 기록이다.
+- 라운드 보고·`docs/reviews/`의 서술·서식·시각·개수 표현은 HARNESS 9절 비대상이다. 산출물·경로 누락·상태·완료 조건 불일치만 문서 연쇄 미달로 본다.
+- 라운드 보고·리뷰 기록만 고치고 코드·시험·AC·`docs/plans/` 정본이 안 바뀌면 재리뷰 세션을 열지 않는다(HARNESS 9절).
 
 ## 문서 규격
 
@@ -80,7 +86,7 @@
 - T-파일 필드: 목표, 근거, 읽을 파일, 할 일, 검증(게이트·명령·로그 경로), 완료 조건, 상태, 라운드 보고(하나). 결정 본문 복제 금지·원천 포인터만.
 - T-파일 읽을 파일에 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, `.agents/skills/dev-principles/SKILL.md`(또는 `.claude/skills/…`)를 넣는다. 할 일·완료 조건에 플레이북 지정 잎 준수와 역할별 파일 분리를 적는다. 체크포인트: 파일·함수·폴더 생성 전 solid/dry/관심사 분리 확인·기존 정의 검색, 결과를 라운드 보고에 남긴다.
 - `docs/plans/**/tasks.md`는 단계·테스트·DoD, 단계마다 "확인:".
-- 리뷰 기록은 `docs/reviews/<기획 순번>/` 계층에 메인이 쓴다. 리뷰 세션(읽기 전용)이 리뷰 기록 파일을 직접 만들거나 고치지 않는다 (더 엄격한 선언: HARNESS 7절·review-harness의 "수정 금지"를 이 절로 적용). 리뷰 좌표·동일 지적·문서 앵커는 HARNESS 7절과 review-harness 정본을 따르고, 기록 앞에 "리뷰 시점 스냅샷"임을 한 줄로 밝힌다.
+- 리뷰 기록은 `docs/reviews/<기획 순번>/` 계층에 메인이 쓴다. 리뷰 세션(읽기 전용)이 리뷰 기록 파일을 직접 만들거나 고치지 않는다 (더 엄격한 선언: HARNESS 7절·review-harness의 "수정 금지"를 이 절로 적용). 리뷰 좌표·동일 지적·문서 앵커는 HARNESS 7절과 review-harness 정본(경로·식별자·원문, 줄 번호 금지)을 따른다. 기록 앞에 리뷰 시점 브랜치·작업 트리를 한 줄로 밝힌다.
 - 게이트 기록: 이름, 종료 코드, 로그 경로, 대상 SHA256, 시작·끝 시각. SHA가 같으면 결과 재활용.
 - `.local/` 허용: 검증 로그(PASS 확정 후 삭제), `.local/research/`(상주), 문서 정리 백업(정리 후 삭제). 그 외 금지.
 - 경로 이동 뒤 `docs/INDEX.md`·`docs/DECISIONS.md`·`docs/RESEARCH.md` 연결을 함께 고친다.
