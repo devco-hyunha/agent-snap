@@ -1,12 +1,13 @@
 //! snap 설정 타입 자리. 타입 정의와 기본값 창구 참조만 담고 검증 규칙은 T3가 맡음.
 //!
-//! 기본값 창구 8개는 `config::defaults`에 둠.
+//! 기본값 창구는 `config::defaults`에 둠.
 
 use serde::Deserialize;
 
 use crate::config::defaults::default_backoff_max;
 use crate::config::defaults::default_backoff_min;
 use crate::config::defaults::default_connect_seconds;
+use crate::config::defaults::default_context_window;
 use crate::config::defaults::default_header_wait_seconds;
 use crate::config::defaults::default_language;
 use crate::config::defaults::default_retries;
@@ -52,6 +53,9 @@ pub struct ModelConfig {
     pub name: String,
     /// 서버에 보낼 모델 식별 값.
     pub id: String,
+    /// 맥락 토큰 한도. 생략하면 기본값.
+    #[serde(default = "default_context_window")]
+    pub context_window: u64,
     /// 모델별 샘플링 값. 없으면 최상위 기본값 사용(적용은 02-7).
     #[serde(default)]
     pub sampling: Option<Sampling>,

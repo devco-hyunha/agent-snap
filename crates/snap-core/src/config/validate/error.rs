@@ -4,6 +4,7 @@ use thiserror::Error;
 
 use crate::locale::config::CONFIG_BACKOFF_RANGE;
 use crate::locale::config::CONFIG_BASE_URL_REJECTED;
+use crate::locale::config::CONFIG_CONTEXT_WINDOW_REJECTED;
 use crate::locale::config::CONFIG_ENDPOINT_KEY_REJECTED;
 use crate::locale::config::CONFIG_ENDPOINT_NAME_DUPLICATE;
 use crate::locale::config::CONFIG_ENDPOINT_NAME_EMPTY;
@@ -122,6 +123,13 @@ pub enum ValidationError {
     /// `reasoning` 값이 목록 밖. 입력 값은 미포함.
     #[error("{CONFIG_REASONING_REJECTED}: {model}")]
     ReasoningRejected {
+        /// 모델 이름.
+        model: String,
+    },
+
+    /// `context_window` 값이 1 이상 정수 밖. 입력 값은 미포함.
+    #[error("{CONFIG_CONTEXT_WINDOW_REJECTED}: {model}")]
+    ContextWindowRejected {
         /// 모델 이름.
         model: String,
     },

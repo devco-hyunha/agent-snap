@@ -24,7 +24,7 @@
 
 ## 비범위(Out)
 
-- 목록으로 설정을 자동 채우기(설정 저장은 02-8이 맡고, 02-7은 읽기만).
+- 목록으로 설정을 자동 채우기(설정 저장은 02-9가 맡고, 02-7은 읽기만).
 - LM Studio 고유 REST `/api/v1/models`, Ollama 고유 `/api/tags`, OpenRouter 쪽 나누기·필드 해석.
 - 상시 프로브·인벤토리 캐시·mDNS·`/health` 선행 확인(vLLM은 자동 발견 대상에서 제외).
 - llama.cpp `multimodal`·`architecture` 능력 해석(YAGNI).

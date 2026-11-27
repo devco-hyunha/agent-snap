@@ -5,6 +5,7 @@ use snap_core::config::EndpointConfig;
 use snap_core::config::HttpSettings;
 use snap_core::config::ModelConfig;
 use snap_core::config::SecretString;
+use snap_core::consts::defaults::DEFAULT_CONTEXT_WINDOW;
 use snap_core::llm::find_target;
 use snap_core::llm::parse_selection_key;
 
@@ -26,6 +27,7 @@ pub fn config() -> Config {
                 ModelConfig {
                     name: "qwen".to_owned(),
                     id: "qwen-id".to_owned(),
+                    context_window: DEFAULT_CONTEXT_WINDOW,
                     sampling: None,
                     reasoning: None,
                     extra: None,
@@ -33,6 +35,7 @@ pub fn config() -> Config {
                 ModelConfig {
                     name: "other".to_owned(),
                     id: "other-id".to_owned(),
+                    context_window: DEFAULT_CONTEXT_WINDOW,
                     sampling: None,
                     reasoning: None,
                     extra: None,

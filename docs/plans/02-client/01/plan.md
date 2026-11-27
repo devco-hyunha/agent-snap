@@ -15,10 +15,10 @@
 - snap 설정 폴더 경로를 OS별로 결정한다. Windows는 `%APPDATA%\snap`, Linux는 `$XDG_CONFIG_HOME/snap`(미설정 시 `~/.config/snap`). OS별 파일(`mod.rs`+`windows.rs`+`unix.rs`)로 분리한다.
 - 자격 파일 `credentials.jsonc` 읽기: 경로를 주입받고, JSONC로 해석하고, `api_keys` 표에서 trim한 엔드포인트 이름으로 키를 찾는다. 자격 파일에 이름이 없으면 키 없음(None)으로 돌려준다.
 - 자격 파일 검증: 최상위 `api_keys` 객체가 없거나 키 값이 문자열이 아니면 오류로 돌려준다. 오류 문구는 locale 모듈(`locale/ko/config.rs`)에서 끌어오고, 파일 경로만 담으며 자격 파일에 담긴 값은 담지 않는다.
-- 읽기 전용이다. 자격 파일 쓰기는 02-8 범위다.
+- 읽기 전용이다. 자격 파일 쓰기는 02-9 범위다.
 
 ## 금지
-- 자격 파일 쓰기·수정(02-8 범위).
+- 자격 파일 쓰기·수정(02-9 범위).
 - HTTP 전송·`snap.jsonc` 해석·`api_key` 칸 거부·`.gitignore` 갱신(02-2 범위).
 - 테스트 밖 `unwrap`/`expect`/`panic`.
 - 키 값과 자격 파일 내용가 base_url을 Debug·Display·로그·오류 문구에 남기기.

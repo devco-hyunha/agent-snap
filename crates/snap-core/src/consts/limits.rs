@@ -43,3 +43,6 @@ pub const RETRIES_MIN: u64 = 0;
 
 /// 시간 값 하한. 0 초과.
 pub const SECONDS_MIN_EXCLUSIVE: f64 = 0.0;
+
+/// 모델 맥락 토큰 한도 최소. 1 이상 정수만 허용.
+pub const CONTEXT_WINDOW_MIN: u64 = 1;

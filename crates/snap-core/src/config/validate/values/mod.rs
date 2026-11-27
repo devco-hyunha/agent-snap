@@ -1,4 +1,4 @@
-//! 값 규칙 검증 자리. `kind`·`reasoning`·`base_url`·`sampling`·`http`·`extra`·`language`를 봄.
+//! 값 규칙 검증 자리. `kind`·`reasoning`·`base_url`·`sampling`·`http`·`extra`·`language`·`context_window`를 봄.
 
 mod endpoint;
 mod http;

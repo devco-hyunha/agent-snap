@@ -69,6 +69,9 @@ pub const CONFIG_BASE_URL_REJECTED: &str = "Invalid base_url format";
 /// `reasoning` 값 거부 문구. 모델 이름만 붙임.
 pub const CONFIG_REASONING_REJECTED: &str = "reasoning value is outside the allowed list";
 
+/// `context_window` 값 거부 문구. 모델 이름만 붙임.
+pub const CONFIG_CONTEXT_WINDOW_REJECTED: &str = "context_window must be an integer of 1 or more";
+
 /// `extra` 예약 키 거부 문구. 모델 이름과 키 이름만 붙임.
 pub const CONFIG_EXTRA_RESERVED_KEY: &str = "extra must not contain a reserved key";
 

@@ -1,10 +1,12 @@
-//! 엔드포인트 값 검증 자리. `kind`·`base_url`과 모델별 `reasoning`·`extra`를 봄.
+//! 엔드포인트 값 검증 자리. `kind`·`base_url`과 모델별 `reasoning`·`extra`·`context_window`를 봄.
 
 use serde_json::Value;
 
 use crate::config::validate::error::ValidationError;
+use crate::config::validate::values::num::is_integer_at_least;
 use crate::config::validate::values::sampling::check_sampling;
 use crate::consts::limits::ALLOWED_URL_SCHEMES;
+use crate::consts::limits::CONTEXT_WINDOW_MIN;
 use crate::consts::limits::RESERVED_EXTRA_KEYS;
 use crate::llm::EndpointKind;
 use crate::llm::ReasoningEffort;
@@ -20,7 +22,7 @@ pub(super) fn check_endpoints(root: &Value) -> Result<(), ValidationError> {
     Ok(())
 }
 
-/// 엔드포인트 하나를 `kind`·`base_url`과 모델별로 봄.
+/// 엔드포인트 하나를 `kind`·`base_url`과 모델별 `reasoning`·`extra`·`context_window`로 봄.
 fn check_endpoint(endpoint: &Value) -> Result<(), ValidationError> {
     let name = endpoint_name(endpoint);
     check_kind(endpoint, &name)?;
@@ -37,6 +39,7 @@ fn check_endpoint(endpoint: &Value) -> Result<(), ValidationError> {
             .to_owned();
         check_reasoning(model, &model_name)?;
         check_extra(model, &model_name)?;
+        check_context_window(model, &model_name)?;
         check_sampling(model.get("sampling"), Some(&model_name))?;
     }
     Ok(())
@@ -114,5 +117,18 @@ fn check_extra(model: &Value, model_name: &str) -> Result<(), ValidationError> {
     Err(ValidationError::ExtraReservedKey {
         model: model_name.to_owned(),
         key: (*key).to_owned(),
+    })
+}
+
+/// `context_window`가 1 이상 정수인지 봄. 칸이 없으면 기본값 정규화에 맡김.
+fn check_context_window(model: &Value, model_name: &str) -> Result<(), ValidationError> {
+    let Some(value) = model.get("context_window") else {
+        return Ok(());
+    };
+    if is_integer_at_least(value, CONTEXT_WINDOW_MIN) {
+        return Ok(());
+    }
+    Err(ValidationError::ContextWindowRejected {
+        model: model_name.to_owned(),
     })
 }
