@@ -1,6 +1,6 @@
 # 02 설정과 스트리밍 클라이언트
 
-- 상태: 진행 (02-1 완료·PR #2 병합, 02-2 T1~T5 리뷰 PASS 2026-11-24. 02-2 R SRP 분리 완료·R1~R4 리뷰 PASS 2026-11-24. 02-2 T6 구조 점검은 3차 PASS 무효 → 5차 전수 점검 → 6차 시험 분리 PASS → 7차 잔여 2건 보정 PASS → 8차 잔여 1건(해석 시험 2개 이관) 해소 PASS 2026-11-24. T6 잔여 없음. 02-2 커밋 `0090f3a`·PR #4 병합으로 `feature/client` 반영 완료. 02-3은 T1~T6 구현·리뷰 PASS 2026-11-25, T7 미커밋 작업 파일 전수 구조 점검 표 작성 2026-11-25 (`feature/client-sse`, 미커밋). T7에서 발견한 위반 5건은 T8에서 이동·분리로 해소(게이트 3종 Windows·WSL 통과 2026-11-25). T8은 라운드 7까지 보정 완료·4차 리뷰 PASS 2026-11-25. T7은 8차 Fast-track PASS 2026-11-25. 02-3 잔여 없음. PR #6 병합 2026-11-25로 `feature/client` 반영 완료. 02-4는 T1~T5 완료·작업 단위 전체 리뷰 PASS 2026-11-25 (`feature/client-retry`, 미커밋. AC 1~7 7/7, 재시도 시험 62종, 결정 10·12·13번 `docs/DECISIONS.md` 기록, 리서치 9종 원문 확인·`docs/research/02-client-retry.md` 신규, T5 구조 점검 표 32건·SRP 검토·잔여 4건 해소. 게이트 3종 Windows 로컬 통과. WSL(Ubuntu) 게이트는 커밋 직전 소관. 리뷰 기록 `docs/reviews/02/02-4-unit-r1.md`))
+- 상태: 진행 (02-1~02-4 완료·PR #2·#4·#6·#7 병합. 02-5 완료: T1~T10 리뷰 PASS, 커밋 2026-11-27 (`feature/client-transport`). 02-6~02-9 계획. 상세 이력은 `docs/plans/02-client/05/plan.md`와 `docs/reviews/02/` 참조.)
 
 ## 근거(선행 계획 잔여)
 - 01 `tasks.md`의 `## 잔여` 절을 포인터로 따라간다. 잔여 PASS 뒤에 착수한다.

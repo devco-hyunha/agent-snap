@@ -6,3 +6,4 @@ pub mod ko;
 pub use ko::config;
 pub use ko::jsonc;
 pub use ko::sse;
+pub use ko::transport;

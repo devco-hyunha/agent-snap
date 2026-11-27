@@ -1,5 +1,6 @@
-//! LLM 연결 자리. SSE 줄 처리 파일을 한자리로 올리고, 델타 복원·재시도 판단만 하위 폴더로 둠.
+//! LLM 연결 자리. SSE 줄 처리 파일을 한자리로 올리고, 델타 복원·재시도 판단·클라이언트 골격은 하위 폴더로 둠.
 
+mod client;
 mod delta;
 mod error;
 mod event;
@@ -11,6 +12,21 @@ mod split_error;
 mod stream;
 mod summary;
 
+pub use client::ChatMessage;
+pub use client::ChatRequest;
+pub use client::EndpointKind;
+pub use client::HttpTransport;
+pub use client::LlmClient;
+pub use client::ReasoningEffort;
+pub use client::RestoreReceiver;
+pub use client::StreamOutcome;
+pub use client::StreamReceiver;
+pub use client::StreamTimings;
+pub use client::TransportError;
+pub use client::TransportTimings;
+pub use client::auth_header;
+pub use client::build_body;
+pub use client::completions_url;
 pub use delta::ChunkDelta;
 pub use delta::ChunkError;
 pub use delta::ChunkErrorKind;
