@@ -31,11 +31,16 @@ fn builder_fills_status_header_body_stop() {
 
     let script = MockScript::with_status(503)
         .with_header_delay(wait)
+        .with_header("retry-after", "7")
         .with_body(body.clone())
         .with_stop(StreamStop::Cut);
 
     assert_eq!(script.status, 503);
     assert_eq!(script.header, HeaderMode::Delay(wait));
+    assert_eq!(
+        script.headers,
+        vec![("retry-after".to_owned(), "7".to_owned())]
+    );
     assert_eq!(script.body, body);
     assert_eq!(script.stop, StreamStop::Cut);
 }

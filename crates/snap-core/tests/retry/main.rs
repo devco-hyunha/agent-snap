@@ -5,3 +5,5 @@ mod backoff;
 mod classify;
 mod decide;
 mod fixtures;
+mod random;
+mod settings;

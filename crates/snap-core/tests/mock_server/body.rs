@@ -11,6 +11,8 @@ use tokio::time::sleep;
 
 use super::script::StreamStep;
 use super::script::StreamStop;
+use super::stop_frame::frame_for_stop;
+use super::stream_step::Step;
 
 /// 응답 본문 스트림. 조각 사이 대기 시간을 지키며 흘려보냄.
 pub(crate) struct ChunkBody {
@@ -67,15 +69,6 @@ impl ChunkBody {
     }
 }
 
-/// 규칙 처리 결과.
-enum Step {
-    /// 보낼 조각.
-    Bytes(Vec<u8>),
-
-    /// 규칙 종료. 연결 끊기 방식.
-    Finished(StreamStop),
-}
-
 impl Body for ChunkBody {
     type Data = Bytes;
 
@@ -92,13 +85,5 @@ impl Body for ChunkBody {
             }
             Poll::Ready(Step::Finished(stop)) => frame_for_stop(stop),
         }
-    }
-}
-
-/// 규칙 종료 방식을 프레임으로 바꿈. 모든 규칙은 본문 끝 표시로 나간다.
-/// 끊기 방식의 연결 정리는 서버 쪽이 담당한다.
-fn frame_for_stop(stop: StreamStop) -> Poll<Option<Result<Frame<Bytes>, std::io::Error>>> {
-    match stop {
-        StreamStop::End | StreamStop::Cut | StreamStop::Drop => Poll::Ready(None),
     }
 }

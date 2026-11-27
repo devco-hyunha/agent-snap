@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use crate::consts::defaults::CONFIG_DIR_NAME;
 
 pub mod credentials;
+mod defaults;
 mod error;
 pub mod keys;
 pub mod reader;

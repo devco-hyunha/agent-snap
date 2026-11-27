@@ -30,6 +30,9 @@ pub const HEADER_WAIT_TIMEOUT: &str = "응답 헤더를 기다리다 시간 초�
 /// 응답 스트림 유휴 시간 초과 문구. 설정 초 값만 붙임.
 pub const STREAM_IDLE_TIMEOUT: &str = "응답 스트림이 멈춰서 시간 초과했습니다";
 
+/// 헤더를 받은 뒤 응답 스트림 조각 읽기 실패 문구. 연결 설정 초 값만 붙임.
+pub const STREAM_READ_FAILED: &str = "헤더를 받은 뒤 응답 스트림을 읽다 실패했습니다";
+
 /// 서버가 보낸 오류 청크 문구. 가린 요약만 붙임.
 pub const SERVER_ERROR_CHUNK: &str = "서버가 오류를 보냈습니다";
 
