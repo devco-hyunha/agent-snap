@@ -13,6 +13,7 @@ mod parsing;
 mod random;
 mod reason;
 mod settings;
+mod system_random;
 
 pub use after::interpret_retry_after;
 pub use backoff::backoff_cap;
@@ -28,3 +29,4 @@ pub use outcome::RetryAfterOutcome;
 pub use random::RandomSource;
 pub use reason::RetryReason;
 pub use settings::RetrySettings;
+pub use system_random::SystemRandomSource;

@@ -6,7 +6,7 @@ use serde_json::Value;
 use crate::config::types::Sampling;
 
 /// 채팅 요청 하나. 클라이언트 트레이트가 받는 입력 골격.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ChatRequest {
     /// 서버에 보내는 모델 식별 값.
     pub model_id: String,

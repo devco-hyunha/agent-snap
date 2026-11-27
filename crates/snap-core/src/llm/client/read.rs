@@ -7,13 +7,13 @@ use tokio::time::timeout;
 use tokio_util::sync::CancellationToken;
 
 use crate::llm::TransportError;
-use crate::llm::client::connect::connect_error;
 use crate::llm::client::timings::TransportTimings;
 use crate::llm::client::traits::StreamReceiver;
 
 /// 응답 본문을 끝까지 읽어 수신자에 넣고 결과를 냄.
 ///
 /// 조각이 없는 시간(유휴)은 `stream_idle`로 재고, 취소는 같은 자리에서 경합.
+/// 헤더를 받은 뒤의 조각 읽기 실패는 `stream_read`. 헤더 전 연결 구분과 달리 재시도 대상이 아니다.
 /// 취소·유휴로 끝나면 응답 값을 버려 연결을 정리한다.
 pub async fn read_stream<R: StreamReceiver>(
     response: &mut Response,
@@ -28,7 +28,9 @@ pub async fn read_stream<R: StreamReceiver>(
                 match read {
                     Ok(Ok(Some(bytes))) => Some(bytes),
                     Ok(Ok(None)) => return Ok(()),
-                    Ok(Err(error)) => return Err(connect_error(&error, timings.connect_seconds())),
+                    Ok(Err(_)) => {
+                        return Err(TransportError::stream_read(timings.connect_seconds()));
+                    }
                     Err(_) => return Err(TransportError::idle(timings.stream_idle_seconds())),
                 }
             }

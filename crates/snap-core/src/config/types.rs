@@ -1,16 +1,18 @@
-//! snap 설정 타입 자리. 읽기·기본값만 담고 검증 규칙은 T3가 맡음.
+//! snap 설정 타입 자리. 타입 정의와 기본값 창구 참조만 담고 검증 규칙은 T3가 맡음.
+//!
+//! 기본값 창구 8개는 `config::defaults`에 둠.
 
 use serde::Deserialize;
 
+use crate::config::defaults::default_backoff_max;
+use crate::config::defaults::default_backoff_min;
+use crate::config::defaults::default_connect_seconds;
+use crate::config::defaults::default_header_wait_seconds;
+use crate::config::defaults::default_language;
+use crate::config::defaults::default_retries;
+use crate::config::defaults::default_retry_after_max;
+use crate::config::defaults::default_stream_idle_seconds;
 use crate::config::secret_string::SecretString;
-use crate::consts::defaults::DEFAULT_BACKOFF_MAX_SECONDS;
-use crate::consts::defaults::DEFAULT_BACKOFF_MIN_SECONDS;
-use crate::consts::defaults::DEFAULT_CONNECT_SECONDS;
-use crate::consts::defaults::DEFAULT_HEADER_WAIT_SECONDS;
-use crate::consts::defaults::DEFAULT_LANGUAGE;
-use crate::consts::defaults::DEFAULT_RETRIES;
-use crate::consts::defaults::DEFAULT_RETRY_AFTER_MAX_SECONDS;
-use crate::consts::defaults::DEFAULT_STREAM_IDLE_SECONDS;
 
 /// 최상위 설정. 생략한 목록은 빈 배열로 정규화.
 #[derive(Debug, Deserialize)]
@@ -62,7 +64,7 @@ pub struct ModelConfig {
 }
 
 /// 샘플링 값. 없는 항목은 두지 않아 서버 기본을 따름.
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Clone, Copy, Deserialize)]
 pub struct Sampling {
     /// 온도. 범위 검증은 T3가 맡음.
     #[serde(default)]
@@ -113,44 +115,4 @@ impl Default for HttpSettings {
             stream_idle_seconds: default_stream_idle_seconds(),
         }
     }
-}
-
-/// 언어 기본값 창구.
-fn default_language() -> String {
-    DEFAULT_LANGUAGE.to_owned()
-}
-
-/// 재시도 횟수 기본값 창구.
-fn default_retries() -> u64 {
-    DEFAULT_RETRIES
-}
-
-/// 재시도 대기 최소 기본값 창구.
-fn default_backoff_min() -> f64 {
-    DEFAULT_BACKOFF_MIN_SECONDS
-}
-
-/// 재시도 대기 최대 기본값 창구.
-fn default_backoff_max() -> f64 {
-    DEFAULT_BACKOFF_MAX_SECONDS
-}
-
-/// 재시도 권유 최대 기본값 창구.
-fn default_retry_after_max() -> f64 {
-    DEFAULT_RETRY_AFTER_MAX_SECONDS
-}
-
-/// 연결 시도 기본값 창구.
-fn default_connect_seconds() -> f64 {
-    DEFAULT_CONNECT_SECONDS
-}
-
-/// 헤더 대기 기본값 창구.
-fn default_header_wait_seconds() -> f64 {
-    DEFAULT_HEADER_WAIT_SECONDS
-}
-
-/// 스트림 대기 기본값 창구.
-fn default_stream_idle_seconds() -> f64 {
-    DEFAULT_STREAM_IDLE_SECONDS
 }

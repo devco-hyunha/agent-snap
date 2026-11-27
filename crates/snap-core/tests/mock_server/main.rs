@@ -4,9 +4,13 @@ mod connections;
 mod fixtures;
 mod recorder;
 mod response;
+mod router;
 mod script;
 mod server;
+mod state;
+mod stop_frame;
 mod store;
+mod stream_step;
 mod types;
 #[allow(dead_code)]
 mod usage_stream;

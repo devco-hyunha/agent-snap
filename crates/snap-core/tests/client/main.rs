@@ -12,12 +12,20 @@ mod fixtures;
 mod recorder;
 #[path = "../mock_server/response.rs"]
 mod response;
+#[path = "../mock_server/router.rs"]
+mod router;
 #[path = "../mock_server/script.rs"]
 mod script;
 #[path = "../mock_server/server.rs"]
 mod server;
+#[path = "../mock_server/state.rs"]
+mod state;
+#[path = "../mock_server/stop_frame.rs"]
+mod stop_frame;
 #[path = "../mock_server/store.rs"]
 mod store;
+#[path = "../mock_server/stream_step.rs"]
+mod stream_step;
 #[path = "../mock_server/types.rs"]
 mod types;
 #[path = "../mock_server/usage_stream.rs"]
@@ -28,6 +36,7 @@ mod connect_kinds;
 mod connect_redact;
 mod error;
 mod extra_merge;
+mod failure_map;
 mod kind;
 mod mock_request;
 mod reasoning;
@@ -36,6 +45,8 @@ mod request;
 mod request_body;
 mod restore;
 mod restore_timings;
+mod retry_after;
+mod retry_wrapper;
 mod setting_link;
 mod stream_contract;
 mod stream_echo;

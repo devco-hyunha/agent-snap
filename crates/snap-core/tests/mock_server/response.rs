@@ -13,9 +13,13 @@ pub fn build_response(script: &MockScript) -> axum::response::Response {
         return Response::new(Body::empty()).into_response();
     };
     let body = Body::new(ChunkBody::new(script.body.clone(), script.stop));
-    Response::builder()
+    let mut builder = Response::builder()
         .status(status)
-        .header(axum::http::header::CONTENT_TYPE, "text/event-stream")
+        .header(axum::http::header::CONTENT_TYPE, "text/event-stream");
+    for (name, value) in &script.headers {
+        builder = builder.header(name, value);
+    }
+    builder
         .body(body)
         .map(IntoResponse::into_response)
         .unwrap_or_else(|_| Response::new(Body::empty()).into_response())

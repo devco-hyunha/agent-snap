@@ -1,4 +1,4 @@
-//! 모의 서버로 스트림을 열어 종료 결과를 읽는 창구 재료. 사용량·시각 시험이 함께 쓰는 공용 조립만 담음.
+//! 모의 서버로 스트림을 열어 종료 결과를 읽는 창구 재료. 사용량·시각·재시도 시험이 함께 쓰는 공용 조립과 상수를 담음.
 use std::time::Duration;
 
 use snap_core::llm::EndpointKind;
@@ -14,6 +14,9 @@ use crate::script::MockScript;
 use crate::script::StreamStep;
 use crate::script::StreamStop;
 use crate::server::MockServer;
+
+/// 재시도 대기 권유 헤더 이름. 재시도 시험이 함께 쓰는 정본.
+pub(crate) const RETRY_AFTER: &str = "Retry-After";
 
 /// 시각 확인에 필요한 넉넉한 시험용 시간 값.
 pub(crate) const OPEN_TIMINGS: TransportTimings = TransportTimings {

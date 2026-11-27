@@ -31,3 +31,19 @@ fn response_with_empty_body_keeps_ok_status() {
 
     assert_eq!(response.status(), 200);
 }
+
+#[test]
+fn response_carries_script_extra_headers() {
+    let script = MockScript::with_status(429).with_header("retry-after", "12");
+
+    let response = build_response(&script);
+
+    assert_eq!(
+        response
+            .headers()
+            .get("retry-after")
+            .and_then(|value| value.to_str().ok())
+            .unwrap_or_default(),
+        "12"
+    );
+}
