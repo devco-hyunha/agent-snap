@@ -1,6 +1,6 @@
 # 02-4 재시도 판단: 상세 기획
 
-- 상태: 완료 (초안 2026-11-25. T1~T5 완료, 02-4 작업 단위 전체 리뷰 PASS 2026-11-25. 결정 10·12·13번 기록 완료. 리뷰 기록 `docs/reviews/02/02-4-unit-r1.md`. WSL(Ubuntu) 게이트는 커밋 직전 소관)
+- 상태: 완료 (초안 2026-11-25. T1~T5 완료, 02-4 작업 단위 전체 리뷰 PASS 2026-11-25. 결정 10·12·13번 기록 완료. 리뷰 기록 `docs/reviews/02/02-4-unit-r1.md`. PR #7로 `feature/client` 병합)
 - 상위 문서: [02-client.md](../../02-client.md)
 - 백업 정본 이식: `C:\Workspace\agent-snap-backup\docs\plans\02-client\02-04-retry\`(done)의 판정 규칙·AC를 그대로 따르고, 경로·결정 번호·연결 문서를 현재 저장소 규칙에 맞췄다.
 

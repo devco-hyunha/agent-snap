@@ -1,6 +1,6 @@
 # 02-5 클라이언트 트레이트와 스트리밍 전송: 작업 계획
 
-- 상태: 완료 (T1~T10 완료·리뷰 PASS·작업 단위 전체 리뷰 r2 PASS 2026-11-27. 커밋. 병합 대기. 라운드 이력은 `docs/reviews/02/02-5-*.md` 참조.)
+- 상태: 완료 (T1~T10 완료·리뷰 PASS·작업 단위 전체 리뷰 r2 PASS 2026-11-27. 커밋·PR #9 병합. 라운드 이력은 `docs/reviews/02/02-5-*.md` 참조.)
 - 상위 문서: [plan.md](plan.md), [spec.md](spec.md)
 - 하네스 전달: T-파일 `읽을 파일`에 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 색인(`.agents/skills/dev-principles/SKILL.md`, Cursor·Claude는 `.claude/skills/…`)을 넣는다.
 - 지정 잎(build·review): solid·dry·kiss-yagni·separation·naming·errors·security·testing·comments·workflow·constants-locale.
