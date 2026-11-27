@@ -7,8 +7,8 @@ use crate::llm::RedactedSummary;
 use crate::locale::sse::FORMAT_ERROR_FAILED;
 use crate::locale::sse::STREAM_ERROR_FAILED;
 
-/// SSE 스트림 전체 실패 상태.
-#[derive(Debug, Error, PartialEq, Eq)]
+/// SSE 스트림 전체 실패 상태. 복사 가능.
+#[derive(Debug, Error, Clone, PartialEq, Eq)]
 pub enum SseError {
     /// 최상위 `error` 청크가 만든 스트림 오류. 서버가 준 요약만 담음(가린 값).
     #[error("{STREAM_ERROR_FAILED}: {summary}")]

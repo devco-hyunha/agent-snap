@@ -53,7 +53,7 @@ pub fn redact_summary(raw: &str) -> RedactedSummary {
 }
 
 /// 길이 상한까지의 문자열 인덱스. 문자 경계를 지킴.
-fn clamp_len(text: &str, max_len: usize) -> usize {
+pub(crate) fn clamp_len(text: &str, max_len: usize) -> usize {
     if text.len() <= max_len {
         return text.len();
     }

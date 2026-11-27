@@ -9,13 +9,23 @@ description = "snap 코어 라이브러리"
 
 [dependencies]
 jsonc-parser = { version = "0.34.0", features = ["serde"] }
+reqwest = { version = "0.13.5", features = ["json", "stream"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 thiserror = "2.0.21"
+# 전송 시간·마이크로 서비스의 골격 런타임. macros·time 기능만 사용.
+tokio = { version = "1.54.1", default-features = false, features = ["macros", "time"] }
+# 취소 토큰은 tokio-util의 기본 모듈. features에 sync가 없다.
+tokio-util = "0.7.20"
 
 [dev-dependencies]
+# 시험용 모의 서버와 스트림 본문 인터페이스. 제품 의존과 분리한다.
+axum = "0.8.9"
+http-body = "1.1.0"
 serde_json = "1.0.154"
 tempfile = "3.23.0"
+# 시험은 멀티 스레드 런타임·채널·소켓이 필요하다.
+tokio = { version = "1.54.1", default-features = false, features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
 
 [lints]
 workspace = true

@@ -4,10 +4,10 @@ use serde_json::Value;
 
 use crate::config::validate::error::ValidationError;
 use crate::config::validate::values::sampling::check_sampling;
-use crate::consts::limits::ALLOWED_KINDS;
-use crate::consts::limits::ALLOWED_REASONING;
 use crate::consts::limits::ALLOWED_URL_SCHEMES;
 use crate::consts::limits::RESERVED_EXTRA_KEYS;
+use crate::llm::EndpointKind;
+use crate::llm::ReasoningEffort;
 
 /// 엔드포인트별 `kind`·`base_url`와 그 아래 모델 확인.
 pub(super) fn check_endpoints(root: &Value) -> Result<(), ValidationError> {
@@ -52,12 +52,12 @@ fn endpoint_name(endpoint: &Value) -> String {
         .to_owned()
 }
 
-/// `kind`가 허용값 안에 있는지 봄.
+/// `kind`가 허용값 안에 있는지 봄. 허용 서버 형식의 한 정의는 `EndpointKind`.
 fn check_kind(endpoint: &Value, endpoint_name: &str) -> Result<(), ValidationError> {
     let Some(kind) = endpoint.get("kind").and_then(Value::as_str) else {
         return Ok(());
     };
-    let is_allowed = ALLOWED_KINDS.contains(&kind);
+    let is_allowed = EndpointKind::from_setting(kind).is_some();
     if is_allowed {
         return Ok(());
     }
@@ -86,12 +86,12 @@ fn check_base_url(endpoint: &Value, endpoint_name: &str) -> Result<(), Validatio
     })
 }
 
-/// `reasoning`이 허용값 안에 있는지 봄.
+/// `reasoning`이 허용값 안에 있는지 봄. 허용 강도의 한 정의는 `ReasoningEffort`.
 fn check_reasoning(model: &Value, model_name: &str) -> Result<(), ValidationError> {
     let Some(reasoning) = model.get("reasoning").and_then(Value::as_str) else {
         return Ok(());
     };
-    let is_allowed = ALLOWED_REASONING.contains(&reasoning);
+    let is_allowed = ReasoningEffort::from_setting(reasoning).is_some();
     if is_allowed {
         return Ok(());
     }

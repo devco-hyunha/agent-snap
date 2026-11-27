@@ -11,3 +11,4 @@ docs/reviews/
 docs/tasks/
 docs/notes/
 __pycache__/
+.cursor/

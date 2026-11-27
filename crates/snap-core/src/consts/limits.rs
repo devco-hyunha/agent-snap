@@ -1,16 +1,4 @@
 //! 한도·상한 자리. 검증이 쓰는 값만 담음.
-/// 허용 서버 형식 값. 목록 밖 서버는 `extra`로 우회.
-pub const ALLOWED_KINDS: [&str; 6] = [
-    "openai",
-    "openrouter",
-    "ollama",
-    "vllm",
-    "llamacpp",
-    "lmstudio",
-];
-
-/// 허용 생각 강도 값.
-pub const ALLOWED_REASONING: [&str; 4] = ["off", "low", "medium", "high"];
 
 /// 허용 `http` 키. 이 목록 밖은 모르는 키로 거부.
 pub const ALLOWED_HTTP_KEYS: [&str; 7] = [
