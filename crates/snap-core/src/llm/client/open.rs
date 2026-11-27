@@ -53,7 +53,7 @@ pub async fn open_stream(
 }
 
 /// 연결 시간 설정만 실은 클라이언트. 요청 전체·읽기 시간 설정은 두지 않음.
-fn build_client(timings: &TransportTimings) -> Result<Client, TransportError> {
+pub(super) fn build_client(timings: &TransportTimings) -> Result<Client, TransportError> {
     Client::builder()
         .connect_timeout(timings.connect)
         .build()

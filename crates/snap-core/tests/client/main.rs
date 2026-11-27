@@ -31,6 +31,7 @@ mod types;
 #[path = "../mock_server/usage_stream.rs"]
 mod usage_stream;
 
+mod build;
 mod cancel;
 mod connect_kinds;
 mod connect_redact;
