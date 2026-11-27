@@ -1,6 +1,6 @@
 # 02 설정과 스트리밍 클라이언트
 
-- 상태: 진행 (02-1~02-4 완료·PR #2·#4·#6·#7 병합. 02-5 완료: T1~T10 리뷰 PASS·PR #9로 `feature/client` 병합 2026-11-27. 02-6 완료(T1~T7 구현·리뷰 PASS, 작업 단위 전체 리뷰 PASS. 커밋·`feature/client` 병합 대기), 02-7~02-9 계획. 상세 이력은 `docs/plans/02-client/06/plan.md`와 `docs/reviews/02/` 참조.)
+- 상태: 진행 (02-1~02-4 완료·PR #2·#4·#6·#7 병합. 02-5 완료: T1~T10 리뷰 PASS·PR #9로 `feature/client` 병합 2026-11-27. 02-6 완료: T1~T7 구현·리뷰 PASS, 작업 단위 전체 리뷰 PASS, PR #11로 `feature/client` 병합 2026-11-27. 02-7~02-9 계획. 상세 이력은 `docs/plans/02-client/06/plan.md`와 `docs/reviews/02/` 참조.)
 
 ## 근거(선행 계획 잔여)
 - 01 `tasks.md`의 `## 잔여` 절을 포인터로 따라간다. 잔여 PASS 뒤에 착수한다.
