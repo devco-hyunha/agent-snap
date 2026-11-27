@@ -3,7 +3,8 @@
 use crate::locale::config::SECRET_REDACTED;
 
 /// 비밀 문자열. Debug 출력에서는 값 대신 가렸음 표시만.
-#[derive(Clone)]
+/// 값 비교는 래퍼끼리 같은 값인지 볼 때만 쓴다.
+#[derive(Clone, PartialEq, Eq)]
 pub struct SecretString(String);
 
 impl SecretString {

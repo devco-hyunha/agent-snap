@@ -43,3 +43,9 @@ pub const DEFAULT_HEADER_WAIT_SECONDS: f64 = 300.0;
 
 /// 응답 스트림 대기 최대 초 기본값.
 pub const DEFAULT_STREAM_IDLE_SECONDS: f64 = 120.0;
+
+/// Ollama 자동 발견 기본 주소.
+pub const DEFAULT_OLLAMA_BASE_URL: &str = "http://127.0.0.1:11434/v1";
+
+/// LM Studio 자동 발견 기본 주소.
+pub const DEFAULT_LMSTUDIO_BASE_URL: &str = "http://127.0.0.1:1234/v1";

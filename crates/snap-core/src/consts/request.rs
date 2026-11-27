@@ -56,3 +56,18 @@ pub const AUTH_SCHEME: &str = "Bearer";
 
 /// 채팅 completions 경로 조각.
 pub const CHAT_COMPLETIONS_PATH: &str = "chat/completions";
+
+/// 모델 목록 경로 조각.
+pub const MODELS_PATH: &str = "models";
+
+/// OpenAI 호환 버전 경로 조각. 주소에 없는 경우 한 번만 붙임.
+pub const VERSION_PATH: &str = "v1";
+
+/// 경로 조각을 붙일 때 쓰는 구분 문자.
+pub const PATH_SEPARATOR: char = '/';
+
+/// 모델 목록 응답의 최상위 배열 키.
+pub const DATA_KEY: &str = "data";
+
+/// 모델 목록 `data` 항목의 식별 키.
+pub const ID_KEY: &str = "id";
