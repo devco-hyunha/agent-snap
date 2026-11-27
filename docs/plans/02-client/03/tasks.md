@@ -1,6 +1,6 @@
 ﻿# 02-3 SSE 파싱과 델타 복원: 작업 계획
 
-- 상태: 진행 (승인 2026-11-24. T1~T6 완료·리뷰 PASS 2026-11-25. T8 구조 보정 완료·4차 리뷰 PASS 2026-11-25. T7 구조 점검 완료·8차 Fast-track PASS 2026-11-25. 잔여 없음. 커밋·병합 대기)
+- 상태: 완료 (승인 2026-11-24. T1~T6 완료·리뷰 PASS 2026-11-25. T8 구조 보정 완료·4차 리뷰 PASS 2026-11-25. T7 구조 점검 완료·8차 Fast-track PASS 2026-11-25. 잔여 없음. PR #6으로 `feature/client` 병합)
 - 상위 문서: [plan.md](plan.md), [spec.md](spec.md)
 - 하네스 전달: T-파일 `읽을 파일`에 `harness/HARNESS.md`, `AGENTS.md`, `harness/PROJECT_RULES.md`, dev-principles 색인(`.agents/skills/dev-principles/SKILL.md`, Cursor·Claude는 `.claude/skills/…`)을 넣는다.
 - 지정 잎(build·review): solid·dry·kiss-yagni·separation·naming·errors·security·testing·comments·workflow.
