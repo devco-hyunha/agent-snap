@@ -1,13 +1,13 @@
-//! 상용 난수원 자리. `SystemTime` 나초를 시드로 쓰고 새 난수 크레이트 의존은 없음.
+//! 상용 난수원 타입 자리. `SystemTime` 나초 시드 상태 하나만 담음.
+//!
+//! 산술 계산은 `mixing`이, 상수 값은 `consts::rng`이 맡음.
 
 use std::time::SystemTime;
-use std::time::UNIX_EPOCH;
 
-use crate::consts::rng::MIX_MULTIPLIER;
-use crate::consts::rng::MIX_SHIFT_FIRST;
-use crate::consts::rng::MIX_SHIFT_LAST;
-use crate::consts::rng::MIX_SHIFT_SECOND;
 use crate::consts::rng::SEED_GAMMA;
+use crate::llm::retry::mixing::accepted_count;
+use crate::llm::retry::mixing::epoch_nanos;
+use crate::llm::retry::mixing::next_state;
 use crate::llm::retry::random::RandomSource;
 
 /// `SystemTime` 나초를 시드로 쓰는 상용 난수원.
@@ -51,26 +51,4 @@ impl RandomSource for SystemRandomSource {
             }
         }
     }
-}
-
-/// 상태를 산술(승수·가감·시프트)로 섞어 다음 상태로 옮김.
-fn next_state(state: u64) -> u64 {
-    let mixed = state.wrapping_add(SEED_GAMMA).wrapping_mul(MIX_MULTIPLIER);
-    mixed ^ (mixed >> MIX_SHIFT_FIRST) ^ (mixed >> MIX_SHIFT_SECOND) ^ (mixed >> MIX_SHIFT_LAST)
-}
-
-/// 상한 `width`개 구간을 균등하게 나누는 값의 개수.
-///
-/// `u128` 범위를 `width`로 나눈 나머지를 빼서 버림 구간을 없앰.
-fn accepted_count(width: u64) -> u128 {
-    let range = u128::from(u64::MAX) + 1;
-    range - (range % u128::from(width))
-}
-
-/// 1970-01-01부터의 나초. 그 이전 시각은 0으로 봄.
-fn epoch_nanos(now: SystemTime) -> u64 {
-    let Ok(since_epoch) = now.duration_since(UNIX_EPOCH) else {
-        return 0;
-    };
-    u64::try_from(since_epoch.as_nanos()).unwrap_or(u64::MAX)
 }

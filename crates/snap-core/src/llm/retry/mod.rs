@@ -1,4 +1,4 @@
-//! 재시도 판단 자리. 입력 타입·설정 타입·난수 공급 타입·포기 이유·최종 판단·대상 판별·`Retry-After` 해석·백오프와 시도 횟수 계산·판단 조립을 책임별 파일로 나눔.
+//! 재시도 판단 자리. 입력 타입·설정 타입·난수 공급 타입·포기 이유·최종 판단·대상 판별·`Retry-After` 해석·백오프와 시도 횟수 계산·판단 조립·상용 난수원 산술을 책임별 파일로 나눔.
 
 mod after;
 mod backoff;
@@ -8,6 +8,7 @@ mod decide;
 mod decision;
 mod failures;
 mod http_date;
+mod mixing;
 mod outcome;
 mod parsing;
 mod random;

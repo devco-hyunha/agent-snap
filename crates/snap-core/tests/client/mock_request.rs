@@ -8,6 +8,7 @@ use snap_core::llm::build_body;
 use snap_core::llm::completions_url;
 
 use crate::fixtures::RawClient;
+use crate::request::KEY;
 use crate::request::request_with_reasoning;
 use crate::request::sampling_with_values;
 use crate::request::user_message;
@@ -15,9 +16,6 @@ use crate::script::MockScript;
 use crate::server::MockServer;
 use crate::stream_open::base_url;
 use serde_json::json;
-
-/// 시험용 키 값. 모의 서버가 받은 헤더로만 확인한다.
-const KEY: &str = "sk-testvalue123";
 
 /// 모의 서버 시험용 요청 골격. 강도·extra·샘플링·메시지를 채움.
 fn request() -> ChatRequest {

@@ -1,6 +1,6 @@
 # 02 설정과 스트리밍 클라이언트
 
-- 상태: 진행 (02-1~02-4 완료·PR #2·#4·#6·#7 병합. 02-5 완료: T1~T10 리뷰 PASS·PR #9로 `feature/client` 병합 2026-11-27. 02-6 완료: T1~T7 구현·리뷰 PASS, 작업 단위 전체 리뷰 PASS, PR #11로 `feature/client` 병합 2026-11-27. 02-7 완료: T1~T5 구현·개별 리뷰 PASS, 작업 단위 전체 리뷰 r2 PASS(`docs/reviews/02/02-7-unit-r2.md`), PR #13으로 `feature/client` 병합 2026-11-28. 02-8 완료: T1~T4 구현·개별 리뷰 PASS(T1 r1 문서 정합 보정, T2 r2 PASS, T3 r2 PASS, T4 구조 점검 위반 0건), 작업 단위 전체 리뷰 r1 미달(minor 4건 문서·주석 정합) → 보정 → r2 PASS(`docs/reviews/02/02-8-unit-r2.md`), PR #14로 `feature/client` 병합 2026-11-28. 02-9 완료(T1~T5 구현·개별 리뷰 PASS, 잔여 R1~R3 보정 완료, 작업 단위 전체 리뷰 r1 미달(major 1·minor 5) → 보정 → r2 미달(minor 1) → HARNESS 9절로 메인 보정 후 닫음, PR #15로 `feature/client` 병합 2026-11-28). 02-10 계획. 상세 이력은 `docs/plans/02-client/08/plan.md`와 `docs/reviews/02/` 참조.)
+- 상태: 완료 (02-1~02-9 완료: 02-1~02-4는 PR #2·#4·#6·#7, 02-5는 PR #9, 02-6은 PR #11, 02-7은 PR #13, 02-8은 PR #14, 02-9는 PR #15로 `feature/client`에 병합(2026-11-27~28). 각 세부 작업은 구현·개별 리뷰 PASS 뒤 작업 단위 전체 리뷰 PASS를 거쳤고 기록은 `docs/reviews/02/`에 있다. 02-10 완료: T1 정합 감사(98종, 차이 0)·T2 규칙 감사(위반 4건)·T3 코드 리뷰(minor 4건)·T4 AC 확정(AC 1·2·3 충족)·T5 잔여 보정(R1~R7 해소). 02-10 작업 단위 전체 리뷰 PASS 기록은 `docs/reviews/02/02-10-unit-r2.md`. 02 기획 AC 1~4 모두 충족. 상세 이력은 `docs/plans/02-client/08/plan.md`·`docs/plans/02-client/10/tasks.md`·`docs/reviews/02/` 참조.)
 
 ## 근거(선행 계획 잔여)
 - 01 `tasks.md`의 `## 잔여` 절을 포인터로 따라간다. 잔여 PASS 뒤에 착수한다.

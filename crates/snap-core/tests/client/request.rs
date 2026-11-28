@@ -1,5 +1,6 @@
 //! 시험용 `ChatRequest` 골격 정본. 요청을 만드는 한 책임만 담음.
 //! 같은 시험 묶음의 본문·변환·병합·전송·트레이트 시험 공용.
+//! 전송 시험이 쓰는 시험용 키 값도 이 골격 재료로 둔다.
 
 use snap_core::config::Sampling;
 use snap_core::llm::ChatMessage;
@@ -8,6 +9,9 @@ use snap_core::llm::ReasoningEffort;
 
 /// 시험용 모델 식별 값.
 pub(crate) const MODEL_ID: &str = "model-id";
+
+/// 시험용 키 값. 모의 서버가 받은 헤더로만 확인.
+pub(crate) const KEY: &str = "sk-testvalue123";
 
 /// 강도·extra 없는 요청 골격.
 pub(crate) fn request() -> ChatRequest {
