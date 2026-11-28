@@ -35,7 +35,7 @@
   - 주석 허용 JSON만 따른다. 후행 쉼표는 허용하지 않는다.
 
 ### 오류·텍스트 배치
-- 자격 파일 오류 문구·가리기 표시 문자열은 locale 모듈 키로 둔다(`locale/ko/config.rs`, `locale/en/config.rs` 같은 키 뼈대). 함수 안에 즉석 문자열을 쓰지 않는다.
+- 자격 파일 오류 문구는 locale 모듈 키로 둔다(`locale/ko/credentials.rs`, `locale/en/credentials.rs` 같은 키 뼈대). 가리기 표시 문자열은 `locale/ko/config.rs`, `locale/en/config.rs`에 둔다. 함수 안에 즉석 문자열을 쓰지 않는다.
 - 오류 문구는 파일 경로와 원인 요약만 담고, 자격 파일 내용 값과 base_url을 담지 않는다.
 
 ## AC

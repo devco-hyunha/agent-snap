@@ -4,7 +4,7 @@
 
 ## 근거
 - 기획 정본: `docs/plans/02-client.md` 범위(In) 02-2와 설계 요약의 설정·`language`·`http` 항목, AC 2·3.
-- 02-1 완료 산출물 계승: `SecretString`(비밀 값 래퍼), `config/credentials.rs`의 이름별 키 조회, `config/config_dir`(OS별 파일), `consts/defaults.rs`, `locale/ko|en/config.rs`.
+- 02-1 완료 산출물 계승: `SecretString`(비밀 값 래퍼), `config/credentials.rs`의 이름별 키 조회, `config/config_dir`(OS별 파일), `consts/defaults.rs`, `locale/ko|en/credentials.rs`.
 - 선행 계획 잔여 없음(02-1 완료, 6차 5차 리뷰 PASS).
 - 사용자 확정(2026-11-23 채팅): kind 6종 라벨 + 목록 밖 서버는 `extra`로 우회, `sampling` 3종 포함, 모델 `name`·`id` 분리, `base_url`을 `SecretString`으로 보관, JSONC 해석기를 `jsonc-parser`로 통일, 옛 형식 4종 명시 거부, 설정 폴더 환경 변수 우선은 02-2 범위 밖, 검증은 게이트 3종 Windows + WSL.
 
@@ -19,7 +19,7 @@
 - JSONC 해석기를 `jsonc-parser`로 통일한다. 자격 파일 읽기도 같은 해석기를 쓰게 교체한다.
 - `snap.example.jsonc`를 저장소 루트에 자리표시자만으로 만든다.
 - `.gitignore`에 `credentials.jsonc`를 추가한다.
-- 설정 오류 문구를 `locale/ko/config.rs`와 `locale/en/config.rs`에 둔다.
+- 설정 오류 문구를 `locale/ko/validate.rs`와 `locale/en/validate.rs`에 둔다.
 
 ## 비범위(Out)
 - 모델 `context_window` 읽기·검증: 02-8(02-7 뒤).
@@ -37,7 +37,7 @@
 - 검증: 엔드포인트 이름 중복(trim 후 정확히 같을 때만), trim 후 빈 엔드포인트·모델 이름·모델 `id`, trim 후 `/`가 든 이름, 같은 엔드포인트 안 모델 이름 중복, `kind` 값, `reasoning` 값(`off`, `low`, `medium`, `high`), `base_url` 형식(scheme `http`/`https`만, 빈 문자열·앞뒤 공백·끝 슬래시 거부, `/v1` 경로는 검사하지 않음), `sampling` 항목과 범위(`temperature` 0 이상 2 이하, `top_p` 0 초과 1 이하, `max_tokens` 1 이상 정수), `http` 키 7종과 값(시간은 0 초과 유한, `retries`는 0 이상 정수, `backoff_min`이 `backoff_max`보다 크면 거부), `extra`의 예약 키(`model`, `messages`, `stream`, `tools`).
 - 거부 칸: 엔드포인트의 `api_key`·`api_key_env`(값은 읽지도 출력하지 않음), 최상위 옛 `models`, 모델의 `endpoint` 칸. 그 밖 알 수 없는 칸은 무시한다.
 - 오류에는 이름만 담고 값·주소·키는 담지 않는다. JSONC 문법 오류는 줄 번호만 알린다.
-- 상수는 `consts/defaults.rs`(기본값)와 `consts/limits.rs`(범위 한도)에 둔다. 사람 문구는 `locale/ko|en/config.rs`에 둔다.
+- 상수는 `consts/defaults.rs`(기본값)와 `consts/limits.rs`(범위 한도)에 둔다. 사람 문구는 `locale/ko|en/validate.rs`에 둔다.
 - 설정 모듈은 `config/` 아래에 둔다. 읽기·검증·키 정하기를 책임별로 나눈다. 공용 JSONC 해석기는 자격 파일과 설정 파일이 함께 쓰므로 `src/jsonc.rs` 최상위에 둔다. OS별 파일 규칙은 02-1을 계승한다.
 
 ## 근거 자료
@@ -94,7 +94,7 @@
 - `docs/plans/02-client.md`: 02-2 상태 줄을 세부 작업 종료 시 반영한다.
 - `snap.example.jsonc`: 새로 만든다(자리표시자만).
 - `.gitignore`: `credentials.jsonc`를 추가한다.
-- `crates/snap-core/src/locale/ko/config.rs`·`locale/en/config.rs`: 설정 오류 문구 키를 추가한다.
+- `crates/snap-core/src/locale/ko/validate.rs`·`locale/en/validate.rs`: 설정 오류 문구 키를 추가한다.
 
 ## 리스크
 - 자격 파일 읽기를 같은 해석기로 교체하면 02-1의 시험 13개가 함께 탄다. 규칙(형식·trim·None)은 그대로 두고 파서만 바꾼다.

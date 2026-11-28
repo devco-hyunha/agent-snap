@@ -19,7 +19,7 @@
 
 ### T2 값 검증·거부 오류·locale 문구
 - 상태: 완료 (r1 미달 4건(major 1, minor 3) → 보정 → r2 PASS(지적 0건), `docs/reviews/02/02-8-T2-r2.md`)
-- 범위: 1 이상 정수만 받아들인다. 0·음수·소수·문자열은 모델 이름만 밝힌 설정 오류로 거부한다. `is_integer_at_least`를 재사용한다. 거부 문구를 `locale/ko/config.rs`·`locale/en/config.rs`에 둔다.
+- 범위: 1 이상 정수만 받아들인다. 0·음수·소수·문자열은 모델 이름만 밝힌 설정 오류로 거부한다. `is_integer_at_least`를 재사용한다. 거부 문구를 `locale/ko/validate.rs`·`locale/en/validate.rs`에 둔다.
 - 금지: 입력 값·주소·키를 오류에 담기, 상한 도입, 검증 규칙을 두 곳에 두기.
 - 확인: 0·음수·소수·문자열 거부와 모델 이름만 노출 시험(spec AC 3).
 - 검증: 게이트 3종 Windows·WSL(Ubuntu) 양쪽.

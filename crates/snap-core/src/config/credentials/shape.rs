@@ -9,7 +9,8 @@ use crate::config::credentials::error::CredentialsError;
 use crate::consts::defaults::API_KEYS_KEY;
 
 /// 값에서 api_keys 표만 꺼냄. 누락·비객체·비문자열 값은 검증 실패로 잡음.
-pub(super) fn api_keys_from_value(
+/// 자격 파일 읽기와 저장 직전 검사가 같은 규칙을 쓴다.
+pub(crate) fn api_keys_from_value(
     value: &Value,
     path_display: &Path,
 ) -> Result<Map<String, Value>, CredentialsError> {

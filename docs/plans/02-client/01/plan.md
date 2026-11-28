@@ -14,7 +14,7 @@
 - `snap-core/src/config/`에 비밀 값 래퍼 타입을 둔다. Debug·Display·로그에 값을 내지 않고, 값이 필요한 곳(전송·저장)에서만 값을 꺼내게 한다.
 - snap 설정 폴더 경로를 OS별로 결정한다. Windows는 `%APPDATA%\snap`, Linux는 `$XDG_CONFIG_HOME/snap`(미설정 시 `~/.config/snap`). OS별 파일(`mod.rs`+`windows.rs`+`unix.rs`)로 분리한다.
 - 자격 파일 `credentials.jsonc` 읽기: 경로를 주입받고, JSONC로 해석하고, `api_keys` 표에서 trim한 엔드포인트 이름으로 키를 찾는다. 자격 파일에 이름이 없으면 키 없음(None)으로 돌려준다.
-- 자격 파일 검증: 최상위 `api_keys` 객체가 없거나 키 값이 문자열이 아니면 오류로 돌려준다. 오류 문구는 locale 모듈(`locale/ko/config.rs`)에서 끌어오고, 파일 경로만 담으며 자격 파일에 담긴 값은 담지 않는다.
+- 자격 파일 검증: 최상위 `api_keys` 객체가 없거나 키 값이 문자열이 아니면 오류로 돌려준다. 오류 문구는 locale 모듈(`locale/ko/credentials.rs`)에서 끌어오고, 파일 경로만 담으며 자격 파일에 담긴 값은 담지 않는다.
 - 읽기 전용이다. 자격 파일 쓰기는 02-9 범위다.
 
 ## 금지
@@ -69,7 +69,7 @@
 - `docs/DECISIONS.md`: 새 크레이트 라이선스 확인 기록 (적용 시).
 - `docs/RESEARCH.md`: 자격 파일 형식 결정 근거가 서버 문헌 조사와 연결되므로 02-5·02-7 조사 반영 시점에 적용 위치를 함께 갱신한다.
 - `docs/plans/02-client.md`: 02-1 상태 줄 반영 (세부 작업 종료 시).
-- `crates/snap-core/src/locale/ko/config.rs`: 자격 파일 오류 문구 키 추가. `locale/en/`에도 같은 키 뼈대를 둔다.
+- `crates/snap-core/src/locale/ko/credentials.rs`: 자격 파일 오류 문구 키 추가. `locale/en/`에도 같은 키 뼈대를 둔다.
 
 ## 리스크
 - JSONC 해석 크레이트 선택이 파서 동작(주석 처리, 후행 쉼표 허용 범위)을 가른다. 계획 정본은 주석 허용 JSON만 요구하고, 후행 쉼표는 허용하지 않는다.

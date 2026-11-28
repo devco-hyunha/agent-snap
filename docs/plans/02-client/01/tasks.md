@@ -21,9 +21,9 @@
 - 검증: 게이트 3종.
 
 ### T3 자격 파일 읽기
-- 범위: `credentials.jsonc` 읽기·`api_keys` 이름 조회·형식 검증·locale 오류 문구 연결(`locale/ko/config.rs`, `locale/en/config.rs`).
+- 범위: `credentials.jsonc` 읽기·`api_keys` 이름 조회·형식 검증·locale 오류 문구 연결(`locale/ko/credentials.rs`, `locale/en/credentials.rs`).
 - 금지: 자격 파일 쓰기·`snap.jsonc` 해석.
-- 확인: trim 조회, None 경로, 거부 3종(파일 없음 포함)의 오류 문구에 값이 없는지. (구현 완료: `config/credentials.rs`가 읽기·조회·검증 담당, 상수는 `consts/defaults.rs`, locale 문구는 `locale/ko|en/config.rs`)
+- 확인: trim 조회, None 경로, 거부 3종(파일 없음 포함)의 오류 문구에 값이 없는지. (구현 완료: `config/credentials.rs`가 읽기·조회·검증 담당, 상수는 `consts/defaults.rs`, locale 문구는 `locale/ko|en/credentials.rs`)
 - 검증: 게이트 3종.
 
 ### T4 시험 폴더 묶기

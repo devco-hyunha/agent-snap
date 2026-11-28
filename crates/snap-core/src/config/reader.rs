@@ -4,15 +4,15 @@ use std::fs::read_to_string;
 use std::path::Path;
 
 use crate::config::error::ConfigError;
+use crate::config::snap_file_in;
 use crate::config::types::Config;
 use crate::config::validate::check_config;
 use crate::config::validate::trim_names;
-use crate::consts::defaults::SNAP_FILE_NAME;
 use crate::jsonc::parse_jsonc;
 
 /// 설정 폴더 안 `snap.jsonc`를 읽는 자리.
 pub fn read_config(config_dir: &Path) -> Result<Config, ConfigError> {
-    let path = config_dir.join(SNAP_FILE_NAME);
+    let path = snap_file_in(config_dir);
     let text = read_to_string(&path).map_err(|_| ConfigError::ReadFailed {
         path: path.display().to_string(),
     })?;

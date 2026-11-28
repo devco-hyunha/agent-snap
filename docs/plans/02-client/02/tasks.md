@@ -66,7 +66,7 @@
   - major 1 반영: `ConfigError`를 `src/config/error.rs`로 분리 (읽기·검증·경로 표시 제거). `check_language`는 `src/config/validate/language.rs`로 옮겨 `check_config` 흐름(마지막 단계)에 합침. 언어 오류는 `ValidationError::Language`로 통합 — 문구 `CONFIG_LANGUAGE_REJECTED`·`rejects_unknown_language` 단정(`language` 이름 표시, 입력 값 미포함)은 그대로.
   - major 2 반영: `tests/config_dir_path.rs`를 `tests/config_dir_path/`로 교체 (`main.rs` 공통 시험 + OS별 `mod` 선언, `windows.rs`, `unix.rs`). 시험 2개+공통 1개 그대로.
   - minor 3 반영: `display_path` 정본을 `src/config/paths.rs` 한 파일로 통합하고 `reader.rs`·`credentials/read.rs`·`credentials/shape.rs`가 import로 재사용.
-  - minor 4 반영: `SAMPLING_SCOPE`·`HTTP_BLOCK`을 `locale/ko/config.rs`·`locale/en/config.rs`로 이동 (값·이름 유지). `consts/limits.rs`에서 제거, `validate/values/sampling.rs`·`validate/values/http.rs`가 import.
+  - minor 4 반영: `SAMPLING_SCOPE`·`HTTP_BLOCK`을 `locale/ko/validate.rs`·`locale/en/validate.rs`로 이동 (값·이름 유지). `consts/limits.rs`에서 제거, `validate/values/sampling.rs`·`validate/values/http.rs`가 import.
 - 보정 결과 (리뷰 2차 신규 지적 1건, 2026-11-24. 동작·오류 문구·기본값·시험 단정 변경 없음):
   - `src/config/paths.rs` 제거 (함수 1개 전용 파일 금지). `display_path` 대신 호출부 7곳(`config/reader.rs` 3곳, `config/credentials/read.rs` 3곳, `config/credentials/shape.rs` 1곳)이 `path.display().to_string()`을 직접 쓴다. PROJECT_RULES "호출부가 직접 부를 쓰게 한다".
   - `src/config/validate/language.rs` 제거 (함수 1개 전용 파일 금지). `check_language`를 `validate/mod.rs`의 `check_config` 흐름 한 칸(마지막 단계)으로 합친다. `ValidationError::Language`·`CONFIG_LANGUAGE_REJECTED` 문구·입력 값 미포함 규칙 그대로.

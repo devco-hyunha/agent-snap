@@ -21,7 +21,7 @@
 - `ModelConfig`에 `context_window: u64`를 더하고, 생략 시 65536 기본값 창구를 둔다.
 - 값 검증: 1 이상 정수만 받아들인다. 0·음수·소수·문자열·숫자가 아닌 값은 모델 이름만 밝힌 설정 오류로 거부한다.
 - 기본값 상수(65536)는 `consts/` 상수 모듈에 둔다.
-- 거부 문구(한국어·영어)를 `locale/ko/config.rs`·`locale/en/config.rs`에 둔다.
+- 거부 문구(한국어·영어)를 `locale/ko/validate.rs`·`locale/en/validate.rs`에 둔다.
 - 예시 파일 `snap.example.jsonc`에 `context_window` 안내 주석을 추가한다(값은 넣지 않는다).
 
 ## 비범위(Out)

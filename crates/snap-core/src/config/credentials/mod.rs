@@ -8,4 +8,6 @@ mod shape;
 pub use error::CredentialsError;
 pub use lookup::find_api_key;
 pub use read::credentials_from_str;
+pub use read::credentials_path;
 pub use read::read_credentials;
+pub(crate) use shape::api_keys_from_value;
