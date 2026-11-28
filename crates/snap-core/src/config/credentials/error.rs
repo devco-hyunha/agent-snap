@@ -2,10 +2,10 @@
 
 use thiserror::Error;
 
-use crate::locale::config::CREDENTIALS_FILE_NOT_FOUND;
-use crate::locale::config::CREDENTIALS_PARSE_FAILED;
-use crate::locale::config::CREDENTIALS_READ_FAILED;
-use crate::locale::config::CREDENTIALS_TYPE_FAILED;
+use crate::locale::credentials::CREDENTIALS_FILE_NOT_FOUND;
+use crate::locale::credentials::CREDENTIALS_PARSE_FAILED;
+use crate::locale::credentials::CREDENTIALS_READ_FAILED;
+use crate::locale::credentials::CREDENTIALS_TYPE_FAILED;
 
 /// 자격 파일 읽기 실패 상태.
 #[derive(Debug, Error)]

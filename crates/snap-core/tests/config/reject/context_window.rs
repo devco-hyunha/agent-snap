@@ -66,8 +66,8 @@ fn accepts_normal_context_window() {
 
 #[test]
 fn locale_texts_share_the_option_name() {
-    let ko = snap_core::locale::ko::config::CONFIG_CONTEXT_WINDOW_REJECTED;
-    let en = snap_core::locale::en::config::CONFIG_CONTEXT_WINDOW_REJECTED;
+    let ko = snap_core::locale::ko::validate::CONFIG_CONTEXT_WINDOW_REJECTED;
+    let en = snap_core::locale::en::validate::CONFIG_CONTEXT_WINDOW_REJECTED;
 
     assert!(
         ko.contains("context_window") && en.contains("context_window"),

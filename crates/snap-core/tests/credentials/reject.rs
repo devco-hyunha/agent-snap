@@ -3,8 +3,8 @@ use std::path::Path;
 
 use snap_core::config::credentials_from_str;
 use snap_core::config::read_credentials;
-use snap_core::locale::config::CREDENTIALS_FILE_NOT_FOUND;
-use snap_core::locale::config::CREDENTIALS_TYPE_FAILED;
+use snap_core::locale::credentials::CREDENTIALS_FILE_NOT_FOUND;
+use snap_core::locale::credentials::CREDENTIALS_TYPE_FAILED;
 
 const PATH: &str = "dir/credentials.jsonc";
 

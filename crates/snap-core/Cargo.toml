@@ -8,10 +8,13 @@ publish.workspace = true
 description = "snap 코어 라이브러리"
 
 [dependencies]
-jsonc-parser = { version = "0.34.0", features = ["serde"] }
+# cst 기능: 주석·공백을 살린 채 값만 고르는 편집 창구.
+jsonc-parser = { version = "0.34.0", features = ["serde", "cst"] }
 reqwest = { version = "0.13.5", features = ["json", "stream"] }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
+# 원자 저장: 원본 폴더에 임시 파일을 쓰고 원본과 교체한다.
+tempfile = "3.23.0"
 thiserror = "2.0.21"
 # 전송 시간·마이크로 서비스의 골격 런타임. macros·time 기능만 사용.
 tokio = { version = "1.54.1", default-features = false, features = ["macros", "time"] }
@@ -23,7 +26,6 @@ tokio-util = "0.7.20"
 axum = "0.8.9"
 http-body = "1.1.0"
 serde_json = "1.0.154"
-tempfile = "3.23.0"
 # 시험은 멀티 스레드 런타임·채널·소켓이 필요하다.
 tokio = { version = "1.54.1", default-features = false, features = ["macros", "net", "rt-multi-thread", "sync", "time"] }
 

@@ -2,26 +2,26 @@
 
 use thiserror::Error;
 
-use crate::locale::config::CONFIG_BACKOFF_RANGE;
-use crate::locale::config::CONFIG_BASE_URL_REJECTED;
-use crate::locale::config::CONFIG_CONTEXT_WINDOW_REJECTED;
-use crate::locale::config::CONFIG_ENDPOINT_KEY_REJECTED;
-use crate::locale::config::CONFIG_ENDPOINT_NAME_DUPLICATE;
-use crate::locale::config::CONFIG_ENDPOINT_NAME_EMPTY;
-use crate::locale::config::CONFIG_ENDPOINT_NAME_MISSING;
-use crate::locale::config::CONFIG_EXTRA_RESERVED_KEY;
-use crate::locale::config::CONFIG_HTTP_REJECTED;
-use crate::locale::config::CONFIG_KIND_REJECTED;
-use crate::locale::config::CONFIG_LANGUAGE_REJECTED;
-use crate::locale::config::CONFIG_LEGACY_MODELS_REJECTED;
-use crate::locale::config::CONFIG_MODEL_ENDPOINT_REJECTED;
-use crate::locale::config::CONFIG_MODEL_ID_EMPTY;
-use crate::locale::config::CONFIG_MODEL_NAME_DUPLICATE;
-use crate::locale::config::CONFIG_MODEL_NAME_EMPTY;
-use crate::locale::config::CONFIG_MODEL_NAME_MISSING;
-use crate::locale::config::CONFIG_NAME_SEPARATOR;
-use crate::locale::config::CONFIG_REASONING_REJECTED;
-use crate::locale::config::CONFIG_SAMPLING_REJECTED;
+use crate::locale::validate::CONFIG_BACKOFF_RANGE;
+use crate::locale::validate::CONFIG_BASE_URL_REJECTED;
+use crate::locale::validate::CONFIG_CONTEXT_WINDOW_REJECTED;
+use crate::locale::validate::CONFIG_ENDPOINT_KEY_REJECTED;
+use crate::locale::validate::CONFIG_ENDPOINT_NAME_DUPLICATE;
+use crate::locale::validate::CONFIG_ENDPOINT_NAME_EMPTY;
+use crate::locale::validate::CONFIG_ENDPOINT_NAME_MISSING;
+use crate::locale::validate::CONFIG_EXTRA_RESERVED_KEY;
+use crate::locale::validate::CONFIG_HTTP_REJECTED;
+use crate::locale::validate::CONFIG_KIND_REJECTED;
+use crate::locale::validate::CONFIG_LANGUAGE_REJECTED;
+use crate::locale::validate::CONFIG_LEGACY_MODELS_REJECTED;
+use crate::locale::validate::CONFIG_MODEL_ENDPOINT_REJECTED;
+use crate::locale::validate::CONFIG_MODEL_ID_EMPTY;
+use crate::locale::validate::CONFIG_MODEL_NAME_DUPLICATE;
+use crate::locale::validate::CONFIG_MODEL_NAME_EMPTY;
+use crate::locale::validate::CONFIG_MODEL_NAME_MISSING;
+use crate::locale::validate::CONFIG_NAME_SEPARATOR;
+use crate::locale::validate::CONFIG_REASONING_REJECTED;
+use crate::locale::validate::CONFIG_SAMPLING_REJECTED;
 
 /// 설정 검증 실패 상태. 엔드포인트·모델·항목 이름만 담음.
 #[derive(Debug, Error)]

@@ -12,7 +12,7 @@ use crate::consts::limits::TEMPERATURE_MAX;
 use crate::consts::limits::TEMPERATURE_MIN;
 use crate::consts::limits::TOP_P_MAX;
 use crate::consts::limits::TOP_P_MIN_EXCLUSIVE;
-use crate::locale::config::SAMPLING_SCOPE;
+use crate::locale::validate::SAMPLING_SCOPE;
 
 /// 샘플링 항목 이름과 범위. 대상은 모델 이름, 최상위면 기본 표시.
 pub(super) fn check_sampling(

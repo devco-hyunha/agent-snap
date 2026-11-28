@@ -37,7 +37,7 @@ pub fn credentials_from_str(
     api_keys_from_value(&value, path_display)
 }
 
-/// 설정 폴더 안 자격 파일 경로.
-fn credentials_path(config_dir: &Path) -> std::path::PathBuf {
+/// 설정 폴더 안 자격 파일 경로. 읽기·저장 연산이 같은 경로를 쓴다.
+pub fn credentials_path(config_dir: &Path) -> std::path::PathBuf {
     config_dir.join(CREDENTIALS_FILE_NAME)
 }

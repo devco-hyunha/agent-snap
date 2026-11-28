@@ -8,7 +8,7 @@ use crate::config::validate::values::num::is_integer_at_least;
 use crate::config::validate::values::num::is_seconds;
 use crate::consts::limits::ALLOWED_HTTP_KEYS;
 use crate::consts::limits::RETRIES_MIN;
-use crate::locale::config::HTTP_BLOCK;
+use crate::locale::validate::HTTP_BLOCK;
 
 /// `http` 키 7종과 값. 모르는 키는 `http.<항목>` 이름으로 거부.
 pub(super) fn check_http(http: Option<&Value>) -> Result<(), ValidationError> {
