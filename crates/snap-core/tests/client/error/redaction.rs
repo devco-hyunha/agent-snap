@@ -3,6 +3,7 @@
 
 use snap_core::llm::TransportError;
 
+use crate::error::materials::KEY;
 use crate::error::materials::all_errors;
 use crate::error::materials::connect_kinds;
 use crate::error::materials::header;
@@ -10,9 +11,6 @@ use crate::error::materials::summary;
 
 /// 시험용 호스트.
 const HOST: &str = "secret-host.invalid";
-
-/// 시험용 키.
-const KEY: &str = "sk-secretvalue123";
 
 #[test]
 fn every_error_text_hides_key_and_host() {

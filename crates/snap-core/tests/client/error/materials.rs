@@ -1,11 +1,15 @@
 //! 02-6 전송 오류 타입 시험 재료 자리. 가린 요약·헤더 값·연결 종류·오류 목록 조립만 담음.
 //! 같은 시험 묶음의 담는 값 시험과 가리기 시험이 재사용하는 재료 파일.
+//! 가리기 시험이 쓰는 시험용 키 값도 이 재료로 둔다.
 
 use snap_core::llm::PreHeaderConnectKind;
 use snap_core::llm::RedactedSummary;
 use snap_core::llm::RetryAfterHeader;
 use snap_core::llm::SseError;
 use snap_core::llm::TransportError;
+
+/// 시험용 키.
+pub(crate) const KEY: &str = "sk-secretvalue123";
 
 /// 시험용 가린 요약.
 pub(crate) fn summary() -> RedactedSummary {
