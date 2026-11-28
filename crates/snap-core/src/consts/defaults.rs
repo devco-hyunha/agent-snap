@@ -49,3 +49,6 @@ pub const DEFAULT_OLLAMA_BASE_URL: &str = "http://127.0.0.1:11434/v1";
 
 /// LM Studio 자동 발견 기본 주소.
 pub const DEFAULT_LMSTUDIO_BASE_URL: &str = "http://127.0.0.1:1234/v1";
+
+/// 모델 맥락 토큰 한도 기본값.
+pub const DEFAULT_CONTEXT_WINDOW: u64 = 65536;

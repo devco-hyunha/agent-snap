@@ -1,14 +1,7 @@
-//! T5 예시 파일 시험: 검증 통과 책임. 예시 파일이 검증을 지나는 것만 봄.
-use std::path::PathBuf;
-
+//! 예시 파일 시험: 검증 통과 책임. 예시 파일이 검증을 지나는 것만 봄.
 use snap_core::config::config_from_str;
 
-/// 저장소 루트 예시 파일 경로. 크레이트 폴더에서 한 위.
-fn example_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-        .join("../..")
-        .join("snap.example.jsonc")
-}
+use crate::paths::example_path;
 
 #[test]
 fn example_file_passes_validation() {

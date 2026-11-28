@@ -1,10 +1,11 @@
-//! snap 설정 기본값 창구 자리. `default_*` 함수 8개만 담음.
+//! snap 설정 기본값 창구 자리. `default_*` 함수만 담음.
 //!
 //! 기본값 상수는 `consts::defaults`에서 받고, 검증 규칙은 T3가 맡음.
 
 use crate::consts::defaults::DEFAULT_BACKOFF_MAX_SECONDS;
 use crate::consts::defaults::DEFAULT_BACKOFF_MIN_SECONDS;
 use crate::consts::defaults::DEFAULT_CONNECT_SECONDS;
+use crate::consts::defaults::DEFAULT_CONTEXT_WINDOW;
 use crate::consts::defaults::DEFAULT_HEADER_WAIT_SECONDS;
 use crate::consts::defaults::DEFAULT_LANGUAGE;
 use crate::consts::defaults::DEFAULT_RETRIES;
@@ -49,4 +50,9 @@ pub(crate) const fn default_header_wait_seconds() -> f64 {
 /// 스트림 대기 기본값 창구.
 pub(crate) const fn default_stream_idle_seconds() -> f64 {
     DEFAULT_STREAM_IDLE_SECONDS
+}
+
+/// 맥락 토큰 한도 기본값 창구.
+pub(crate) const fn default_context_window() -> u64 {
+    DEFAULT_CONTEXT_WINDOW
 }

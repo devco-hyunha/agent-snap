@@ -8,6 +8,7 @@ use snap_core::config::HttpSettings;
 use snap_core::config::ModelConfig;
 use snap_core::config::SecretString;
 use snap_core::config::resolve_api_key;
+use snap_core::consts::defaults::DEFAULT_CONTEXT_WINDOW;
 use snap_core::llm::ClientBundle;
 use snap_core::llm::assemble_client;
 use snap_core::llm::find_target;
@@ -50,6 +51,7 @@ pub(crate) fn config_with_kind(server: &MockServer, kind: &str) -> Config {
             models: vec![ModelConfig {
                 name: MODEL_NAME.to_owned(),
                 id: MODEL_ID.to_owned(),
+                context_window: DEFAULT_CONTEXT_WINDOW,
                 sampling: None,
                 reasoning: None,
                 extra: None,
