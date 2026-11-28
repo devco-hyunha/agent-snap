@@ -1,0 +1,64 @@
+{
+  // 언어: "ko" 또는 "en". 기본은 "ko".
+  "language": "ko",
+
+  // 엔드포인트 목록. name·base_url·kind, 그 아래 models에 모델.
+  // 키는 이 파일이 아니라 자격 파일 credentials.jsonc의 api_keys에 엔드포인트 이름으로 두는 자리.
+  // 이 파일의 api_key·api_key_env 칸은 거부 대상.
+  "endpoints": [
+    {
+      // 엔드포인트 이름. /는 불가, 자격 파일의 키 이름과 같은 값.
+      "name": "local",
+      // 주소는 /v1까지 포함 권장. /v1 여부는 검사 대상 아님.
+      // 끝 슬래시는 금지.
+      "base_url": "http://127.0.0.1:8080/v1",
+      // kind 허용값 6종: openai, openrouter, ollama, vllm, llamacpp, lmstudio.
+      // 목록에 없는 서버는 openai로 두고 extra로 우회.
+      "kind": "ollama",
+      "models": [
+        // 서버 맥락 토큰 한도 안내. 모델 항목에 context_window 선택 칸을 둘 수 있음.
+        // 값은 1 이상 정수만 인정, 생략 시 65536. 이 예시에는 값을 넣지 않음.
+        {
+          // 모델 이름. 같은 엔드포인트 안에서만 중복.
+          "name": "model-a",
+          // 서버에 보낼 모델 식별 값. 이름과 다르게 적을 수 있음.
+          "id": "model-a",
+          // 생각 강도 허용값: off, low, medium, high.
+          "reasoning": "low",
+          // 공통 옵션에 없는 값. model·messages·stream·tools 예약 키는 사용 불가.
+          "extra": { "server-specific-option": "placeholder" }
+        }
+      ]
+    },
+    {
+      "name": "remote",
+      "base_url": "https://api.example.invalid/v1",
+      "kind": "openai",
+      "models": [
+        {
+          "name": "model-b",
+          "id": "model-b",
+          // 모델별 샘플링 값. 최상위 sampling이 있으면 그쪽이 기본.
+          "sampling": { "temperature": 0.7, "top_p": 0.95, "max_tokens": 4096 }
+        }
+      ]
+    }
+  ],
+
+  // 샘플링 기본값. temperature 0~2, top_p 0(제외)~1, max_tokens 1 이상.
+  "sampling": { "temperature": 0.5, "top_p": 0.9, "max_tokens": 2048 },
+
+  // 시간·재시도 값. 인정 키 7종과 기본값:
+  // retries 3, backoff_min 1, backoff_max 30, retry_after_max 60,
+  // connect_seconds 10, header_wait_seconds 300, stream_idle_seconds 120.
+  // 값은 초 단위, 0 초과. retries만 0 이상 정수.
+  "http": {
+    "retries": 3,
+    "backoff_min": 1,
+    "backoff_max": 30,
+    "retry_after_max": 60,
+    "connect_seconds": 10,
+    "header_wait_seconds": 300,
+    "stream_idle_seconds": 120
+  }
+}

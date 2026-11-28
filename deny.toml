@@ -1,10 +1,30 @@
 # 의존성 안전 기준: 라이선스·위험 등급·복제 허용 목록.
+# 지원 대상 OS 두 종만 의존성 트리에 넣는다. 대상 밖 크레이트는 검사에서 걸러진다.
+[graph]
+targets = [
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+]
+
 [advisories]
 version = 2
 
 [licenses]
 version = 2
-allow = ["Apache-2.0", "MIT", "BSD-3-Clause", "ISC", "Zlib"]
+# OSI·FSF 승인 관례 라이선스만 허용한다. copyleft(LGPL·GPL)와 미승인(CDLA)은 기본 거부.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-3-Clause",
+    "MIT-0",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "Zlib",
+    "Unlicense",
+]
+confidence-threshold = 1.0
 
 [licenses.private]
 ignore = false

@@ -1,6 +1,7 @@
 .env
 *.env
 snap.jsonc
+credentials.jsonc
 target/
 models/
 logs/
@@ -10,3 +11,4 @@ docs/reviews/
 docs/tasks/
 docs/notes/
 __pycache__/
+.cursor/

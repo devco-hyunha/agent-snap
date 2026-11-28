@@ -6,6 +6,7 @@ description: 코드를 작성, 수정, 리뷰, 설계할 때 적용하는 보편
 # 개발 원칙 (색인)
 
 결론: 본문은 `leaves/` 잎 파일이다. 호출 표가 고른 잎만 Read한다. 잎·플레이북은 자동 스킬이 아니다.
+용어: 한국어 서술은 「시험」(`testing`/`test`·잎 파일명·`testing PASS`·명령은 원문). 짧은 포인터는 하네스 문서 1절.
 
 ## 1. 적용 우선순위
 
@@ -29,12 +30,13 @@ description: 코드를 작성, 수정, 리뷰, 설계할 때 적용하는 보편
 | 10 | comments.md |
 | 11 | workflow.md |
 | 12 | commit.md |
+| 13 | constants-locale.md |
 
 ## 호출 표
 
 | 플레이북 | 지정 잎 |
 |---|---|
-| build · review | solid · dry · kiss-yagni · separation · naming · errors · security · testing · comments · workflow |
+| build · review | solid · dry · kiss-yagni · separation · naming · errors · security · testing · comments · workflow · constants-locale |
 | 커밋(메인) | commit |
 | fast-track | dry · kiss-yagni · comments · workflow |
 | docs | comments · workflow |

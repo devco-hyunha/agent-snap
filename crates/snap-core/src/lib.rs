@@ -3,6 +3,7 @@ pub mod agent;
 pub mod config;
 pub mod consts;
 pub mod context;
+pub mod jsonc;
 pub mod llm;
 pub mod locale;
 pub mod monitor;
